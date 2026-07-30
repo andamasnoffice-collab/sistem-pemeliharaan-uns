@@ -46,6 +46,14 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #475569;
         }
+        /* Fix for scrollbar-none utility */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -73,18 +81,24 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Firebase Status & Sync Indicator -->
+                <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i :class="cloudStatus === 'connected' ? 'fa-solid fa-fire text-amber-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
+                    <span class="hidden md:inline">{{ cloudStatus === 'connected' ? 'Firebase Live' : (cloudStatus === 'loading' ? 'Syncing...' : 'Offline / Check Setup') }}</span>
+                </button>
+
                 <div v-if="isAdmin" class="flex items-center gap-2">
+                    <!-- Google Sheets Auto-Sync Indicator -->
+                    <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
+                        <span class="hidden md:inline">{{ sheetsWebhookUrl ? (isSheetsSyncing ? 'Writing Sheets...' : 'Sheets Sync Active') : 'Set Google Sheets' }}</span>
+                    </button>
+
                     <button @click="openMasterDataModal" class="px-3 py-1.5 bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-database"></i>
                         <span>Master Data</span>
                     </button>
 
-                    <!-- Firebase Status & Sync Indicator -->
-                    <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition">
-                        <i :class="cloudStatus === 'connected' ? 'fa-solid fa-fire text-amber-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
-                        <span class="hidden md:inline">{{ cloudStatus === 'connected' ? 'Firebase Live' : (cloudStatus === 'loading' ? 'Syncing...' : 'Offline / Check Setup') }}</span>
-                    </button>
-                    
                     <button @click="logoutAdmin" class="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span class="hidden sm:inline">Keluar Admin</span>
@@ -176,7 +190,7 @@
                 </div>
 
                 <!-- Dashboard Toolbar -->
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
                     <div class="flex-1 flex flex-col sm:flex-row gap-2">
                         <div class="relative flex-1">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
@@ -198,27 +212,29 @@
                             <option value="IN_SERVICE">🔵 SEDANG SERVIS / PENGAJUAN</option>
                             <option value="AMAN">🟢 AMAN</option>
                         </select>
+
+                        <select v-model="vehicleSortOption" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-semibold">
+                            <option value="URGENT_FIRST">⏳ Servis Terdekat → Terlama</option>
+                            <option value="URGENT_LAST">🟢 Servis Terlama → Terdekat</option>
+                            <option value="PLATE_ASC">🔤 Plat Nomor (A-Z)</option>
+                            <option value="KM_DESC">🚘 Odometer Terbanyak</option>
+                        </select>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <!-- Quick Odometer Update Button -->
+                    <div class="flex items-center gap-2 flex-wrap">
                         <button @click="openUpdateKmModal(null)" class="px-3 py-2 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="Update Odometer Terkini Armada">
                             <i class="fa-solid fa-gauge-high text-indigo-400"></i>
                             <span>Update KM</span>
                         </button>
 
-                        <!-- Public Driver Service Request Button -->
                         <button @click="openInServiceModal(null)" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
                             <i class="fa-solid fa-paper-plane"></i>
                             <span>Ajukan Servis</span>
                         </button>
+
                         <button v-if="isAdmin" @click="openAddVehicleModal" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
                             <i class="fa-solid fa-plus"></i>
                             <span>Tambah Armada</span>
-                        </button>
-                        <button v-if="isAdmin" @click="openNewServiceModal" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-receipt text-sky-400"></i>
-                            <span>Catat Servis</span>
                         </button>
                     </div>
                 </div>
@@ -228,20 +244,20 @@
                     <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 transition rounded-2xl p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
                         
                         <div class="space-y-3">
+                            <!-- Card Header -->
                             <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <span class="inline-block px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-sm tracking-wider uppercase mb-1">
+                                <div class="space-y-1">
+                                    <span class="inline-block px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-sm tracking-wider uppercase">
                                         {{ car.plate }}
                                     </span>
-                                    <h3 class="font-extrabold text-base text-white group-hover:text-sky-400 transition">{{ car.model }}</h3>
-                                    <p class="text-xs text-slate-400 flex items-center gap-2 mt-1">
+                                    <h3 class="font-extrabold text-base text-white group-hover:text-sky-400 transition leading-snug">{{ car.model }}</h3>
+                                    <p class="text-xs text-slate-400 flex items-center gap-2 pt-0.5">
                                         <span class="px-2 py-0.5 bg-slate-950 border border-slate-800 text-sky-400 rounded text-[10px] font-bold">{{ car.category || 'Operasional' }}</span>
-                                        <span><i class="fa-solid fa-user-gear text-slate-500"></i> {{ car.driver || 'Sopir UNS' }}</span>
+                                        <span class="truncate max-w-[140px]"><i class="fa-solid fa-user-gear text-slate-500 mr-1"></i>{{ car.driver || 'Sopir UNS' }}</span>
                                     </p>
                                 </div>
 
-                                <!-- Dynamic Vehicle Status Badge -->
-                                <div>
+                                <div class="flex flex-col items-end gap-1.5">
                                     <span v-if="car.isUnderService" class="px-2.5 py-1 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[10px] font-extrabold flex items-center gap-1 animate-pulse">
                                         <i class="fa-solid fa-clock-rotate-left"></i>
                                         <span>PENGAJUAN SERVIS</span>
@@ -258,10 +274,16 @@
                                         <i class="fa-solid fa-circle-check"></i>
                                         <span>AMAN</span>
                                     </span>
+
+                                    <!-- Quick Admin Edit Badge -->
+                                    <button v-if="isAdmin" @click.stop="openEditVehicleModal(car)" class="px-2 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Edit Data Kendaraan">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        <span>Edit</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Next Service Date Display Box -->
+                            <!-- Parameters Box -->
                             <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1.5">
                                 <div class="flex items-center justify-between text-xs">
                                     <span class="text-slate-400 font-semibold flex items-center gap-1.5">
@@ -295,7 +317,7 @@
                                 </div>
                             </div>
 
-                            <!-- In-Service Banner Action -->
+                            <!-- In-Service Banner vs Progress Bar -->
                             <div v-if="car.isUnderService" @click.stop class="bg-sky-950/60 border border-sky-800 p-2.5 rounded-xl text-xs space-y-1.5">
                                 <div class="flex items-center justify-between text-sky-300 font-semibold">
                                     <span>Bengkel Tujuan: {{ car.targetWorkshop || 'Nasmoco' }}</span>
@@ -308,7 +330,6 @@
                                 <p v-if="car.inServiceNotes" class="text-[11px] text-slate-300 italic">"{{ car.inServiceNotes }}"</p>
                                 
                                 <div class="flex items-center gap-2 pt-1">
-                                    <!-- Button for Admin to Complete and Input Invoice -->
                                     <button v-if="isAdmin" @click.stop="completeInServiceAndOpenServiceModal(car)" class="flex-1 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-[11px] transition shadow flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-circle-check"></i>
                                         <span>Selesaikan & Input Invoice</span>
@@ -325,7 +346,6 @@
                                 </div>
                             </div>
 
-                            <!-- Routine Maintenance Progress Bar -->
                             <div v-else class="space-y-1 pt-1">
                                 <div class="flex justify-between text-xs font-semibold">
                                     <span class="text-slate-400">Servis Rutin (7.000 KM / 6 Bln)</span>
@@ -341,8 +361,8 @@
                             </div>
                         </div>
 
-                        <!-- Card Footer -->
-                        <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-2" @click.stop>
+                        <!-- Card Action Buttons Footer -->
+                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2" @click.stop>
                             <button @click.stop="openVehicleDrawer(car)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-square-poll-vertical text-sky-400"></i>
                                 <span>Rincian Terperinci</span>
@@ -351,6 +371,10 @@
                             <button v-if="!car.isUnderService" @click.stop="openInServiceModal(car)" class="py-2 px-3 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="Ajukan Servis Armada">
                                 <i class="fa-solid fa-paper-plane text-sky-400"></i>
                                 <span class="hidden sm:inline">Ajukan Servis</span>
+                            </button>
+
+                            <button v-if="isAdmin" @click.stop="openEditVehicleModal(car)" class="py-2 px-3 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition shadow" title="Edit Data Armada (Admin)">
+                                <i class="fa-solid fa-pen-to-square"></i>
                             </button>
 
                             <button v-if="isAdmin" @click.stop="openQuickServiceForCar(car)" class="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow" title="Catat nota servis (Admin)">
@@ -399,7 +423,6 @@
                         </div>
                     </div>
 
-                    <!-- Category & Sorting Controls Bar -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Pilih Armada</label>
@@ -449,7 +472,6 @@
                         </div>
                     </div>
 
-                    <!-- Subtotal Banner -->
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between text-xs gap-2">
                         <div class="flex items-center gap-2 text-slate-300">
                             <span class="font-bold">Menampilkan:</span>
@@ -540,13 +562,13 @@
 
             <!-- SECTION 3: RECAP VIEW (ADMIN ONLY) -->
             <section v-if="currentTab === 'recap' && isAdmin" class="space-y-6">
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 class="font-extrabold text-base text-white flex items-center gap-2">
                             <i class="fa-solid fa-calendar-days text-sky-400"></i>
-                            <span>Rekapitulasi Pengeluaran Pemeliharaan Bulanan</span>
+                            <span>Rekapitulasi Pengeluaran Pemeliharaan Bulanan & Tahunan</span>
                         </h2>
-                        <p class="text-xs text-slate-400">Laporan akumulasi biaya pemeliharaan armada UNS per bulan</p>
+                        <p class="text-xs text-slate-400">Laporan akumulasi biaya pemeliharaan armada UNS per tahun dan per bulan</p>
                     </div>
 
                     <select v-model="recapYear" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold">
@@ -554,6 +576,39 @@
                         <option :value="2025">Tahun 2025</option>
                         <option :value="2026">Tahun 2026</option>
                     </select>
+                </div>
+
+                <!-- Annual Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xl border border-emerald-500/20">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Total Biaya Service ({{ recapYear }})</p>
+                            <p class="text-xl font-black text-emerald-400 font-mono">{{ maskMoney(annualRecapStats.totalCost, true) }}</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-xl border border-sky-500/20">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Total Transaksi ({{ recapYear }})</p>
+                            <p class="text-xl font-black text-white font-mono">{{ annualRecapStats.totalCount }} <span class="text-xs text-slate-500 font-sans font-normal">Transaksi</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xl border border-indigo-500/20">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Rata-Rata Biaya / Bulan</p>
+                            <p class="text-xl font-black text-indigo-300 font-mono">{{ maskMoney(annualRecapStats.averageMonthly, true) }}</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -584,6 +639,86 @@
 
         <!-- MODALS AND DRAWERS -->
 
+        <!-- MODAL: Google Sheets Auto-Sync Direct Settings -->
+        <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-file-spreadsheet"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-base text-white">Integrasi Auto-Write Google Spreadsheet</h3>
+                            <p class="text-xs text-slate-400">Setiap data bertambah/diubah otomatis langsung tertulis ke Google Sheets</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="activeSheetsModal = false" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Google Apps Script Web App URL *</label>
+                        <input type="url" v-model="sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">Tempelkan URL Web App dari Apps Script Google Sheets Anda di sini.</p>
+                    </div>
+
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-300">Auto-Write Realtime (Tanpa Klik Button):</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" v-model="autoSyncSheets" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+                        <p class="text-[10px] text-slate-400">Jika aktif, setiap penambahan/pengubahan kilometer, transaksi servis, atau armada akan langsung mengirimkan update ke Google Sheets tanpa perlu konfirmasi lagi.</p>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-300">Kode Apps Script (Salin ke Google Sheets -> Ekstensi -> Apps Script):</label>
+                        <pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[10px] text-emerald-300 font-mono overflow-x-auto max-h-36">
+function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  if (data.type === 'SYNC_ALL' || data.type === 'AUTO_WRITE') {
+    var sheetV = ss.getSheetByName('Master Armada') || ss.insertSheet('Master Armada');
+    sheetV.clear();
+    sheetV.appendRow(['Plat Nomor', 'Model Armada', 'Sopir', 'Kategori', 'Odometer Terkini (KM)', 'Odometer Servis Terakhir (KM)', 'Status']);
+    if (data.vehicles && data.vehicles.length) {
+      data.vehicles.forEach(function(v) {
+        sheetV.appendRow([v.plate, v.model, v.driver || '-', v.category || 'Operasional', v.currentKm || 0, v.lastServiceKm || 0, v.isUnderService ? 'Dalam Pengajuan Servis' : 'Aktif']);
+      });
+    }
+    
+    var sheetL = ss.getSheetByName('Riwayat Servis') || ss.insertSheet('Riwayat Servis');
+    sheetL.clear();
+    sheetL.appendRow(['ID Log', 'Tanggal', 'Plat Nomor', 'Bengkel', 'No Invoice', 'Odometer (KM)', 'Total Biaya (Rp)']);
+    if (data.logs && data.logs.length) {
+      data.logs.forEach(function(l) {
+        sheetL.appendRow([l.id, l.date, l.vehicleId, l.workshop, l.invoiceNo || '-', l.km || 0, l.totalCost || 0]);
+      });
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                        <button type="button" @click="saveSheetsSettingsAndTest" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Simpan URL & Tes Koneksi</span>
+                        </button>
+                        <button type="button" @click="triggerManualSheetsSync" :disabled="isSheetsSyncing" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+                            <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin text-emerald-400' : 'fa-solid fa-arrows-rotate text-emerald-400'"></i>
+                            <span>Tulis Ulang Seluruh Data Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL: Service Log Input / Edit -->
         <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
@@ -597,14 +732,13 @@
                             <p class="text-xs text-slate-400">Masukkan nota / invoice bengkel resmi atau rekanan</p>
                         </div>
                     </div>
-                    <button @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
                 <form @submit.prevent="saveServiceLog" class="space-y-4 text-xs">
                     
-                    <!-- OCR Invoice Scanner Button -->
                     <div class="bg-slate-950 p-3 rounded-xl border border-dashed border-sky-800/80 flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-base"></i>
@@ -662,7 +796,6 @@
                         </div>
                     </div>
 
-                    <!-- Vital Components Replaced Checkboxes -->
                     <div class="space-y-1.5 pt-2 border-t border-slate-800">
                         <label class="block font-bold text-slate-300">Penggantian Komponen Vital (Centang untuk Reset Keausan):</label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -693,7 +826,6 @@
                         </div>
                     </div>
 
-                    <!-- Itemized Items List -->
                     <div class="space-y-2 pt-2 border-t border-slate-800">
                         <div class="flex items-center justify-between">
                             <label class="font-bold text-slate-300">Rincian Sparepart / Pengerjaan *</label>
@@ -702,51 +834,26 @@
                             </button>
                         </div>
 
-                        <!-- Combined Dynamic Quick Sparepart Suggestions -->
+                        <!-- Autocomplete datalist for quick sparepart names -->
+                        <datalist id="sparepartDatalist">
+                            <option v-for="sug in allSparepartSuggestions" :key="sug.name" :value="sug.name"></option>
+                        </datalist>
+
                         <div class="flex flex-wrap gap-1.5 py-1">
-                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran Cepat:</span>
+                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran Cepat (15 Tersering):</span>
                             <button type="button" v-for="sug in combinedQuickSuggestions" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-sky-500 rounded-lg text-[10px] transition font-medium flex items-center gap-1">
                                 <i class="fa-solid fa-plus text-[9px] text-sky-400"></i> {{ sug.name }}
                             </button>
                         </div>
 
                         <div v-for="(item, idx) in serviceForm.items" :key="idx" class="flex items-center gap-2">
-                            <input type="text" v-model="item.name" list="sparepartDatalist" placeholder="Ketik nama sparepart / merk (misal: balljoint, evaporator, aki, oli)..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500 focus:outline-none">
+                            <input type="text" v-model="item.name" list="sparepartDatalist" placeholder="Ketik nama sparepart / merk..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500 focus:outline-none">
                             <input type="number" v-model.number="item.cost" placeholder="Biaya (Rp)..." required min="0" class="w-32 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white font-mono text-emerald-400">
                             <button type="button" @click="removeServiceItem(idx)" class="text-rose-400 hover:text-rose-300 p-2">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
                     </div>
-
-                    <!-- Autocomplete Datalist Options -->
-                    <datalist id="sparepartDatalist">
-                        <!-- Kaki-Kaki Mobil -->
-                        <option value="Ball Joint Depan Set (555 Japan / OEM) ~ Rp 350.000"></option>
-                        <option value="Tie Rod End & Rack End / Long Tie Rod Set ~ Rp 450.000"></option>
-                        <option value="Link Stabilizer Depan & Belakang Set ~ Rp 280.000"></option>
-                        <option value="Bushing Lower Arm & Upper Arm Set ~ Rp 320.000"></option>
-                        <option value="Shockbreaker Depan Set (KYB Excel-G / Tokico) ~ Rp 1.250.000"></option>
-                        <option value="Shockbreaker Belakang Set (KYB / OEM) ~ Rp 850.000"></option>
-                        <option value="Bearing Roda Depan/Belakang (NSK / Koyo) ~ Rp 480.000"></option>
-                        <option value="Support Shockbreaker & Karet Stopper ~ Rp 300.000"></option>
-                        <!-- Sistem AC -->
-                        <option value="Evaporator AC Cabin (Denso / Cool Gear) ~ Rp 850.000"></option>
-                        <option value="Kompresor AC Multi-Belt (Denso / Sanden OEM) ~ Rp 2.200.000"></option>
-                        <option value="Kondensor AC & Extra Fan ~ Rp 800.000"></option>
-                        <option value="Katup Ekspansi AC (Expansion Valve Denso) ~ Rp 275.000"></option>
-                        <option value="Filter Cabin AC Evaporator Carbon ~ Rp 120.000"></option>
-                        <option value="Flashing AC, Ganti Oli Kompresor & Freon R134a ~ Rp 400.000"></option>
-                        <!-- Oli & Engine -->
-                        <option value="Oli Mesin TGO 0W-20 Synthetic ~ Rp 450.000"></option>
-                        <option value="Oli Transmisi Matic ATF / CVT TGO ~ Rp 650.000"></option>
-                        <option value="Oli Gardan / Differential Fluid ~ Rp 250.000"></option>
-                        <option value="Aki GS Astra Hybrid NS40Z / 32B20R ~ Rp 1.150.000"></option>
-                        <option value="Filter Oli Genuine Toyota / Honda ~ Rp 85.000"></option>
-                        <option value="Kampas Rem Depan (Brake Pad) ~ Rp 450.000"></option>
-                        <option value="Ban Bridgestone Turanza 195/65 R15 ~ Rp 1.100.000"></option>
-                        <option value="Spooring 4 Roda & Balancing ~ Rp 250.000"></option>
-                    </datalist>
 
                     <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
                         <button type="button" @click="activeNewServiceModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
@@ -769,12 +876,11 @@
                             <p class="text-xs text-slate-400">Kelola & hapus sebagian atau seluruh database kendaraan & servis</p>
                         </div>
                     </div>
-                    <button @click="activeMasterDataModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeMasterDataModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
-                <!-- Tabs Master Data -->
                 <div class="flex items-center gap-2 border-b border-slate-800 pb-2 flex-wrap">
                     <button @click="masterDataTab = 'vehicles'" :class="masterDataTab === 'vehicles' ? 'bg-sky-600 text-white font-bold' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl text-xs transition">
                         Armada Kendaraan ({{ vehicles.length }})
@@ -801,7 +907,6 @@
                     </button>
                 </div>
 
-                <!-- TAB 1: VEHICLES MASTER DATA -->
                 <div v-if="masterDataTab === 'vehicles'" class="space-y-3">
                     <div class="flex items-center justify-between text-xs">
                         <span class="text-slate-400 font-bold">Daftar Master Kendaraan Armada:</span>
@@ -815,7 +920,7 @@
                         </div>
                     </div>
 
-                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
+                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 scrollbar-none">
                         <div v-for="v in vehicles" :key="v.id" class="p-2.5 bg-slate-950 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
                                 <input type="checkbox" :value="v.id" v-model="selectedMasterVehicleIds" class="w-4 h-4 accent-sky-500 rounded">
@@ -835,7 +940,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: LOGS MASTER DATA -->
                 <div v-if="masterDataTab === 'logs'" class="space-y-3">
                     <div class="flex items-center justify-between text-xs">
                         <span class="text-slate-400 font-bold">Daftar Master Riwayat Servis:</span>
@@ -849,7 +953,7 @@
                         </div>
                     </div>
 
-                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
+                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 scrollbar-none">
                         <div v-for="l in serviceLogs" :key="l.id" class="p-2.5 bg-slate-950 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
                                 <input type="checkbox" :value="l.id" v-model="selectedMasterLogIds" class="w-4 h-4 accent-sky-500 rounded">
@@ -864,7 +968,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: RESET TOTAL -->
                 <div v-if="masterDataTab === 'reset'" class="bg-rose-950/40 border border-rose-800/80 p-4 rounded-xl text-xs space-y-3">
                     <h4 class="font-bold text-rose-300 flex items-center gap-2">
                         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -889,22 +992,22 @@
                         </h3>
                         <p class="text-[11px] text-slate-400 mt-0.5">Form pengajuan perbaikan / servis oleh Pengemudi / Unit</p>
                     </div>
-                    <button @click="activeInServiceModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeInServiceModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <form @submit.prevent="saveInService" class="space-y-3">
+                <form @submit.prevent="saveInService" class="space-y-3 text-xs">
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
-                        <select v-model="inServiceForm.vehicleId" @change="onInServiceVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold uppercase">
-                            <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} ({{ car.driver }})</option>
+                        <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
+                        <select v-model="inServiceForm.vehicleId" @change="onInServiceVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase">
+                            <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} ({{ car.driver || 'Sopir' }})</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Bengkel Tujuan *</label>
-                        <select v-model="inServiceForm.workshop" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold">
+                        <label class="block font-bold text-slate-300 mb-1">Bengkel Tujuan *</label>
+                        <select v-model="inServiceForm.workshop" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold">
                             <option value="Nasmoco">Nasmoco</option>
                             <option value="Montecarlo">Montecarlo</option>
                             <option value="Zaini Auto">Zaini Auto</option>
@@ -914,23 +1017,23 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Odometer Saat Ini (KM) *</label>
-                        <input type="number" v-model.number="inServiceForm.km" required min="0" placeholder="Masukkan KM odometer terbaca..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-mono font-bold text-sky-400">
+                        <label class="block font-bold text-slate-300 mb-1">Odometer Saat Ini (KM) *</label>
+                        <input type="number" v-model.number="inServiceForm.km" required min="0" placeholder="Masukkan KM odometer terbaca..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-sky-400">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Tanggal Pengajuan *</label>
-                        <input type="date" v-model="inServiceForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+                        <label class="block font-bold text-slate-300 mb-1">Tanggal Pengajuan *</label>
+                        <input type="date" v-model="inServiceForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Catatan Keluhan / Pengerjaan</label>
-                        <textarea v-model="inServiceForm.notes" rows="3" placeholder="Contoh: Ganti oli berkala, cek rem bunyi, servis AC..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white"></textarea>
+                        <label class="block font-bold text-slate-300 mb-1">Catatan Keluhan / Pengerjaan</label>
+                        <textarea v-model="inServiceForm.notes" rows="3" placeholder="Contoh: Ganti oli berkala, cek rem bunyi, servis AC..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none"></textarea>
                     </div>
 
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                        <button type="button" @click="activeInServiceModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-sky-600/20">Kirim Pengajuan Servis</button>
+                        <button type="button" @click="activeInServiceModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow-lg shadow-sky-600/20">Kirim Pengajuan Servis</button>
                     </div>
                 </form>
             </div>
@@ -945,13 +1048,22 @@
                             {{ selectedDrawerVehicle.plate }}
                         </span>
                         <h2 class="font-extrabold text-lg text-white">{{ selectedDrawerVehicle.model }}</h2>
+                        <div v-if="isAdmin" class="flex items-center gap-2 mt-2">
+                            <button @click="openEditVehicleModal(selectedDrawerVehicle)" class="px-3 py-1 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>Edit Data Armada</span>
+                            </button>
+                            <button @click="deleteSingleVehicleMaster(selectedDrawerVehicle.id); activeVehicleDrawer = false" class="px-3 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Hapus Armada</span>
+                            </button>
+                        </div>
                     </div>
-                    <button @click="activeVehicleDrawer = false" class="text-slate-400 hover:text-white text-xl">
+                    <button type="button" @click="activeVehicleDrawer = false" class="text-slate-400 hover:text-white text-xl">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <!-- Odometer & Stats Summary -->
                 <div class="grid grid-cols-2 gap-3 text-xs">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
                         <span class="text-slate-400 block mb-1">Odometer Terkini:</span>
@@ -963,7 +1075,6 @@
                     </div>
                 </div>
 
-                <!-- Vital Component Health Bars -->
                 <div class="space-y-3">
                     <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
                         <i class="fa-solid fa-gauge-high text-sky-400"></i>
@@ -987,14 +1098,13 @@
                     </div>
                 </div>
 
-                <!-- Detailed Service Logs History for this vehicle -->
                 <div class="space-y-3">
                     <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-sky-400"></i>
-                        <span>Riwayat Pengerjaan & Pemeliharaan</span>
+                        <span>Riwayat Pengerjaan & Pemeliharaan (Terbaru di Atas)</span>
                     </h3>
 
-                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                    <div class="space-y-2 max-h-64 overflow-y-auto scrollbar-none">
                         <div v-for="log in getVehicleLogs(selectedDrawerVehicle.id)" :key="log.id" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
                             <div class="flex items-center justify-between font-bold text-white">
                                 <span>{{ log.workshop }} - {{ formatDateWib(log.date) }}</span>
@@ -1027,7 +1137,7 @@
                             <p class="text-[11px] text-slate-400">Penyimpanan cloud real-time terintegrasi</p>
                         </div>
                     </div>
-                    <button @click="activeCloudModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeCloudModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1113,7 +1223,7 @@
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-sm text-white">{{ vehicleForm.id ? 'Edit Data Armada' : 'Tambah Data Armada Baru' }}</h3>
-                    <button @click="activeVehicleModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeVehicleModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1149,6 +1259,14 @@
                         <input type="number" v-model.number="vehicleForm.currentKm" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-sky-400">
                     </div>
 
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Status Operasional Armada</label>
+                        <select v-model="vehicleForm.isUnderService" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold">
+                            <option :value="false">🟢 Beroperasi Normal (Aktif)</option>
+                            <option :value="true">🔵 Dalam Pengajuan / Sedang Servis</option>
+                        </select>
+                    </div>
+
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                         <button type="button" @click="activeVehicleModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
                         <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold">Simpan Armada</button>
@@ -1165,7 +1283,7 @@
                         <i class="fa-solid fa-file-invoice text-sky-400"></i>
                         <span>Faktur Pemeliharaan Digital</span>
                     </h3>
-                    <button @click="activeInvoiceModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeInvoiceModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1233,7 +1351,7 @@
             <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-base text-white">Rincian Laporan Bulan {{ getMonthName(selectedRecapMonth) }} {{ recapYear }}</h3>
-                    <button @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -1252,7 +1370,7 @@
 
                     <div>
                         <h4 class="font-bold text-slate-300 mb-2">Daftar Transaksi Servis Bulan Ini:</h4>
-                        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950">
+                        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950 scrollbar-none">
                             <div v-for="log in getServicedVehiclesForMonth(selectedRecapMonth, recapYear).logs" :key="log.id" class="p-3 flex items-center justify-between text-xs">
                                 <div>
                                     <span class="font-mono font-bold text-sky-400 mr-2">{{ getVehiclePlate(log.vehicleId) }}</span>
@@ -1272,14 +1390,14 @@
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-sm text-white">Import Data Riwayat Servis (Excel)</h3>
-                    <button @click="activeImportModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeImportModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <div class="space-y-3 text-xs">
                     <p class="text-slate-300">Pilih berkas Excel (`.xlsx` / `.xls`) berisi kolom: <span class="font-mono text-sky-400">Plat Nomor, Bengkel, Invoice, Tanggal, Odometer, Total Biaya, Item</span>.</p>
-                    <input type="file" accept=".xlsx, .xls" @change="handleExcelImport" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    <input type="file" ref="logFileInput" accept=".xlsx, .xls" @change="handleExcelImport" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
                 </div>
             </div>
         </div>
@@ -1297,7 +1415,7 @@
                             <p class="text-[11px] text-slate-400">Perbarui angka kilometer (KM) terkini kendaraan</p>
                         </div>
                     </div>
-                    <button @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white">
+                    <button type="button" @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1326,7 +1444,6 @@
                         <input type="number" v-model.number="updateKmForm.newKm" required min="0" placeholder="Masukkan kilometer terbaca dari odometer..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-base text-sky-400 focus:border-sky-500 focus:outline-none">
                     </div>
 
-                    <!-- Quick Add KM buttons -->
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase">Tambah Jarak Cepat:</label>
                         <div class="flex items-center gap-1.5 flex-wrap">
@@ -1362,9 +1479,7 @@
         import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
         import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
 
-        // Initialize Firebase Configuration
         const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'uns-fleet-service';
-        // Sanitize appId to ensure no forbidden path characters (like '.' in '.html') exist in Firebase paths
         const appId = String(rawAppId).replace(/[\/\.\#\$\[\]]/g, '_');
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
@@ -1400,6 +1515,7 @@
                     searchQuery: '',
                     categoryFilter: 'ALL',
                     statusFilter: 'ALL',
+                    vehicleSortOption: 'URGENT_FIRST',
 
                     logVehicleFilter: 'ALL',
                     logWorkshopFilter: 'ALL',
@@ -1422,6 +1538,11 @@
                     activeImportModal: false,
                     activeCloudModal: false,
                     activeUpdateKmModal: false,
+                    activeSheetsModal: false,
+
+                    sheetsWebhookUrl: localStorage.getItem('uns_sheets_webhook_url') || '',
+                    autoSyncSheets: JSON.parse(localStorage.getItem('uns_auto_sync_sheets') || 'true'),
+                    isSheetsSyncing: false,
 
                     selectedDrawerVehicle: null,
                     selectedLog: null,
@@ -1468,7 +1589,8 @@
                         model: '',
                         driver: '',
                         category: 'Operasional',
-                        currentKm: 0
+                        currentKm: 0,
+                        isUnderService: false
                     },
 
                     serviceForm: {
@@ -1484,22 +1606,52 @@
                     },
 
                     quickSparepartSuggestions: [
-                        { name: 'Oli Mesin 0W-20 TGO', cost: 450000 },
+                        { name: 'Oli Mesin 0W-20 TGO Full Synthetic', cost: 450000 },
+                        { name: 'Oli Mesin 5W-30 Synthetic', cost: 400000 },
                         { name: 'Filter Oli Genuine', cost: 85000 },
                         { name: 'Oli Transmisi Matic ATF / CVT', cost: 650000 },
-                        { name: 'Oli Gardan / Differential', cost: 250000 },
-                        { name: 'Aki GS Astra Hybrid', cost: 1150000 },
-                        { name: 'Ganti Ban / Tires', cost: 1100000 },
-                        { name: 'Kampas Rem Depan (Brake Pad)', cost: 450000 },
-                        { name: 'Kampas Rem Belakang (Brake Shoe)', cost: 350000 },
+                        { name: 'Oli Transmisi Manual (MTF)', cost: 300000 },
+                        { name: 'Oli Gardan / Differential (GL-5)', cost: 250000 },
+                        { name: 'Minyak Rem DOT 4 / Brake Fluid', cost: 95000 },
+                        { name: 'Oli Power Steering', cost: 120000 },
+                        { name: 'Flashing Kuras Oli Transmisi Matic', cost: 350000 },
+                        { name: 'Aki GS Astra Hybrid / MF Kering', cost: 1150000 },
+                        { name: 'Aki Yuasa / Incoe Heavy Duty', cost: 980000 },
+                        { name: 'Air Aki / Terminal Kepala Aki Set', cost: 45000 },
+                        { name: 'Busi Iridium Genuine Set', cost: 450000 },
+                        { name: 'Koil Pengapian (Ignition Coil)', cost: 650000 },
+                        { name: 'Alternator / Dinamo Ampere Charge', cost: 1850000 },
+                        { name: 'Dinamo Starter Set', cost: 1450000 },
+                        { name: 'Sekring Fuse Box & Relay Set', cost: 75000 },
+                        { name: 'Bohlam Lampu Utama LED / Halogen H4', cost: 250000 },
+                        { name: 'Sensor Oksigen / Sensor MAP/MAF', cost: 750000 },
+                        { name: 'Cairan Coolant Radiator Super Long Life', cost: 180000 },
+                        { name: 'Water Pump Radiator Set', cost: 750000 },
+                        { name: 'Thermostat Mesin & Gasket', cost: 350000 },
+                        { name: 'Selang Radiator Upper & Lower Set', cost: 220000 },
+                        { name: 'Kipas Radiator / Motor Extra Fan', cost: 850000 },
+                        { name: 'Radiator Assembly / Ganti Upper Tank Radiator', cost: 1350000 },
+                        { name: 'Tutup Radiator (Radiator Cap) Denso', cost: 95000 },
+                        { name: 'Filter Udara & Cabin AC Anti-Bakteri', cost: 150000 },
+                        { name: 'Evaporator AC Cabin Denso Genuine', cost: 850000 },
+                        { name: 'Flashing AC, Isu Freon R134a & Oli Kompresor', cost: 400000 },
+                        { name: 'Kompresor AC Set (Denso/Sandren)', cost: 2450000 },
+                        { name: 'Kondensor AC & Dryer Filter', cost: 950000 },
+                        { name: 'Katup Ekspansi AC (Expansion Valve)', cost: 320000 },
+                        { name: 'Blower AC Kabin & Motor Blower', cost: 650000 },
+                        { name: 'Kampas Rem Depan (Brake Pad Genuine)', cost: 450000 },
+                        { name: 'Kampas Rem Belakang (Brake Shoe / Pad)', cost: 350000 },
+                        { name: 'Mangkuk / Disc Rotor Rem Depan', cost: 650000 },
                         { name: 'Ball Joint Set (555 Japan)', cost: 350000 },
-                        { name: 'Tie Rod & Rack End Set', cost: 450000 },
+                        { name: 'Tie Rod End & Rack End Set', cost: 450000 },
                         { name: 'Link Stabilizer Depan Set', cost: 280000 },
-                        { name: 'Shockbreaker Depan/Belakang', cost: 1250000 },
-                        { name: 'Spooring 4 Roda & Balancing', cost: 250000 },
-                        { name: 'Filter Udara & Cabin AC', cost: 150000 },
-                        { name: 'Evaporator AC Cabin Denso', cost: 850000 },
-                        { name: 'Flashing AC, Freon R134a & Oli Kompresor', cost: 400000 }
+                        { name: 'Bushing Arm Depan & Belakang Set', cost: 480000 },
+                        { name: 'Bearing Roda / Wheel Hub Bearing', cost: 550000 },
+                        { name: 'Shockbreaker Depan Set (KYB/Tokico)', cost: 1450000 },
+                        { name: 'Shockbreaker Belakang Set', cost: 1100000 },
+                        { name: 'Support Shockbreaker & Rubber Mounting', cost: 380000 },
+                        { name: 'Ganti Ban (Bridgestone/Dunlop/GT Radial)', cost: 1100000 },
+                        { name: 'Spooring 4 Roda & Balancing Roda', cost: 250000 }
                     ],
 
                     vehicles: JSON.parse(localStorage.getItem('uns_vehicles') || '[]'),
@@ -1515,44 +1667,80 @@
             },
 
             computed: {
-                combinedQuickSuggestions() {
-                    const base = [...this.quickSparepartSuggestions];
-                    const namesInBase = new Set(base.map(b => b.name.toLowerCase()));
+                annualRecapStats() {
+                    const yearNum = Number(this.recapYear);
+                    const logs = (this.serviceLogs || []).filter(l => {
+                        if (!l.date) return false;
+                        const d = this.parseLocalDate(l.date);
+                        return d && d.getFullYear() === yearNum;
+                    });
+                    const totalCost = logs.reduce((acc, curr) => acc + (Number(curr.totalCost) || 0), 0);
+                    const totalCount = logs.length;
+                    const averageMonthly = Math.round(totalCost / 12);
+                    return { totalCost, totalCount, averageMonthly };
+                },
+
+                allSparepartSuggestions() {
+                    const counts = new Map();
                     
+                    this.quickSparepartSuggestions.forEach(s => {
+                        counts.set(s.name.toLowerCase(), {
+                            name: s.name,
+                            cost: s.cost,
+                            count: 1
+                        });
+                    });
+
                     if (this.serviceLogs && this.serviceLogs.length) {
                         this.serviceLogs.forEach(l => {
                             if (l.items && Array.isArray(l.items)) {
                                 l.items.forEach(it => {
                                     if (it.name && it.name.trim()) {
                                         const cleanName = it.name.trim();
-                                        if (!namesInBase.has(cleanName.toLowerCase())) {
-                                            namesInBase.add(cleanName.toLowerCase());
-                                            base.push({ name: cleanName, cost: Number(it.cost) || 0 });
+                                        const key = cleanName.toLowerCase();
+                                        const costNum = Number(it.cost) || 0;
+                                        if (counts.has(key)) {
+                                            const existing = counts.get(key);
+                                            existing.count += 1;
+                                            if (costNum > 0) existing.cost = costNum;
+                                        } else {
+                                            counts.set(key, {
+                                                name: cleanName,
+                                                cost: costNum,
+                                                count: 2
+                                            });
                                         }
                                     }
                                 });
                             }
                         });
                     }
-                    return base;
+
+                    return Array.from(counts.values());
+                },
+
+                combinedQuickSuggestions() {
+                    return [...this.allSparepartSuggestions]
+                        .sort((a, b) => b.count - a.count)
+                        .slice(0, 15);
                 },
 
                 routineVehiclesCount() {
-                    return this.vehicles.filter(v => !v.isUnderService && this.getRoutineStatus(v).type === 'safe').length;
+                    return (this.vehicles || []).filter(v => !v.isUnderService && this.getRoutineStatus(v).type === 'safe').length;
                 },
                 urgentVehiclesCount() {
-                    return this.vehicles.filter(v => !v.isUnderService && this.getRoutineStatus(v).type === 'warning').length;
+                    return (this.vehicles || []).filter(v => !v.isUnderService && this.getRoutineStatus(v).type === 'warning').length;
                 },
                 expiredVehiclesCount() {
-                    return this.vehicles.filter(v => !v.isUnderService && this.getRoutineStatus(v).type === 'danger').length;
+                    return (this.vehicles || []).filter(v => !v.isUnderService && this.getRoutineStatus(v).type === 'danger').length;
                 },
                 inServiceVehiclesCount() {
-                    return this.vehicles.filter(v => v.isUnderService).length;
+                    return (this.vehicles || []).filter(v => v.isUnderService).length;
                 },
 
                 filteredVehicles() {
-                    return this.vehicles.filter(car => {
-                        const q = this.searchQuery.toLowerCase();
+                    let list = (this.vehicles || []).filter(car => {
+                        const q = this.searchQuery ? this.searchQuery.toLowerCase() : '';
                         const matchesSearch = !q || (car.plate && car.plate.toLowerCase().includes(q)) || 
                                               (car.model && car.model.toLowerCase().includes(q)) || 
                                               (car.driver && car.driver.toLowerCase().includes(q));
@@ -1572,10 +1760,25 @@
 
                         return matchesSearch && matchesCategory && matchesStatus;
                     });
+
+                    list.sort((a, b) => {
+                        if (this.vehicleSortOption === 'URGENT_FIRST' || this.vehicleSortOption === 'URGENT_LAST') {
+                            const scoreA = this.getVehicleUrgencyScore(a);
+                            const scoreB = this.getVehicleUrgencyScore(b);
+                            return this.vehicleSortOption === 'URGENT_FIRST' ? (scoreB - scoreA) : (scoreA - scoreB);
+                        } else if (this.vehicleSortOption === 'PLATE_ASC') {
+                            return (a.plate || '').localeCompare(b.plate || '');
+                        } else if (this.vehicleSortOption === 'KM_DESC') {
+                            return (Number(b.currentKm) || 0) - (Number(a.currentKm) || 0);
+                        }
+                        return 0;
+                    });
+
+                    return list;
                 },
 
                 filteredServiceLogs() {
-                    let logs = [...this.serviceLogs];
+                    let logs = [...(this.serviceLogs || [])];
 
                     if (this.logVehicleFilter !== 'ALL') {
                         logs = logs.filter(l => l.vehicleId === this.logVehicleFilter || l.vehicleId === this.getVehiclePlate(this.logVehicleFilter));
@@ -1599,9 +1802,17 @@
                     }
 
                     if (this.logSortOption === 'DATE_DESC') {
-                        logs.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
+                        logs.sort((a, b) => {
+                            const tA = this.parseLocalDate(a.date)?.getTime() || 0;
+                            const tB = this.parseLocalDate(b.date)?.getTime() || 0;
+                            return tB - tA;
+                        });
                     } else if (this.logSortOption === 'DATE_ASC') {
-                        logs.sort((a, b) => (this.parseLocalDate(a.date) || 0) - (this.parseLocalDate(b.date) || 0));
+                        logs.sort((a, b) => {
+                            const tA = this.parseLocalDate(a.date)?.getTime() || 0;
+                            const tB = this.parseLocalDate(b.date)?.getTime() || 0;
+                            return tA - tB;
+                        });
                     } else if (this.logSortOption === 'COST_DESC') {
                         logs.sort((a, b) => (Number(b.totalCost) || 0) - (Number(a.totalCost) || 0));
                     } else if (this.logSortOption === 'COST_ASC') {
@@ -1624,10 +1835,75 @@
             },
 
             methods: {
+                async syncToGoogleSheetsAuto(vList = null, lList = null) {
+                    if (!this.sheetsWebhookUrl || !this.autoSyncSheets) return;
+                    
+                    this.isSheetsSyncing = true;
+                    try {
+                        const payload = {
+                            type: 'AUTO_WRITE',
+                            timestamp: new Date().toISOString(),
+                            vehicles: vList || this.vehicles,
+                            logs: lList || this.serviceLogs
+                        };
+
+                        await fetch(this.sheetsWebhookUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (e) {
+                        console.error('Google Sheets Auto-Sync Write error:', e);
+                    } finally {
+                        this.isSheetsSyncing = false;
+                    }
+                },
+
+                saveSheetsSettingsAndTest() {
+                    localStorage.setItem('uns_sheets_webhook_url', this.sheetsWebhookUrl);
+                    localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
+                    if (this.sheetsWebhookUrl) {
+                        this.triggerManualSheetsSync();
+                    } else {
+                        this.showToast('URL Google Apps Script dikosongkan', 'success');
+                    }
+                },
+
+                async triggerManualSheetsSync() {
+                    if (!this.sheetsWebhookUrl) {
+                        this.showToast('Masukkan URL Apps Script Google Sheets terlebih dahulu!', 'error');
+                        return;
+                    }
+                    this.isSheetsSyncing = true;
+                    try {
+                        const payload = {
+                            type: 'SYNC_ALL',
+                            timestamp: new Date().toISOString(),
+                            vehicles: this.vehicles,
+                            logs: this.serviceLogs
+                        };
+
+                        await fetch(this.sheetsWebhookUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        this.showToast('Data berhasil dituliskan otomatis ke Google Spreadsheet!', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('Gagal mengirimkan data ke Google Sheets', 'error');
+                    } finally {
+                        this.isSheetsSyncing = false;
+                    }
+                },
+
                 async initFirebase() {
                     if (!auth || !db) {
                         this.cloudStatus = 'error';
-                        this.cloudErrorMessage = 'Firebase SDK tidak terinisialisasi.';
+                        this.cloudErrorMessage = 'Firebase SDK gagal dimuat.';
                         return;
                     }
 
@@ -1643,12 +1919,11 @@
                             this.firebaseUserId = userCred.user.uid;
                         }
                     } catch (err) {
-                        console.warn("Auth warning (Akses lokal file:// atau pembatasan domain):", err);
-                        this.firebaseUserId = 'Akses Lokal / Anonim';
+                        console.warn("Auth warning (Akses lokal file:// detected):", err);
+                        this.firebaseUserId = 'Akses Lokal Public';
                         this.cloudErrorMessage = err.message || String(err);
                     }
 
-                    // Always execute listeners so DB sync works directly
                     this.setupRealtimeListeners();
                 },
 
@@ -1658,37 +1933,43 @@
                     const vehiclesRef = ref(db, 'artifacts/' + appId + '/public/data/vehicles');
                     const logsRef = ref(db, 'artifacts/' + appId + '/public/data/logs');
 
-                    // Listen to Vehicles Realtime Database
                     onValue(vehiclesRef, (snapshot) => {
                         this.cloudStatus = 'connected';
                         this.cloudErrorMessage = '';
-                        const data = snapshot.val();
-                        if (data) {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
                             this.vehicles = Object.values(data).map(v => ({
                                 ...v,
                                 currentKm: Number(v.currentKm) || 0,
                                 lastServiceKm: Number(v.lastServiceKm) || 0
                             }));
                             localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
-                        } else if (this.vehicles.length === 0) {
-                            this.loadSampleData();
+                        } else {
+                            if (this.vehicles.length > 0) {
+                                this.vehicles = [];
+                                localStorage.setItem('uns_vehicles', '[]');
+                            }
                         }
                     }, (err) => {
                         console.error("Realtime DB vehicles listener error:", err);
                         this.cloudStatus = 'error';
-                        this.cloudErrorMessage = 'Izin akses ditolak! Pastikan Rules Realtime Database diatur ke .read: true dan .write: true.';
+                        this.cloudErrorMessage = 'Izin akses ditolak! Pastikan Rules Realtime Database diatur ke true.';
                     });
 
-                    // Listen to Service Logs Realtime Database
                     onValue(logsRef, (snapshot) => {
-                        const data = snapshot.val();
-                        if (data) {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
                             this.serviceLogs = Object.values(data).map(l => ({
                                 ...l,
                                 km: Number(l.km) || 0,
                                 totalCost: Number(l.totalCost) || 0
                             }));
                             localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
+                        } else {
+                            if (this.serviceLogs.length > 0) {
+                                this.serviceLogs = [];
+                                localStorage.setItem('uns_logs', '[]');
+                            }
                         }
                     }, (err) => {
                         console.error("Realtime DB logs listener error:", err);
@@ -1760,13 +2041,49 @@
                     if (s.match(/^\d{2}-\d{2}-\d{4}$/)) {
                         const parts = s.split('-');
                         return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                    } else if (s.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                        const parts = s.split('/');
+                        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
                     } else if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
                         const parts = s.split('-');
+                        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                    } else if (s.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
+                        const parts = s.split('/');
                         return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                     }
 
                     const d = new Date(s);
                     return isNaN(d.getTime()) ? null : d;
+                },
+
+                parseExcelDate(val) {
+                    if (!val) return new Date().toISOString().substring(0, 10);
+                    
+                    if (typeof val === 'number') {
+                        if (typeof XLSX !== 'undefined' && XLSX.SSF && XLSX.SSF.parse_date_code) {
+                            const dObj = XLSX.SSF.parse_date_code(val);
+                            if (dObj) {
+                                const y = dObj.y;
+                                const m = String(dObj.m).padStart(2, '0');
+                                const d = String(dObj.d).padStart(2, '0');
+                                return `${y}-${m}-${d}`;
+                            }
+                        }
+                        const jsDate = new Date(Math.round((val - (25567 + 2)) * 86400 * 1000));
+                        if (!isNaN(jsDate.getTime())) {
+                            return jsDate.toISOString().substring(0, 10);
+                        }
+                    }
+
+                    const parsed = this.parseLocalDate(val);
+                    if (parsed) {
+                        const year = parsed.getFullYear();
+                        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+                        const day = String(parsed.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    }
+
+                    return new Date().toISOString().substring(0, 10);
                 },
 
                 loginAdmin() {
@@ -1801,11 +2118,12 @@
                             notes: ''
                         };
                     } else {
+                        const firstCar = this.vehicles.length ? this.vehicles[0] : null;
                         this.inServiceForm = {
-                            vehicleId: this.vehicles.length ? this.vehicles[0].id : '',
+                            vehicleId: firstCar ? firstCar.id : '',
                             workshop: 'Nasmoco',
                             date: new Date().toISOString().substring(0, 10),
-                            km: 0,
+                            km: firstCar ? (Number(firstCar.currentKm) || 0) : 0,
                             notes: ''
                         };
                     }
@@ -1848,6 +2166,7 @@
                         car.currentKm = Number(this.updateKmForm.newKm) || 0;
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
+                        this.syncToGoogleSheetsAuto();
                         this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
                     }
                     this.activeUpdateKmModal = false;
@@ -1872,6 +2191,7 @@
                         }
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
+                        this.syncToGoogleSheetsAuto();
                         this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
                     }
                     this.activeInServiceModal = false;
@@ -1903,6 +2223,7 @@
                         car.inServiceNotes = '';
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
+                        this.syncToGoogleSheetsAuto();
                         this.showToast(`Pengajuan servis ${car.plate} dibatalkan`, 'success');
                     }
                 },
@@ -1958,30 +2279,114 @@
                     const d = this.parseLocalDate(car.lastServiceDate);
                     if (!d) return '-';
 
-                    d.setMonth(d.getMonth() + 6);
+                    const nextD = new Date(d);
+                    nextD.setMonth(nextD.getMonth() + 6);
 
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const year = d.getFullYear();
+                    const day = String(nextD.getDate()).padStart(2, '0');
+                    const month = String(nextD.getMonth() + 1).padStart(2, '0');
+                    const year = nextD.getFullYear();
 
                     return `${day}-${month}-${year}`;
                 },
 
                 getRoutineStatus(car) {
                     if (!car) return { label: 'Aman', type: 'safe', percent: 0 };
-                    const current = Number(car.currentKm) || 0;
-                    const last = Number(car.lastServiceKm) || 0;
-                    const diff = Math.max(0, current - last);
-                    const limit = 7000;
-                    const percent = Math.min(100, Math.round((diff / limit) * 100));
 
-                    if (diff >= limit) {
-                        return { label: `Lewat ${(diff - limit).toLocaleString('id-ID')} KM`, type: 'danger', percent: 100 };
-                    } else if (diff >= 5000) {
-                        return { label: `Sisa ${(limit - diff).toLocaleString('id-ID')} KM`, type: 'warning', percent };
-                    } else {
-                        return { label: `Sisa ${(limit - diff).toLocaleString('id-ID')} KM`, type: 'safe', percent };
+                    const current = Number(car.currentKm) || 0;
+                    const lastKm = Number(car.lastServiceKm) || 0;
+                    const diffKm = Math.max(0, current - lastKm);
+                    const limitKm = 7000;
+                    const kmPercent = Math.min(100, Math.round((diffKm / limitKm) * 100));
+
+                    let isDateDanger = false;
+                    let isDateWarning = false;
+                    let daysRemaining = null;
+                    let datePercent = 0;
+
+                    if (car.lastServiceDate) {
+                        const lastD = this.parseLocalDate(car.lastServiceDate);
+                        if (lastD) {
+                            const nextD = new Date(lastD);
+                            nextD.setMonth(nextD.getMonth() + 6);
+
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            nextD.setHours(0, 0, 0, 0);
+
+                            const diffTime = nextD.getTime() - today.getTime();
+                            daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            if (daysRemaining <= 0) {
+                                isDateDanger = true;
+                                datePercent = 100;
+                            } else if (daysRemaining <= 30) {
+                                isDateWarning = true;
+                                datePercent = Math.min(100, Math.round(((180 - daysRemaining) / 180) * 100));
+                            } else {
+                                datePercent = Math.min(100, Math.max(0, Math.round(((180 - daysRemaining) / 180) * 100)));
+                            }
+                        }
                     }
+
+                    const isKmDanger = diffKm >= limitKm;
+                    const isKmWarning = diffKm >= 5500;
+
+                    if (isKmDanger || isDateDanger) {
+                        let label = '';
+                        if (isKmDanger && isDateDanger) {
+                            label = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM & Tgl`;
+                        } else if (isKmDanger) {
+                            label = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM`;
+                        } else {
+                            label = daysRemaining < 0 ? `Lewat ${Math.abs(daysRemaining)} Hr (Tgl)` : `Jatuh Tempo Hari Ini`;
+                        }
+                        return { label, type: 'danger', percent: 100 };
+                    }
+
+                    if (isKmWarning || isDateWarning) {
+                        let label = '';
+                        if (isKmWarning && isDateWarning) {
+                            label = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM / ${daysRemaining} Hr`;
+                        } else if (isKmWarning) {
+                            label = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
+                        } else {
+                            label = `Sisa ${daysRemaining} Hari (Tgl)`;
+                        }
+                        return { label, type: 'warning', percent: Math.max(kmPercent, datePercent) };
+                    }
+
+                    let remainingText = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
+                    if (daysRemaining !== null && daysRemaining > 0) {
+                        remainingText += ` (${daysRemaining} hr)`;
+                    }
+                    return { label: remainingText, type: 'safe', percent: Math.max(kmPercent, datePercent) };
+                },
+
+                getVehicleUrgencyScore(car) {
+                    if (!car) return -999;
+                    if (car.isUnderService) return -500;
+
+                    const current = Number(car.currentKm) || 0;
+                    const lastKm = Number(car.lastServiceKm) || 0;
+                    const diffKm = Math.max(0, current - lastKm);
+                    const kmScore = diffKm / 7000;
+
+                    let dateScore = 0;
+                    if (car.lastServiceDate) {
+                        const lastD = this.parseLocalDate(car.lastServiceDate);
+                        if (lastD) {
+                            const nextD = new Date(lastD);
+                            nextD.setMonth(nextD.getMonth() + 6);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            nextD.setHours(0, 0, 0, 0);
+                            const diffTime = nextD.getTime() - today.getTime();
+                            const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            dateScore = (180 - daysRemaining) / 180;
+                        }
+                    }
+
+                    return Math.max(kmScore, dateScore);
                 },
 
                 getComponentWear(car, compKey) {
@@ -2022,7 +2427,11 @@
                         });
 
                         if (matchingLogs.length > 0) {
-                            matchingLogs.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
+                            matchingLogs.sort((a, b) => {
+                                const timeA = this.parseLocalDate(a.date)?.getTime() || 0;
+                                const timeB = this.parseLocalDate(b.date)?.getTime() || 0;
+                                return timeB - timeA;
+                            });
                             lastReplacementLog = matchingLogs[0];
                         }
                     }
@@ -2093,19 +2502,20 @@
                 getVehicleLogs(vehicleId) {
                     const car = this.vehicles.find(v => v.id === vehicleId);
                     const plate = car ? car.plate : vehicleId;
-                    return this.serviceLogs.filter(l => l.vehicleId === vehicleId || l.vehicleId === plate);
+                    const logs = this.serviceLogs.filter(l => l.vehicleId === vehicleId || l.vehicleId === plate);
+                    
+                    return logs.sort((a, b) => {
+                        const dA = this.parseLocalDate(a.date)?.getTime() || 0;
+                        const dB = this.parseLocalDate(b.date)?.getTime() || 0;
+                        return dB - dA;
+                    });
                 },
 
                 getLastWorkshop(car) {
                     if (!car) return '-';
                     const logs = this.getVehicleLogs(car.id);
                     if (!logs || logs.length === 0) return 'Belum Ada';
-                    const sorted = [...logs].sort((a, b) => {
-                        const dA = this.parseLocalDate(a.date) || new Date(0);
-                        const dB = this.parseLocalDate(b.date) || new Date(0);
-                        return dB - dA;
-                    });
-                    return sorted[0].workshop || '-';
+                    return logs[0].workshop || '-';
                 },
 
                 maskMoney(amount, forceShow = false) {
@@ -2162,7 +2572,7 @@
                     if (!this.serviceForm.items) {
                         this.serviceForm.items = [];
                     }
-                    if (this.serviceForm.items.length === 1 && (!this.serviceForm.items[0].name || this.serviceForm.items[0].cost === 0)) {
+                    if (this.serviceForm.items.length === 1 && !this.serviceForm.items[0].name && this.serviceForm.items[0].cost === 0) {
                         this.serviceForm.items[0] = { name: sug.name, cost: sug.cost };
                     } else {
                         this.serviceForm.items.push({ name: sug.name, cost: sug.cost });
@@ -2217,28 +2627,39 @@
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
 
                     this.syncLogToCloud(logData);
+                    this.syncToGoogleSheetsAuto();
 
                     this.activeNewServiceModal = false;
-                    this.showToast('Catatan servis berhasil disimpan ke Firebase Realtime DB!', 'success');
+                    this.showToast('Catatan servis tersimpan!', 'success');
                 },
 
                 handleInvoiceScan(event) {
                     const file = event.target.files[0];
                     if (!file) return;
 
-                    this.showToast('Menganalisis foto nota dengan AI...', 'success');
+                    this.showToast('Menganalisis foto nota dengan AI Tesseract...', 'success');
                     if (typeof Tesseract !== 'undefined') {
-                        Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
+                        Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
                             const invMatch = text.match(/(INV|FAKTUR|NO)[\s:-]*([A-Z0-9-]+)/i);
                             if (invMatch) {
                                 this.serviceForm.invoiceNo = invMatch[2];
                             }
-                            this.showToast('AI Scan selesai!', 'success');
+                            const amountMatches = text.match(/(RP|TOTAL)[\s:.]*([0-9.,]+)/gi);
+                            if (amountMatches && amountMatches.length > 0 && this.serviceForm.items.length > 0) {
+                                const cleanNum = amountMatches[0].replace(/[^0-9]/g, '');
+                                if (cleanNum && Number(cleanNum) > 1000) {
+                                    this.serviceForm.items[0].cost = Number(cleanNum);
+                                }
+                            }
+                            this.showToast('AI Scan nota berhasil!', 'success');
                         }).catch(() => {
                             this.showToast('Gagal memproses gambar nota', 'error');
+                        }).finally(() => {
+                            if (event.target) event.target.value = '';
                         });
                     } else {
                         this.showToast('AI OCR belum siap', 'error');
+                        if (event.target) event.target.value = '';
                     }
                 },
 
@@ -2307,6 +2728,8 @@
                     localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
 
+                    this.syncToGoogleSheetsAuto();
+
                     this.activeDeleteModal = false;
                     this.logToDeleteId = null;
                     this.showToast('Penghapusan riwayat servis berhasil diproses.', 'success');
@@ -2320,15 +2743,19 @@
                         const routineLogs = vLogs.filter(l => this.isRoutineItem(l));
                         if (routineLogs.length > 0) {
                             const latest = routineLogs.reduce((max, curr) => {
-                                const dCurr = this.parseLocalDate(curr.date);
-                                const dMax = this.parseLocalDate(max.date);
-                                if (!dCurr) return max;
-                                if (!dMax) return curr;
+                                const dCurr = this.parseLocalDate(curr.date)?.getTime() || 0;
+                                const dMax = this.parseLocalDate(max.date)?.getTime() || 0;
                                 return dCurr > dMax ? curr : max;
                             }, routineLogs[0]);
                             car.lastServiceKm = Number(latest.km) || 0;
                             car.lastServiceDate = latest.date;
+                        } else {
+                            car.lastServiceKm = 0;
+                            car.lastServiceDate = '';
                         }
+                    } else {
+                        car.lastServiceKm = 0;
+                        car.lastServiceDate = '';
                     }
                 },
 
@@ -2346,6 +2773,7 @@
                     localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
 
                     this.deleteVehicleFromCloud(id);
+                    this.syncToGoogleSheetsAuto();
                     this.showToast('Armada & riwayat servicenya berhasil dihapus', 'success');
                 },
 
@@ -2361,17 +2789,27 @@
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     
                     this.deleteLogFromCloud(id);
+                    this.syncToGoogleSheetsAuto();
                     this.showToast('Log servis berhasil dihapus', 'success');
                 },
 
                 confirmBulkDeleteMasterData(type) {
                     if (type === 'vehicles_selected') {
-                        this.selectedMasterVehicleIds.forEach(id => this.deleteVehicleFromCloud(id));
+                        this.selectedMasterVehicleIds.forEach(id => {
+                            const car = this.vehicles.find(v => v.id === id);
+                            const plate = car ? car.plate : id;
+                            const logsToDelete = this.serviceLogs.filter(l => l.vehicleId === id || l.vehicleId === plate);
+                            logsToDelete.forEach(l => this.deleteLogFromCloud(l.id));
+                            this.serviceLogs = this.serviceLogs.filter(l => l.vehicleId !== id && l.vehicleId !== plate);
+                            this.deleteVehicleFromCloud(id);
+                        });
                         this.vehicles = this.vehicles.filter(v => !this.selectedMasterVehicleIds.includes(v.id));
                         this.selectedMasterVehicleIds = [];
                     } else if (type === 'vehicles_all') {
                         this.vehicles.forEach(v => this.deleteVehicleFromCloud(v.id));
+                        this.serviceLogs.forEach(l => this.deleteLogFromCloud(l.id));
                         this.vehicles = [];
+                        this.serviceLogs = [];
                         this.selectedMasterVehicleIds = [];
                     } else if (type === 'logs_selected') {
                         this.selectedMasterLogIds.forEach(id => this.deleteLogFromCloud(id));
@@ -2398,7 +2836,9 @@
 
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
-                    this.showToast('Database berhasil diperbarui di Firebase', 'success');
+                    
+                    this.syncToGoogleSheetsAuto();
+                    this.showToast('Database berhasil diperbarui', 'success');
                 },
 
                 openAddVehicleModal() {
@@ -2408,7 +2848,8 @@
                         model: '',
                         driver: '',
                         category: 'Operasional',
-                        currentKm: 0
+                        currentKm: 0,
+                        isUnderService: false
                     };
                     this.activeVehicleModal = true;
                 },
@@ -2420,7 +2861,8 @@
                         model: car.model,
                         driver: car.driver || '',
                         category: car.category || 'Operasional',
-                        currentKm: Number(car.currentKm) || 0
+                        currentKm: Number(car.currentKm) || 0,
+                        isUnderService: Boolean(car.isUnderService)
                     };
                     this.activeVehicleModal = true;
                 },
@@ -2438,19 +2880,23 @@
                                 ...this.vehicleForm, 
                                 id: plateUpper,
                                 plate: plateUpper,
-                                currentKm: Number(this.vehicleForm.currentKm) || 0
+                                currentKm: Number(this.vehicleForm.currentKm) || 0,
+                                isUnderService: Boolean(this.vehicleForm.isUnderService)
                             };
                             this.vehicles[idx] = updatedCar;
                         }
                         if (oldId !== plateUpper) {
                             this.deleteVehicleFromCloud(oldId);
                             this.serviceLogs.forEach(l => {
-                                if (l.vehicleId === oldId) {
+                                if (l.vehicleId === oldId || l.vehicleId === this.vehicles[idx].plate) {
                                     l.vehicleId = plateUpper;
                                     this.syncLogToCloud(l);
                                 }
                             });
                             localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
+                        }
+                        if (this.selectedDrawerVehicle && (this.selectedDrawerVehicle.id === oldId || this.selectedDrawerVehicle.id === plateUpper)) {
+                            this.selectedDrawerVehicle = updatedCar;
                         }
                     } else {
                         updatedCar = {
@@ -2462,7 +2908,7 @@
                             currentKm: Number(this.vehicleForm.currentKm) || 0,
                             lastServiceKm: Number(this.vehicleForm.currentKm) || 0,
                             lastServiceDate: new Date().toISOString().substring(0, 10),
-                            isUnderService: false
+                            isUnderService: Boolean(this.vehicleForm.isUnderService)
                         };
                         this.vehicles.push(updatedCar);
                     }
@@ -2470,8 +2916,10 @@
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     if (updatedCar) this.syncVehicleToCloud(updatedCar);
 
+                    this.syncToGoogleSheetsAuto();
+
                     this.activeVehicleModal = false;
-                    this.showToast('Data armada ' + plateUpper + ' tersimpan di Firebase!', 'success');
+                    this.showToast('Data armada ' + plateUpper + ' tersimpan!', 'success');
                 },
 
                 openInvoiceModal(log) {
@@ -2495,10 +2943,11 @@
                 },
 
                 getServicedVehiclesForMonth(m, year) {
+                    const yearNum = Number(year);
                     const logs = this.serviceLogs.filter(l => {
                         if (!l.date) return false;
                         const d = this.parseLocalDate(l.date);
-                        return d && (d.getMonth() + 1) === m && d.getFullYear() === year;
+                        return d && (d.getMonth() + 1) === m && d.getFullYear() === yearNum;
                     });
                     const totalCost = logs.reduce((acc, curr) => acc + (Number(curr.totalCost) || 0), 0);
                     return { logs, totalCost };
@@ -2553,7 +3002,7 @@
                                     const category = r['Kategori Operational'] || r['Kategori'] || 'Operasional';
                                     const currentKm = Number(r['Odometer Terkini (KM)']) || Number(r['Odometer Terkini']) || Number(r['Odometer']) || Number(r['KM Terkini']) || 0;
                                     const lastServiceKm = Number(r['Odometer Servis Terakhir (KM)']) || Number(r['Odometer Servis Terakhir']) || currentKm;
-                                    const lastServiceDate = r['Tanggal Servis Terakhir'] || r['Tanggal Servis'] || new Date().toISOString().substring(0, 10);
+                                    const lastServiceDate = this.parseExcelDate(r['Tanggal Servis Terakhir'] || r['Tanggal Servis']);
 
                                     const carObj = {
                                         id: plateUpper,
@@ -2579,11 +3028,13 @@
                             });
 
                             localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
-                            this.showToast(`Berhasil mengimpor ${importedCount} data armada ke Firebase!`, 'success');
-                            if (e.target) e.target.value = '';
+                            this.syncToGoogleSheetsAuto();
+                            this.showToast(`Berhasil mengimpor ${importedCount} data armada!`, 'success');
                         } catch (err) {
                             console.error('Import vehicle error:', err);
                             this.showToast('Gagal mengimpor berkas Excel Armada', 'error');
+                        } finally {
+                            if (e.target) e.target.value = '';
                         }
                     };
                     reader.readAsArrayBuffer(file);
@@ -2631,44 +3082,89 @@
 
                     const reader = new FileReader();
                     reader.onload = (evt) => {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const rows = XLSX.utils.sheet_to_json(firstSheet);
+                        try {
+                            const data = new Uint8Array(evt.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const rows = XLSX.utils.sheet_to_json(firstSheet);
 
-                        const affectedPlates = new Set();
-
-                        rows.forEach(r => {
-                            if (r['Plat Nomor']) {
-                                const plate = String(r['Plat Nomor']).trim();
-                                affectedPlates.add(plate);
-                                const newLog = {
-                                    id: 'LOG-' + Date.now() + Math.floor(Math.random() * 100),
-                                    vehicleId: plate,
-                                    workshop: r['Bengkel'] || 'Nasmoco',
-                                    invoiceNo: r['Invoice'] || '',
-                                    date: r['Tanggal'] || new Date().toISOString().substring(0, 10),
-                                    km: Number(r['Odometer']) || 0,
-                                    totalCost: Number(r['Total Biaya']) || 0,
-                                    isRoutine: true,
-                                    items: [{ name: r['Item'] || 'Servis Berkala', cost: Number(r['Total Biaya']) || 0 }],
-                                    replacedComponents: []
-                                };
-                                this.serviceLogs.unshift(newLog);
-                                this.syncLogToCloud(newLog);
+                            if (!rows || rows.length === 0) {
+                                this.showToast('File Excel kosong atau tidak terbaca', 'error');
+                                return;
                             }
-                        });
 
-                        affectedPlates.forEach(p => {
-                            this.recalculateVehicleStats(p);
-                            const car = this.vehicles.find(v => v.id === p || v.plate === p);
-                            if (car) this.syncVehicleToCloud(car);
-                        });
+                            const affectedPlates = new Set();
+                            let count = 0;
 
-                        localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
-                        localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
-                        this.activeImportModal = false;
-                        this.showToast('Import Excel Log Servis Berhasil!', 'success');
+                            rows.forEach(r => {
+                                const plateRaw = r['Plat Nomor'] || r['Plat'] || r['NO PLAT'] || r['No Plat'] || r['PLAT'];
+                                if (plateRaw) {
+                                    const plate = String(plateRaw).toUpperCase().trim();
+                                    affectedPlates.add(plate);
+
+                                    const workshop = r['Bengkel Mitra'] || r['Bengkel'] || r['BENGKEL'] || 'Nasmoco';
+                                    const invoiceNo = r['No Invoice'] || r['Invoice'] || r['NO INVOICE'] || r['No. Invoice'] || r['No Faktur'] || '';
+                                    const dateVal = r['Tanggal Servis'] || r['Tanggal'] || r['TANGGAL'] || r['Tgl'];
+                                    const parsedDate = this.parseExcelDate(dateVal);
+                                    const kmVal = Number(r['Odometer (KM)']) || Number(r['Odometer']) || Number(r['ODOMETER']) || Number(r['KM']) || 0;
+                                    const costVal = Number(r['Total Biaya (Rp)']) || Number(r['Total Biaya']) || Number(r['TOTAL BIAYA']) || Number(r['Biaya']) || 0;
+                                    const itemRaw = r['Rincian Sparepart / Pekerjaan'] || r['Item'] || r['Pekerjaan'] || r['Rincian'] || 'Servis Berkala';
+
+                                    const newLog = {
+                                        id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                                        vehicleId: plate,
+                                        workshop,
+                                        invoiceNo,
+                                        date: parsedDate,
+                                        km: kmVal,
+                                        totalCost: costVal,
+                                        isRoutine: true,
+                                        items: [{ name: String(itemRaw), cost: costVal }],
+                                        replacedComponents: []
+                                    };
+
+                                    this.serviceLogs.unshift(newLog);
+                                    this.syncLogToCloud(newLog);
+                                    count++;
+                                }
+                            });
+
+                            if (count > 0) {
+                                affectedPlates.forEach(p => {
+                                    let car = this.vehicles.find(v => v.id === p || v.plate === p);
+                                    if (!car) {
+                                        car = {
+                                            id: p,
+                                            plate: p,
+                                            model: 'Mobil Dinas Import',
+                                            driver: '-',
+                                            category: 'Operasional',
+                                            currentKm: 0,
+                                            lastServiceKm: 0,
+                                            lastServiceDate: new Date().toISOString().substring(0, 10),
+                                            isUnderService: false
+                                        };
+                                        this.vehicles.push(car);
+                                    }
+                                    this.recalculateVehicleStats(p);
+                                    this.syncVehicleToCloud(car);
+                                });
+
+                                localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
+                                localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
+                                
+                                this.syncToGoogleSheetsAuto();
+                                this.activeImportModal = false;
+                                this.showToast(`Berhasil mengimpor ${count} data riwayat servis!`, 'success');
+                            } else {
+                                this.showToast('Kolom "Plat Nomor" tidak ditemukan pada file Excel', 'error');
+                            }
+                        } catch (err) {
+                            console.error('Import log error:', err);
+                            this.showToast('Gagal memproses file Excel riwayat servis', 'error');
+                        } finally {
+                            if (e.target) e.target.value = '';
+                        }
                     };
                     reader.readAsArrayBuffer(file);
                 },
@@ -2698,18 +3194,18 @@
 
                 loadSampleData() {
                     const sampleVehicles = [
-                        { id: 'AD 1001 ZA', plate: 'AD 1001 ZA', model: 'Toyota Innova Zenix 2.0 HV', driver: 'Pak Bambang', category: 'Pimpinan', currentKm: 14200, lastServiceKm: 12000, lastServiceDate: '10-05-2026', isUnderService: false },
-                        { id: 'AD 7002 GA', plate: 'AD 7002 GA', model: 'Toyota HiAce Commuter 2.5', driver: 'Pak Joko', category: 'Operasional', currentKm: 85200, lastServiceKm: 76000, lastServiceDate: '15-11-2025', isUnderService: false },
-                        { id: 'AD 1088 UB', plate: 'AD 1088 UB', model: 'Mitsubishi Pajero Sport Dakar', driver: 'Pak Haryanto', category: 'Pimpinan', currentKm: 32100, lastServiceKm: 28000, lastServiceDate: '01-03-2026', isUnderService: true, targetWorkshop: 'Nasmoco', inServiceDate: '28-07-2026', inServiceNotes: 'Servis berkala & ganti pad rem' },
-                        { id: 'AD 9901 UNS', plate: 'AD 9901 UNS', model: 'Toyota Avanza 1.5 G CVT', driver: 'Sopir Fakultas', category: 'Fakultas', currentKm: 48900, lastServiceKm: 43000, lastServiceDate: '12-02-2026', isUnderService: false },
-                        { id: 'AD 1234 FA', plate: 'AD 1234 FA', model: 'Honda CR-V 1.5 Turbo', driver: 'Pak Supri', category: 'Unit', currentKm: 21500, lastServiceKm: 19000, lastServiceDate: '20-06-2026', isUnderService: false },
-                        { id: 'AD 8899 FK', plate: 'AD 8899 FK', model: 'Isuzu Elf Microbus 16 Seat', driver: 'Pak Wahyu', category: 'Operasional', currentKm: 112000, lastServiceKm: 108000, lastServiceDate: '18-04-2026', isUnderService: false }
+                        { id: 'AD 1001 ZA', plate: 'AD 1001 ZA', model: 'Toyota Innova Zenix 2.0 HV', driver: 'Pak Bambang', category: 'Pimpinan', currentKm: 14200, lastServiceKm: 12000, lastServiceDate: '2026-05-10', isUnderService: false },
+                        { id: 'AD 7002 GA', plate: 'AD 7002 GA', model: 'Toyota HiAce Commuter 2.5', driver: 'Pak Joko', category: 'Operasional', currentKm: 85200, lastServiceKm: 76000, lastServiceDate: '2025-11-15', isUnderService: false },
+                        { id: 'AD 1088 UB', plate: 'AD 1088 UB', model: 'Mitsubishi Pajero Sport Dakar', driver: 'Pak Haryanto', category: 'Pimpinan', currentKm: 32100, lastServiceKm: 28000, lastServiceDate: '2026-03-01', isUnderService: true, targetWorkshop: 'Nasmoco', inServiceDate: '2026-07-28', inServiceNotes: 'Servis berkala & ganti pad rem' },
+                        { id: 'AD 9901 UNS', plate: 'AD 9901 UNS', model: 'Toyota Avanza 1.5 G CVT', driver: 'Sopir Fakultas', category: 'Fakultas', currentKm: 48900, lastServiceKm: 43000, lastServiceDate: '2026-02-12', isUnderService: false },
+                        { id: 'AD 1234 FA', plate: 'AD 1234 FA', model: 'Honda CR-V 1.5 Turbo', driver: 'Pak Supri', category: 'Unit', currentKm: 21500, lastServiceKm: 19000, lastServiceDate: '2026-06-20', isUnderService: false },
+                        { id: 'AD 8899 FK', plate: 'AD 8899 FK', model: 'Isuzu Elf Microbus 16 Seat', driver: 'Pak Wahyu', category: 'Operasional', currentKm: 112000, lastServiceKm: 108000, lastServiceDate: '2026-04-18', isUnderService: false }
                     ];
 
                     const sampleLogs = [
-                        { id: 'LOG-101', vehicleId: 'AD 1001 ZA', workshop: 'Nasmoco', date: '10-05-2026', km: 12000, invoiceNo: 'INV-8821', isRoutine: true, items: [{ name: 'Oli Mesin TGO 0W-20', cost: 450000 }, { name: 'Filter Oli Genuine', cost: 85000 }], replacedComponents: ['filterOli'], totalCost: 535000 },
-                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Montecarlo', date: '15-11-2025', km: 76000, invoiceNo: 'MNT-402', isRoutine: true, items: [{ name: 'Ban Dunlop Enasave x4', cost: 4200000 }, { name: 'Spooring & Balancing', cost: 250000 }], replacedComponents: ['ban'], totalCost: 445000 },
-                        { id: 'LOG-103', vehicleId: 'AD 9901 UNS', workshop: 'Zaini Auto', date: '12-02-2026', km: 43000, invoiceNo: 'ZAI-901', isRoutine: true, items: [{ name: 'Aki GS Astra Hybrid', cost: 1150000 }, { name: 'Servis AC & Evaporator', cost: 850000 }], replacedComponents: ['aki', 'ac'], totalCost: 2000000 }
+                        { id: 'LOG-101', vehicleId: 'AD 1001 ZA', workshop: 'Nasmoco', date: '2026-05-10', km: 12000, invoiceNo: 'INV-8821', isRoutine: true, items: [{ name: 'Oli Mesin TGO 0W-20', cost: 450000 }, { name: 'Filter Oli Genuine', cost: 85000 }], replacedComponents: ['filterOli'], totalCost: 535000 },
+                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Montecarlo', date: '2025-11-15', km: 76000, invoiceNo: 'MNT-402', isRoutine: true, items: [{ name: 'Ban Dunlop Enasave x4', cost: 4200000 }, { name: 'Spooring & Balancing', cost: 250000 }], replacedComponents: ['ban'], totalCost: 445000 },
+                        { id: 'LOG-103', vehicleId: 'AD 9901 UNS', workshop: 'Zaini Auto', date: '2026-02-12', km: 43000, invoiceNo: 'ZAI-901', isRoutine: true, items: [{ name: 'Aki GS Astra Hybrid', cost: 1150000 }, { name: 'Servis AC & Evaporator', cost: 850000 }], replacedComponents: ['aki', 'ac'], totalCost: 2000000 }
                     ];
 
                     this.vehicles = sampleVehicles;
