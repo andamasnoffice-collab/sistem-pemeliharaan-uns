@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Perawatan Kendaraan Dinas UNS</title>
+    <title>AUTOMAN UNS - Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,14 +46,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #475569;
         }
-        /* Fix for scrollbar-none utility */
-        .scrollbar-none::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-none {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -65,18 +57,58 @@
 
     <div id="app" class="flex-1 flex flex-col min-h-screen" v-cloak>
 
-        <!-- Header Bar -->
         <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-xl">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 font-bold text-lg">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                <!-- Custom AUTOMAN Logo Emblem SVG -->
+                <div class="w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800/80 p-1 flex items-center justify-center shadow-lg shadow-sky-500/20 group hover:scale-105 transition-transform duration-300">
+                    <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="automanBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8"/>
+                                <stop offset="100%" stop-color="#0284c7"/>
+                            </linearGradient>
+                            <linearGradient id="automanOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fb923c"/>
+                                <stop offset="100%" stop-color="#ea580c"/>
+                            </linearGradient>
+                            <linearGradient id="automanDarkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#0f172a"/>
+                                <stop offset="100%" stop-color="#020617"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Outer Shield Frame -->
+                        <path d="M60 14 L95 28 C95 72 60 98 60 106 C60 98 25 72 25 28 Z" fill="url(#automanDarkGrad)" stroke="url(#automanBlueGrad)" stroke-width="5" stroke-linejoin="round"/>
+                        <path d="M60 21 L89 33 C89 67 60 90 60 96 C60 90 31 67 31 33 Z" stroke="url(#automanOrangeGrad)" stroke-width="3.5" stroke-linecap="round"/>
+
+                        <!-- Top Shield Checkmark Badge -->
+                        <path d="M60 5 L73 13 C73 25 60 32 60 35 C60 32 47 25 47 13 Z" fill="url(#automanBlueGrad)" stroke="#ffffff" stroke-width="1.5"/>
+                        <path d="M54 17 L58 21 L66 13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+                        <!-- Gear / Cog Background Right -->
+                        <path d="M78 48 A 15 15 0 1 0 78 78 A 15 15 0 1 0 78 48 Z" stroke="url(#automanOrangeGrad)" stroke-width="3" fill="none" stroke-dasharray="5 3"/>
+
+                        <!-- Car Silhouette -->
+                        <path d="M22 60 Q28 55 38 49 Q50 42 65 42 Q78 42 88 48 Q96 53 98 58 Q100 61 94 63 Q88 64 84 64 L25 64 Q20 64 22 60 Z" fill="url(#automanBlueGrad)"/>
+                        <path d="M42 50 Q52 44 64 44 Q74 44 81 48 C72 49 56 49 42 50 Z" fill="#020617" opacity="0.85"/>
+
+                        <!-- Wheels -->
+                        <circle cx="38" cy="64" r="7.5" fill="#0f172a" stroke="url(#automanBlueGrad)" stroke-width="2.5"/>
+                        <circle cx="38" cy="64" r="2.5" fill="#ffffff"/>
+                        <circle cx="78" cy="64" r="7.5" fill="#0f172a" stroke="url(#automanBlueGrad)" stroke-width="2.5"/>
+                        <circle cx="78" cy="64" r="2.5" fill="#ffffff"/>
+
+                        <!-- Large Horizontal Wrench Across Bumper -->
+                        <path d="M16 68 C16 62 22 60 26 64 L78 64 C82 60 88 62 88 68 C88 74 82 76 78 72 L26 72 C22 76 16 74 16 68 Z" fill="url(#automanBlueGrad)" stroke="#ffffff" stroke-width="1.5"/>
+                        <circle cx="21" cy="68" r="3" fill="#0f172a"/>
+                    </svg>
                 </div>
                 <div>
                     <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
-                        <span>UNS Fleet Service Management</span>
+                        <span><span class="text-sky-400 font-black">AUTOMAN</span> UNS</span>
                         <span class="text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Firebase Realtime</span>
                     </h1>
-                    <p class="text-[11px] text-slate-400 hidden sm:block">Sistem Pemeliharaan, Servis Berkala & Kontrol Armada Dinas UNS</p>
+                    <p class="text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
                 </div>
             </div>
 
@@ -88,7 +120,7 @@
                 </button>
 
                 <div v-if="isAdmin" class="flex items-center gap-2">
-                    <!-- Google Sheets Auto-Sync Indicator -->
+                    <!-- Google Sheets Auto-Sync Indicator (Admin Only) -->
                     <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
                         <span class="hidden md:inline">{{ sheetsWebhookUrl ? (isSheetsSyncing ? 'Writing Sheets...' : 'Sheets Sync Active') : 'Set Google Sheets' }}</span>
@@ -112,7 +144,6 @@
             </div>
         </header>
 
-        <!-- Navigation Bar -->
         <nav class="bg-slate-900/60 border-b border-slate-800 px-4 lg:px-8 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none">
             <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-chart-pie"></i>
@@ -133,7 +164,6 @@
 
         <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
-            <!-- SECTION 1: DASHBOARD VIEW -->
             <section v-if="currentTab === 'dashboard'" class="space-y-6">
                 
                 <!-- Quick Metrics Cards -->
@@ -240,7 +270,7 @@
                 </div>
 
                 <!-- Vehicle Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 transition rounded-2xl p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
                         
                         <div class="space-y-3">
@@ -275,11 +305,17 @@
                                         <span>AMAN</span>
                                     </span>
 
-                                    <!-- Quick Admin Edit Badge -->
-                                    <button v-if="isAdmin" @click.stop="openEditVehicleModal(car)" class="px-2 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Edit Data Kendaraan">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                        <span>Edit</span>
-                                    </button>
+                                    <!-- Quick Admin Edit & Delete Badges -->
+                                    <div v-if="isAdmin" class="flex items-center gap-1">
+                                        <button @click.stop="openEditVehicleModal(car)" class="px-2 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Edit Data Kendaraan">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button @click.stop="openDeleteVehicleModal(car)" class="px-2 py-0.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Hapus Armada Kendaraan">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -377,15 +413,35 @@
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
 
+                            <button v-if="isAdmin" @click.stop="openDeleteVehicleModal(car)" class="py-2 px-3 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition shadow" title="Hapus Armada (Admin)">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+
                             <button v-if="isAdmin" @click.stop="openQuickServiceForCar(car)" class="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow" title="Catat nota servis (Admin)">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Empty State Vehicles -->
+                <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-2xl">
+                        <i class="fa-solid fa-car-side"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white">Tidak Ada Data Armada Kendaraan</h3>
+                    <p class="text-xs text-slate-400 max-w-md mx-auto">Database armada kendaraan saat ini kosong atau tidak ada kendaraan yang sesuai dengan pencarian / filter.</p>
+                    <div class="flex justify-center gap-2 pt-2">
+                        <button v-if="isAdmin" @click="openAddVehicleModal" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Tambah Armada Baru
+                        </button>
+                        <button v-if="isAdmin" @click="loadSampleData" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition">
+                            <i class="fa-solid fa-database mr-1"></i> Muat Data Uji Coba
+                        </button>
+                    </div>
+                </div>
             </section>
 
-            <!-- SECTION 2: LOGS VIEW (ADMIN ONLY) -->
             <section v-if="currentTab === 'logs' && isAdmin" class="space-y-6">
                 <!-- Log Actions & Filter Toolbar -->
                 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3">
@@ -506,7 +562,7 @@
                                     <th class="p-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800/80 font-medium">
+                            <tbody v-if="filteredServiceLogs.length > 0" class="divide-y divide-slate-800/80 font-medium">
                                 <tr v-for="log in filteredServiceLogs" :key="log.id" class="hover:bg-slate-800/40 transition">
                                     <td class="p-3 text-center">
                                         <input type="checkbox" :value="log.id" v-model="selectedLogIds" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
@@ -542,16 +598,23 @@
                                     </td>
                                     <td class="p-3 whitespace-nowrap text-center">
                                         <div class="flex items-center justify-center gap-1.5">
-                                            <button @click="openInvoiceModal(log)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-lg font-bold text-[10px]">
+                                            <button @click="openInvoiceModal(log)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-lg font-bold text-[10px]" title="Faktur Digital">
                                                 <i class="fa-solid fa-file-invoice"></i>
                                             </button>
-                                            <button @click="openEditServiceModal(log)" class="px-2 py-1 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg font-bold text-[10px]">
+                                            <button @click="openEditServiceModal(log)" class="px-2 py-1 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg font-bold text-[10px]" title="Edit Log">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
-                                            <button @click="openDeleteServiceModal(log.id)" class="px-2 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg font-bold text-[10px]">
+                                            <button @click="openDeleteServiceModal(log.id)" class="px-2 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg font-bold text-[10px]" title="Hapus Log">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody v-else>
+                                <tr>
+                                    <td colspan="9" class="p-8 text-center text-slate-500 font-medium">
+                                        Tidak ada catatan riwayat servis yang ditemukan.
                                     </td>
                                 </tr>
                             </tbody>
@@ -560,7 +623,6 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: RECAP VIEW (ADMIN ONLY) -->
             <section v-if="currentTab === 'recap' && isAdmin" class="space-y-6">
                 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
@@ -637,9 +699,50 @@
 
         </main>
 
-        <!-- MODALS AND DRAWERS -->
 
-        <!-- MODAL: Google Sheets Auto-Sync Direct Settings -->
+        <!-- MODAL: Delete Vehicle Confirmation -->
+        <div v-if="activeDeleteVehicleModal && vehicleToDelete" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 text-center">
+                <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-white">
+                        Hapus Armada {{ vehicleToDelete.plate }}?
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Tindakan ini akan menghapus kendaraan <b>{{ vehicleToDelete.model }}</b> beserta seluruh {{ getVehicleLogs(vehicleToDelete.id).length }} catatan riwayat servicenya. Data tidak dapat dikembalikan.
+                    </p>
+                </div>
+
+                <div class="flex items-center justify-center gap-2 pt-2">
+                    <button type="button" @click="activeDeleteVehicleModal = false; vehicleToDelete = null" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="button" @click="confirmDeleteVehicle" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus Armada</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Single / Bulk Log Deletion Confirmation -->
+        <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 text-center">
+                <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-white">
+                        {{ deleteType === 'single' ? 'Hapus Riwayat Servis?' : (deleteType === 'selected' ? `Hapus ${selectedLogIds.length} Data Terpilih?` : `Hapus ${filteredServiceLogs.length} Data Hasil Filter?`) }}
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Data riwayat servis yang dihapus tidak dapat dikembalikan lagi.</p>
+                </div>
+
+                <div class="flex items-center justify-center gap-2 pt-2">
+                    <button type="button" @click="activeDeleteModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="button" @click="confirmDeleteServiceLog" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Google Sheets Auto-Sync Settings -->
         <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -649,10 +752,10 @@
                         </div>
                         <div>
                             <h3 class="font-extrabold text-base text-white">Integrasi Auto-Write Google Spreadsheet</h3>
-                            <p class="text-xs text-slate-400">Setiap data bertambah/diubah otomatis langsung tertulis ke Google Sheets</p>
+                            <p class="text-xs text-slate-400">Setiap data bertambah/diubah/dihapus otomatis tertulis ke Google Sheets</p>
                         </div>
                     </div>
-                    <button type="button" @click="activeSheetsModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeSheetsModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -672,7 +775,7 @@
                                 <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
                             </label>
                         </div>
-                        <p class="text-[10px] text-slate-400">Jika aktif, setiap penambahan/pengubahan kilometer, transaksi servis, atau armada akan langsung mengirimkan update ke Google Sheets tanpa perlu konfirmasi lagi.</p>
+                        <p class="text-[10px] text-slate-400">Jika aktif, setiap penambahan/pengubahan/penghapusan data akan langsung memperbarui Google Sheets secara otomatis.</p>
                     </div>
 
                     <div class="space-y-1">
@@ -732,7 +835,7 @@ function doPost(e) {
                             <p class="text-xs text-slate-400">Masukkan nota / invoice bengkel resmi atau rekanan</p>
                         </div>
                     </div>
-                    <button type="button" @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -876,7 +979,7 @@ function doPost(e) {
                             <p class="text-xs text-slate-400">Kelola & hapus sebagian atau seluruh database kendaraan & servis</p>
                         </div>
                     </div>
-                    <button type="button" @click="activeMasterDataModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeMasterDataModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -920,7 +1023,7 @@ function doPost(e) {
                         </div>
                     </div>
 
-                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 scrollbar-none">
+                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
                         <div v-for="v in vehicles" :key="v.id" class="p-2.5 bg-slate-950 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
                                 <input type="checkbox" :value="v.id" v-model="selectedMasterVehicleIds" class="w-4 h-4 accent-sky-500 rounded">
@@ -929,13 +1032,16 @@ function doPost(e) {
                                 <span class="text-[10px] bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded">{{ v.category }}</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <button @click="openEditVehicleModal(v)" class="text-amber-400 hover:text-amber-300 text-xs px-2 py-1">
+                                <button @click="openEditVehicleModal(v)" class="text-amber-400 hover:text-amber-300 text-xs px-2 py-1" title="Edit Armada">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                                <button @click="deleteSingleVehicleMaster(v.id)" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1">
+                                <button @click="openDeleteVehicleModal(v)" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1" title="Hapus Armada">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
+                        </div>
+                        <div v-if="vehicles.length === 0" class="p-4 text-center text-slate-500">
+                            Tidak ada kendaraan di master database.
                         </div>
                     </div>
                 </div>
@@ -953,7 +1059,7 @@ function doPost(e) {
                         </div>
                     </div>
 
-                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 scrollbar-none">
+                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
                         <div v-for="l in serviceLogs" :key="l.id" class="p-2.5 bg-slate-950 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
                                 <input type="checkbox" :value="l.id" v-model="selectedMasterLogIds" class="w-4 h-4 accent-sky-500 rounded">
@@ -961,9 +1067,12 @@ function doPost(e) {
                                 <span class="font-mono font-bold text-sky-400">{{ getVehiclePlate(l.vehicleId) }}</span>
                                 <span class="text-slate-300">{{ l.workshop }}</span>
                             </div>
-                            <button @click="deleteSingleLogMaster(l.id)" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1">
+                            <button @click="deleteSingleLogMaster(l.id)" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1" title="Hapus Log">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
+                        </div>
+                        <div v-if="serviceLogs.length === 0" class="p-4 text-center text-slate-500">
+                            Tidak ada log riwayat servis di master database.
                         </div>
                     </div>
                 </div>
@@ -992,7 +1101,7 @@ function doPost(e) {
                         </h3>
                         <p class="text-[11px] text-slate-400 mt-0.5">Form pengajuan perbaikan / servis oleh Pengemudi / Unit</p>
                     </div>
-                    <button type="button" @click="activeInServiceModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeInServiceModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1053,13 +1162,13 @@ function doPost(e) {
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 <span>Edit Data Armada</span>
                             </button>
-                            <button @click="deleteSingleVehicleMaster(selectedDrawerVehicle.id); activeVehicleDrawer = false" class="px-3 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <button @click="openDeleteVehicleModal(selectedDrawerVehicle)" class="px-3 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Hapus Armada</span>
                             </button>
                         </div>
                     </div>
-                    <button type="button" @click="activeVehicleDrawer = false" class="text-slate-400 hover:text-white text-xl">
+                    <button @click="activeVehicleDrawer = false" class="text-slate-400 hover:text-white text-xl">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1104,7 +1213,7 @@ function doPost(e) {
                         <span>Riwayat Pengerjaan & Pemeliharaan (Terbaru di Atas)</span>
                     </h3>
 
-                    <div class="space-y-2 max-h-64 overflow-y-auto scrollbar-none">
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
                         <div v-for="log in getVehicleLogs(selectedDrawerVehicle.id)" :key="log.id" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
                             <div class="flex items-center justify-between font-bold text-white">
                                 <span>{{ log.workshop }} - {{ formatDateWib(log.date) }}</span>
@@ -1118,6 +1227,9 @@ function doPost(e) {
                                     {{ it.name }}
                                 </span>
                             </div>
+                        </div>
+                        <div v-if="getVehicleLogs(selectedDrawerVehicle.id).length === 0" class="text-center p-4 text-slate-500 text-xs">
+                            Belum ada riwayat servis untuk kendaraan ini.
                         </div>
                     </div>
                 </div>
@@ -1137,7 +1249,7 @@ function doPost(e) {
                             <p class="text-[11px] text-slate-400">Penyimpanan cloud real-time terintegrasi</p>
                         </div>
                     </div>
-                    <button type="button" @click="activeCloudModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeCloudModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1223,7 +1335,7 @@ function doPost(e) {
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-sm text-white">{{ vehicleForm.id ? 'Edit Data Armada' : 'Tambah Data Armada Baru' }}</h3>
-                    <button type="button" @click="activeVehicleModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeVehicleModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1283,7 +1395,7 @@ function doPost(e) {
                         <i class="fa-solid fa-file-invoice text-sky-400"></i>
                         <span>Faktur Pemeliharaan Digital</span>
                     </h3>
-                    <button type="button" @click="activeInvoiceModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeInvoiceModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1326,32 +1438,12 @@ function doPost(e) {
             </div>
         </div>
 
-        <!-- MODAL: Single / Bulk Deletion Confirmation -->
-        <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 text-center">
-                <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-extrabold text-white">
-                        {{ deleteType === 'single' ? 'Hapus Riwayat Servis?' : (deleteType === 'selected' ? `Hapus ${selectedLogIds.length} Data Terpilih?` : `Hapus ${filteredServiceLogs.length} Data Hasil Filter?`) }}
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-1">Data riwayat servis yang dihapus tidak dapat dikembalikan lagi.</p>
-                </div>
-
-                <div class="flex items-center justify-center gap-2 pt-2">
-                    <button type="button" @click="activeDeleteModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
-                    <button type="button" @click="confirmDeleteServiceLog" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus Data</button>
-                </div>
-            </div>
-        </div>
-
         <!-- MODAL: Monthly Recap Detail -->
         <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-base text-white">Rincian Laporan Bulan {{ getMonthName(selectedRecapMonth) }} {{ recapYear }}</h3>
-                    <button type="button" @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -1370,7 +1462,7 @@ function doPost(e) {
 
                     <div>
                         <h4 class="font-bold text-slate-300 mb-2">Daftar Transaksi Servis Bulan Ini:</h4>
-                        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950 scrollbar-none">
+                        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950">
                             <div v-for="log in getServicedVehiclesForMonth(selectedRecapMonth, recapYear).logs" :key="log.id" class="p-3 flex items-center justify-between text-xs">
                                 <div>
                                     <span class="font-mono font-bold text-sky-400 mr-2">{{ getVehiclePlate(log.vehicleId) }}</span>
@@ -1390,7 +1482,7 @@ function doPost(e) {
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-sm text-white">Import Data Riwayat Servis (Excel)</h3>
-                    <button type="button" @click="activeImportModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeImportModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1415,7 +1507,7 @@ function doPost(e) {
                             <p class="text-[11px] text-slate-400">Perbarui angka kilometer (KM) terkini kendaraan</p>
                         </div>
                     </div>
-                    <button type="button" @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1534,6 +1626,7 @@ function doPost(e) {
                     activeVehicleModal: false,
                     activeInvoiceModal: false,
                     activeDeleteModal: false,
+                    activeDeleteVehicleModal: false,
                     activeMonthDetailModal: false,
                     activeImportModal: false,
                     activeCloudModal: false,
@@ -1545,6 +1638,7 @@ function doPost(e) {
                     isSheetsSyncing: false,
 
                     selectedDrawerVehicle: null,
+                    vehicleToDelete: null,
                     selectedLog: null,
                     editingLogId: null,
                     logToDeleteId: null,
@@ -1802,17 +1896,9 @@ function doPost(e) {
                     }
 
                     if (this.logSortOption === 'DATE_DESC') {
-                        logs.sort((a, b) => {
-                            const tA = this.parseLocalDate(a.date)?.getTime() || 0;
-                            const tB = this.parseLocalDate(b.date)?.getTime() || 0;
-                            return tB - tA;
-                        });
+                        logs.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
                     } else if (this.logSortOption === 'DATE_ASC') {
-                        logs.sort((a, b) => {
-                            const tA = this.parseLocalDate(a.date)?.getTime() || 0;
-                            const tB = this.parseLocalDate(b.date)?.getTime() || 0;
-                            return tA - tB;
-                        });
+                        logs.sort((a, b) => (this.parseLocalDate(a.date) || 0) - (this.parseLocalDate(b.date) || 0));
                     } else if (this.logSortOption === 'COST_DESC') {
                         logs.sort((a, b) => (Number(b.totalCost) || 0) - (Number(a.totalCost) || 0));
                     } else if (this.logSortOption === 'COST_ASC') {
@@ -1936,20 +2022,21 @@ function doPost(e) {
                     onValue(vehiclesRef, (snapshot) => {
                         this.cloudStatus = 'connected';
                         this.cloudErrorMessage = '';
-                        if (snapshot.exists()) {
-                            const data = snapshot.val();
+                        const data = snapshot.val();
+                        if (data) {
                             this.vehicles = Object.values(data).map(v => ({
                                 ...v,
                                 currentKm: Number(v.currentKm) || 0,
                                 lastServiceKm: Number(v.lastServiceKm) || 0
                             }));
-                            localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         } else {
-                            if (this.vehicles.length > 0) {
+                            if (this.vehicles && this.vehicles.length > 0) {
+                                this.vehicles.forEach(v => this.syncVehicleToCloud(v));
+                            } else {
                                 this.vehicles = [];
-                                localStorage.setItem('uns_vehicles', '[]');
                             }
                         }
+                        localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     }, (err) => {
                         console.error("Realtime DB vehicles listener error:", err);
                         this.cloudStatus = 'error';
@@ -1957,20 +2044,17 @@ function doPost(e) {
                     });
 
                     onValue(logsRef, (snapshot) => {
-                        if (snapshot.exists()) {
-                            const data = snapshot.val();
+                        const data = snapshot.val();
+                        if (data) {
                             this.serviceLogs = Object.values(data).map(l => ({
                                 ...l,
                                 km: Number(l.km) || 0,
                                 totalCost: Number(l.totalCost) || 0
                             }));
-                            localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
                         } else {
-                            if (this.serviceLogs.length > 0) {
-                                this.serviceLogs = [];
-                                localStorage.setItem('uns_logs', '[]');
-                            }
+                            this.serviceLogs = [];
                         }
+                        localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
                     }, (err) => {
                         console.error("Realtime DB logs listener error:", err);
                     });
@@ -2118,12 +2202,11 @@ function doPost(e) {
                             notes: ''
                         };
                     } else {
-                        const firstCar = this.vehicles.length ? this.vehicles[0] : null;
                         this.inServiceForm = {
-                            vehicleId: firstCar ? firstCar.id : '',
+                            vehicleId: this.vehicles.length ? this.vehicles[0].id : '',
                             workshop: 'Nasmoco',
                             date: new Date().toISOString().substring(0, 10),
-                            km: firstCar ? (Number(firstCar.currentKm) || 0) : 0,
+                            km: 0,
                             notes: ''
                         };
                     }
@@ -2427,11 +2510,7 @@ function doPost(e) {
                         });
 
                         if (matchingLogs.length > 0) {
-                            matchingLogs.sort((a, b) => {
-                                const timeA = this.parseLocalDate(a.date)?.getTime() || 0;
-                                const timeB = this.parseLocalDate(b.date)?.getTime() || 0;
-                                return timeB - timeA;
-                            });
+                            matchingLogs.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
                             lastReplacementLog = matchingLogs[0];
                         }
                     }
@@ -2505,8 +2584,8 @@ function doPost(e) {
                     const logs = this.serviceLogs.filter(l => l.vehicleId === vehicleId || l.vehicleId === plate);
                     
                     return logs.sort((a, b) => {
-                        const dA = this.parseLocalDate(a.date)?.getTime() || 0;
-                        const dB = this.parseLocalDate(b.date)?.getTime() || 0;
+                        const dA = this.parseLocalDate(a.date) || new Date(0);
+                        const dB = this.parseLocalDate(b.date) || new Date(0);
                         return dB - dA;
                     });
                 },
@@ -2572,7 +2651,7 @@ function doPost(e) {
                     if (!this.serviceForm.items) {
                         this.serviceForm.items = [];
                     }
-                    if (this.serviceForm.items.length === 1 && !this.serviceForm.items[0].name && this.serviceForm.items[0].cost === 0) {
+                    if (this.serviceForm.items.length === 1 && (!this.serviceForm.items[0].name || this.serviceForm.items[0].cost === 0)) {
                         this.serviceForm.items[0] = { name: sug.name, cost: sug.cost };
                     } else {
                         this.serviceForm.items.push({ name: sug.name, cost: sug.cost });
@@ -2654,12 +2733,9 @@ function doPost(e) {
                             this.showToast('AI Scan nota berhasil!', 'success');
                         }).catch(() => {
                             this.showToast('Gagal memproses gambar nota', 'error');
-                        }).finally(() => {
-                            if (event.target) event.target.value = '';
                         });
                     } else {
                         this.showToast('AI OCR belum siap', 'error');
-                        if (event.target) event.target.value = '';
                     }
                 },
 
@@ -2671,6 +2747,23 @@ function doPost(e) {
                         const currentIds = new Set(this.selectedLogIds);
                         this.filteredServiceLogs.forEach(l => currentIds.add(l.id));
                         this.selectedLogIds = Array.from(currentIds);
+                    }
+                },
+
+                openDeleteVehicleModal(car) {
+                    this.vehicleToDelete = car;
+                    this.activeDeleteVehicleModal = true;
+                },
+
+                confirmDeleteVehicle() {
+                    if (this.vehicleToDelete) {
+                        const carId = this.vehicleToDelete.id;
+                        this.deleteSingleVehicleMaster(carId);
+                        this.activeDeleteVehicleModal = false;
+                        this.vehicleToDelete = null;
+                        if (this.activeVehicleDrawer && this.selectedDrawerVehicle?.id === carId) {
+                            this.activeVehicleDrawer = false;
+                        }
                     }
                 },
 
@@ -2743,38 +2836,46 @@ function doPost(e) {
                         const routineLogs = vLogs.filter(l => this.isRoutineItem(l));
                         if (routineLogs.length > 0) {
                             const latest = routineLogs.reduce((max, curr) => {
-                                const dCurr = this.parseLocalDate(curr.date)?.getTime() || 0;
-                                const dMax = this.parseLocalDate(max.date)?.getTime() || 0;
+                                const dCurr = this.parseLocalDate(curr.date);
+                                const dMax = this.parseLocalDate(max.date);
+                                if (!dCurr) return max;
+                                if (!dMax) return curr;
                                 return dCurr > dMax ? curr : max;
                             }, routineLogs[0]);
                             car.lastServiceKm = Number(latest.km) || 0;
                             car.lastServiceDate = latest.date;
                         } else {
-                            car.lastServiceKm = 0;
+                            car.lastServiceKm = Number(car.currentKm) || 0;
                             car.lastServiceDate = '';
                         }
                     } else {
-                        car.lastServiceKm = 0;
+                        car.lastServiceKm = Number(car.currentKm) || 0;
                         car.lastServiceDate = '';
                     }
                 },
 
                 deleteSingleVehicleMaster(id) {
-                    const car = this.vehicles.find(v => v.id === id);
+                    const car = this.vehicles.find(v => v.id === id || v.plate === id);
+                    const carId = car ? car.id : id;
                     const plate = car ? car.plate : id;
-                    this.vehicles = this.vehicles.filter(v => v.id !== id);
+
+                    this.vehicles = this.vehicles.filter(v => v.id !== carId && v.plate !== plate);
                     
-                    const logsToDelete = this.serviceLogs.filter(l => l.vehicleId === id || l.vehicleId === plate);
+                    const logsToDelete = this.serviceLogs.filter(l => l.vehicleId === carId || l.vehicleId === plate);
                     logsToDelete.forEach(l => this.deleteLogFromCloud(l.id));
 
-                    this.serviceLogs = this.serviceLogs.filter(l => l.vehicleId !== id && l.vehicleId !== plate);
+                    this.serviceLogs = this.serviceLogs.filter(l => l.vehicleId !== carId && l.vehicleId !== plate);
                     
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
 
-                    this.deleteVehicleFromCloud(id);
+                    this.deleteVehicleFromCloud(carId);
+                    if (carId !== plate) {
+                        this.deleteVehicleFromCloud(plate);
+                    }
+
                     this.syncToGoogleSheetsAuto();
-                    this.showToast('Armada & riwayat servicenya berhasil dihapus', 'success');
+                    this.showToast('Armada ' + plate + ' & riwayat servicenya berhasil dihapus', 'success');
                 },
 
                 deleteSingleLogMaster(id) {
@@ -2795,30 +2896,35 @@ function doPost(e) {
 
                 confirmBulkDeleteMasterData(type) {
                     if (type === 'vehicles_selected') {
-                        this.selectedMasterVehicleIds.forEach(id => {
-                            const car = this.vehicles.find(v => v.id === id);
-                            const plate = car ? car.plate : id;
-                            const logsToDelete = this.serviceLogs.filter(l => l.vehicleId === id || l.vehicleId === plate);
-                            logsToDelete.forEach(l => this.deleteLogFromCloud(l.id));
-                            this.serviceLogs = this.serviceLogs.filter(l => l.vehicleId !== id && l.vehicleId !== plate);
-                            this.deleteVehicleFromCloud(id);
+                        const selectedIds = [...this.selectedMasterVehicleIds];
+                        selectedIds.forEach(id => {
+                            this.deleteSingleVehicleMaster(id);
                         });
-                        this.vehicles = this.vehicles.filter(v => !this.selectedMasterVehicleIds.includes(v.id));
                         this.selectedMasterVehicleIds = [];
                     } else if (type === 'vehicles_all') {
-                        this.vehicles.forEach(v => this.deleteVehicleFromCloud(v.id));
-                        this.serviceLogs.forEach(l => this.deleteLogFromCloud(l.id));
+                        const allIds = this.vehicles.map(v => v.id);
+                        allIds.forEach(id => this.deleteSingleVehicleMaster(id));
                         this.vehicles = [];
                         this.serviceLogs = [];
                         this.selectedMasterVehicleIds = [];
+                        localStorage.setItem('uns_vehicles', JSON.stringify([]));
+                        localStorage.setItem('uns_logs', JSON.stringify([]));
                     } else if (type === 'logs_selected') {
-                        this.selectedMasterLogIds.forEach(id => this.deleteLogFromCloud(id));
+                        const affectedVehicles = new Set();
+                        this.selectedMasterLogIds.forEach(id => {
+                            const log = this.serviceLogs.find(l => l.id === id);
+                            if (log) affectedVehicles.add(log.vehicleId);
+                            this.deleteLogFromCloud(id);
+                        });
                         this.serviceLogs = this.serviceLogs.filter(l => !this.selectedMasterLogIds.includes(l.id));
                         this.selectedMasterLogIds = [];
-                        this.vehicles.forEach(v => {
-                            this.recalculateVehicleStats(v.id);
-                            this.syncVehicleToCloud(v);
+                        affectedVehicles.forEach(vId => {
+                            this.recalculateVehicleStats(vId);
+                            const car = this.vehicles.find(v => v.id === vId || v.plate === vId);
+                            if (car) this.syncVehicleToCloud(car);
                         });
+                        localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
+                        localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     } else if (type === 'logs_all') {
                         this.serviceLogs.forEach(l => this.deleteLogFromCloud(l.id));
                         this.serviceLogs = [];
@@ -2827,16 +2933,19 @@ function doPost(e) {
                             this.recalculateVehicleStats(v.id);
                             this.syncVehicleToCloud(v);
                         });
+                        localStorage.setItem('uns_logs', JSON.stringify([]));
+                        localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     } else if (type === 'reset_total') {
                         this.vehicles.forEach(v => this.deleteVehicleFromCloud(v.id));
                         this.serviceLogs.forEach(l => this.deleteLogFromCloud(l.id));
                         this.vehicles = [];
                         this.serviceLogs = [];
+                        this.selectedMasterVehicleIds = [];
+                        this.selectedMasterLogIds = [];
+                        localStorage.setItem('uns_vehicles', JSON.stringify([]));
+                        localStorage.setItem('uns_logs', JSON.stringify([]));
                     }
 
-                    localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
-                    localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
-                    
                     this.syncToGoogleSheetsAuto();
                     this.showToast('Database berhasil diperbarui', 'success');
                 },
@@ -2888,7 +2997,7 @@ function doPost(e) {
                         if (oldId !== plateUpper) {
                             this.deleteVehicleFromCloud(oldId);
                             this.serviceLogs.forEach(l => {
-                                if (l.vehicleId === oldId || l.vehicleId === this.vehicles[idx].plate) {
+                                if (l.vehicleId === oldId) {
                                     l.vehicleId = plateUpper;
                                     this.syncLogToCloud(l);
                                 }
@@ -3216,6 +3325,8 @@ function doPost(e) {
 
                     sampleVehicles.forEach(v => this.syncVehicleToCloud(v));
                     sampleLogs.forEach(l => this.syncLogToCloud(l));
+
+                    this.showToast('Data uji coba berhasil dimuat', 'success');
                 }
             }
         });
