@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AUTOMAN UNS - Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</title>
 
     <!-- Tailwind CSS -->
@@ -28,13 +28,14 @@
             font-family: 'Inter', sans-serif;
             background-color: #020617;
             color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
         }
         .font-mono {
             font-family: 'JetBrains Mono', monospace;
         }
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
             background: #0f172a;
@@ -53,14 +54,14 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white antialiased">
 
     <div id="app" class="flex-1 flex flex-col min-h-screen" v-cloak>
 
-        <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-xl">
-            <div class="flex items-center gap-3">
+        <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+            <div class="flex items-center gap-2.5 sm:gap-3">
                 <!-- Custom AUTOMAN Logo Emblem SVG -->
-                <div class="w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800/80 p-1 flex items-center justify-center shadow-lg shadow-sky-500/20 group hover:scale-105 transition-transform duration-300">
+                <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-800/80 p-1 flex items-center justify-center shadow-lg shadow-sky-500/20 group hover:scale-105 transition-transform duration-300">
                     <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="automanBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -104,130 +105,135 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
+                    <h1 class="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
                         <span><span class="text-sky-400 font-black">AUTOMAN</span> UNS</span>
-                        <span class="text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Firebase Realtime</span>
+                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Firebase Realtime</span>
                     </h1>
-                    <p class="text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
+                    <p class="text-[10px] sm:text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap">
                 <!-- Firebase Status & Sync Indicator -->
-                <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition">
+                <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition">
                     <i :class="cloudStatus === 'connected' ? 'fa-solid fa-fire text-amber-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
-                    <span class="hidden md:inline">{{ cloudStatus === 'connected' ? 'Firebase Live' : (cloudStatus === 'loading' ? 'Syncing...' : 'Offline / Check Setup') }}</span>
+                    <span class="inline">{{ cloudStatus === 'connected' ? 'Firebase' : (cloudStatus === 'loading' ? 'Sync...' : 'Offline') }}</span>
                 </button>
 
-                <div v-if="isAdmin" class="flex items-center gap-2">
+                <div v-if="isAdmin" class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <!-- WhatsApp & Telegram Notification Settings Indicator -->
+                    <button @click="activeNotifModal = true" :class="(waNumber || (telegramBotToken && telegramChatId)) ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition" title="Pengaturan Notifikasi WA & Telegram">
+                        <i class="fa-solid fa-bell text-amber-400"></i>
+                        <span class="hidden md:inline">Notif WA/TG</span>
+                    </button>
+
                     <!-- Google Sheets Auto-Sync Indicator (Admin Only) -->
-                    <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition">
+                    <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition">
                         <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
-                        <span class="hidden md:inline">{{ sheetsWebhookUrl ? (isSheetsSyncing ? 'Writing Sheets...' : 'Sheets Sync Active') : 'Set Google Sheets' }}</span>
+                        <span class="hidden lg:inline">{{ sheetsWebhookUrl ? (isSheetsSyncing ? 'Writing...' : 'Sheets Active') : 'Set Sheets' }}</span>
                     </button>
 
-                    <button @click="openMasterDataModal" class="px-3 py-1.5 bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                    <button @click="openMasterDataModal" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1 shadow">
                         <i class="fa-solid fa-database"></i>
-                        <span>Master Data</span>
+                        <span class="hidden sm:inline">Master Data</span>
                     </button>
 
-                    <button @click="logoutAdmin" class="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <button @click="logoutAdmin" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-right-from-bracket"></i>
-                        <span class="hidden sm:inline">Keluar Admin</span>
+                        <span class="hidden sm:inline">Keluar</span>
                     </button>
                 </div>
 
-                <button v-else @click="activeAdminModal = true" class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-sky-600/20 flex items-center gap-1.5">
+                <button v-else @click="activeAdminModal = true" class="px-2.5 sm:px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-[11px] sm:text-xs font-bold transition shadow-lg shadow-sky-600/20 flex items-center gap-1.5">
                     <i class="fa-solid fa-user-shield"></i>
-                    <span>Login Admin Pengelola</span>
+                    <span>Login Admin</span>
                 </button>
             </div>
         </header>
 
-        <nav class="bg-slate-900/60 border-b border-slate-800 px-4 lg:px-8 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none">
-            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap">
+        <nav class="bg-slate-900/80 border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-chart-pie"></i>
                 <span>Dashboard Armada</span>
             </button>
 
             <!-- Admin-Only Navigation Tabs -->
-            <button v-if="isAdmin" @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-sky-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap">
+            <button v-if="isAdmin" @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-receipt"></i>
-                <span>Riwayat Servis & Pemeliharaan (Admin)</span>
+                <span>Riwayat Servis</span>
             </button>
 
-            <button v-if="isAdmin" @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-sky-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap">
+            <button v-if="isAdmin" @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-calendar-days"></i>
-                <span>Rekap Bulanan (Admin)</span>
+                <span>Rekap Bulanan</span>
             </button>
         </nav>
 
-        <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
-            <section v-if="currentTab === 'dashboard'" class="space-y-6">
+            <section v-if="currentTab === 'dashboard'" class="space-y-4 sm:space-y-6">
                 
-                <!-- Quick Metrics Cards -->
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-lg border border-sky-500/20">
+                <!-- Quick Metrics Cards - Fluid 2 to 5 columns -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-base sm:text-lg border border-sky-500/20 shrink-0">
                             <i class="fa-solid fa-car"></i>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-medium">Total Armada</p>
-                            <p class="text-lg font-black text-white font-mono">{{ vehicles.length }} <span class="text-xs text-slate-500 font-sans font-normal">Unit</span></p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Total Armada</p>
+                            <p class="text-base sm:text-lg font-black text-white font-mono">{{ vehicles.length }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/20">
+                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-base sm:text-lg border border-emerald-500/20 shrink-0">
                             <i class="fa-solid fa-circle-check"></i>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-medium">Kondisi Aman</p>
-                            <p class="text-lg font-black text-emerald-400 font-mono">{{ routineVehiclesCount }} <span class="text-xs text-slate-500 font-sans font-normal">Unit</span></p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Kondisi Aman</p>
+                            <p class="text-base sm:text-lg font-black text-emerald-400 font-mono">{{ routineVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-lg border border-amber-500/20">
+                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base sm:text-lg border border-amber-500/20 shrink-0">
                             <i class="fa-solid fa-clock font-normal"></i>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-medium">Segera Servis</p>
-                            <p class="text-lg font-black text-amber-400 font-mono">{{ urgentVehiclesCount }} <span class="text-xs text-slate-500 font-sans font-normal">Unit</span></p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Segera Servis</p>
+                            <p class="text-base sm:text-lg font-black text-amber-400 font-mono">{{ urgentVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-lg border border-rose-500/20">
+                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-base sm:text-lg border border-rose-500/20 shrink-0">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-medium">Jatuh Tempo</p>
-                            <p class="text-lg font-black text-rose-400 font-mono">{{ expiredVehiclesCount }} <span class="text-xs text-slate-500 font-sans font-normal">Unit</span></p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Jatuh Tempo</p>
+                            <p class="text-base sm:text-lg font-black text-rose-400 font-mono">{{ expiredVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-500/20">
+                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3 col-span-2 sm:col-span-1">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-base sm:text-lg border border-indigo-500/20 shrink-0">
                             <i class="fa-solid fa-clock-rotate-left"></i>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-medium">Sedang Servis</p>
-                            <p class="text-lg font-black text-indigo-400 font-mono">{{ inServiceVehiclesCount }} <span class="text-xs text-slate-500 font-sans font-normal">Unit</span></p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Sedang Servis</p>
+                            <p class="text-base sm:text-lg font-black text-indigo-400 font-mono">{{ inServiceVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Dashboard Toolbar -->
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
-                    <div class="flex-1 flex flex-col sm:flex-row gap-2">
-                        <div class="relative flex-1">
+                <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <div class="relative w-full">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                            <input type="text" v-model="searchQuery" placeholder="Cari Plat Nomor, Tipe, atau Driver..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+                            <input type="text" v-model="searchQuery" placeholder="Cari Plat, Tipe, Sopir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
                         </div>
 
-                        <select v-model="categoryFilter" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
+                        <select v-model="categoryFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
                             <option value="ALL">Semua Kategori</option>
                             <option value="Pimpinan">Pimpinan</option>
                             <option value="Operasional">Operasional</option>
@@ -235,15 +241,15 @@
                             <option value="Unit">Unit</option>
                         </select>
 
-                        <select v-model="statusFilter" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
+                        <select v-model="statusFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
                             <option value="ALL">Semua Status</option>
                             <option value="JATUH_TEMPO">🔴 JATUH TEMPO</option>
                             <option value="SEGERA">🟡 SEGERA SERVIS</option>
-                            <option value="IN_SERVICE">🔵 SEDANG SERVIS / PENGAJUAN</option>
+                            <option value="IN_SERVICE">🔵 SEDANG SERVIS</option>
                             <option value="AMAN">🟢 AMAN</option>
                         </select>
 
-                        <select v-model="vehicleSortOption" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-semibold">
+                        <select v-model="vehicleSortOption" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-semibold">
                             <option value="URGENT_FIRST">⏳ Servis Terdekat → Terlama</option>
                             <option value="URGENT_LAST">🟢 Servis Terlama → Terdekat</option>
                             <option value="PLATE_ASC">🔤 Plat Nomor (A-Z)</option>
@@ -251,141 +257,138 @@
                         </select>
                     </div>
 
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button @click="openUpdateKmModal(null)" class="px-3 py-2 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="Update Odometer Terkini Armada">
+                    <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-stretch sm:justify-end">
+                        <button @click="openUpdateKmModal(null)" class="flex-1 sm:flex-none px-3 py-2 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow" title="Update Odometer Terkini Armada">
                             <i class="fa-solid fa-gauge-high text-indigo-400"></i>
                             <span>Update KM</span>
                         </button>
 
-                        <button @click="openInServiceModal(null)" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
+                        <button @click="openInServiceModal(null)" class="flex-1 sm:flex-none px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-sky-600/20">
                             <i class="fa-solid fa-paper-plane"></i>
                             <span>Ajukan Servis</span>
                         </button>
 
-                        <button v-if="isAdmin" @click="openAddVehicleModal" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                        <button v-if="isAdmin" @click="openAddVehicleModal" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
                             <i class="fa-solid fa-plus"></i>
                             <span>Tambah Armada</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Vehicle Cards Grid -->
-                <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 transition rounded-2xl p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
+                <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                    <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 transition rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
                         
                         <div class="space-y-3">
                             <!-- Card Header -->
                             <div class="flex items-start justify-between gap-2">
-                                <div class="space-y-1">
-                                    <span class="inline-block px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-sm tracking-wider uppercase">
+                                <div class="space-y-1 min-w-0">
+                                    <span class="inline-block px-2.5 py-0.5 sm:py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-xs sm:text-sm tracking-wider uppercase">
                                         {{ car.plate }}
                                     </span>
-                                    <h3 class="font-extrabold text-base text-white group-hover:text-sky-400 transition leading-snug">{{ car.model }}</h3>
-                                    <p class="text-xs text-slate-400 flex items-center gap-2 pt-0.5">
-                                        <span class="px-2 py-0.5 bg-slate-950 border border-slate-800 text-sky-400 rounded text-[10px] font-bold">{{ car.category || 'Operasional' }}</span>
-                                        <span class="truncate max-w-[140px]"><i class="fa-solid fa-user-gear text-slate-500 mr-1"></i>{{ car.driver || 'Sopir UNS' }}</span>
+                                    <h3 class="font-extrabold text-sm sm:text-base text-white group-hover:text-sky-400 transition leading-snug truncate">{{ car.model }}</h3>
+                                    <p class="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 pt-0.5 truncate">
+                                        <span class="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-sky-400 rounded text-[10px] font-bold shrink-0">{{ car.category || 'Operasional' }}</span>
+                                        <span class="truncate"><i class="fa-solid fa-user-gear text-slate-500 mr-1"></i>{{ car.driver || 'Sopir UNS' }}</span>
                                     </p>
                                 </div>
 
-                                <div class="flex flex-col items-end gap-1.5">
-                                    <span v-if="car.isUnderService" class="px-2.5 py-1 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[10px] font-extrabold flex items-center gap-1 animate-pulse">
+                                <div class="flex flex-col items-end gap-1 shrink-0">
+                                    <span v-if="car.isUnderService" class="px-2 py-0.5 sm:py-1 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1 animate-pulse">
                                         <i class="fa-solid fa-clock-rotate-left"></i>
-                                        <span>PENGAJUAN SERVIS</span>
+                                        <span>PENGAJUAN</span>
                                     </span>
-                                    <span v-else-if="getRoutineStatus(car).type === 'danger'" class="px-2.5 py-1 bg-rose-950 text-rose-400 border border-rose-800 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+                                    <span v-else-if="getRoutineStatus(car).type === 'danger'" class="px-2 py-0.5 sm:py-1 bg-rose-950 text-rose-400 border border-rose-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
                                         <i class="fa-solid fa-triangle-exclamation"></i>
                                         <span>JATUH TEMPO</span>
                                     </span>
-                                    <span v-else-if="getRoutineStatus(car).type === 'warning'" class="px-2.5 py-1 bg-amber-950 text-amber-400 border border-amber-800 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+                                    <span v-else-if="getRoutineStatus(car).type === 'warning'" class="px-2 py-0.5 sm:py-1 bg-amber-950 text-amber-400 border border-amber-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
                                         <i class="fa-solid fa-clock font-normal"></i>
                                         <span>SEGERA SERVIS</span>
                                     </span>
-                                    <span v-else class="px-2.5 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+                                    <span v-else class="px-2 py-0.5 sm:py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
                                         <i class="fa-solid fa-circle-check"></i>
                                         <span>AMAN</span>
                                     </span>
 
                                     <!-- Quick Admin Edit & Delete Badges -->
-                                    <div v-if="isAdmin" class="flex items-center gap-1">
-                                        <button @click.stop="openEditVehicleModal(car)" class="px-2 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Edit Data Kendaraan">
+                                    <div v-if="isAdmin" class="flex items-center gap-1 pt-0.5">
+                                        <button @click.stop="openEditVehicleModal(car)" class="px-1.5 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded text-[9px] font-bold transition flex items-center gap-0.5 shadow" title="Edit">
                                             <i class="fa-solid fa-pen-to-square"></i>
-                                            <span>Edit</span>
                                         </button>
-                                        <button @click.stop="openDeleteVehicleModal(car)" class="px-2 py-0.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Hapus Armada Kendaraan">
+                                        <button @click.stop="openDeleteVehicleModal(car)" class="px-1.5 py-0.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded text-[9px] font-bold transition flex items-center gap-0.5 shadow" title="Hapus">
                                             <i class="fa-solid fa-trash-can"></i>
-                                            <span>Hapus</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Parameters Box -->
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1.5">
-                                <div class="flex items-center justify-between text-xs">
+                            <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800/80 space-y-1.5">
+                                <div class="flex items-center justify-between text-[11px] sm:text-xs">
                                     <span class="text-slate-400 font-semibold flex items-center gap-1.5">
                                         <i class="fa-solid fa-calendar-check text-sky-400"></i>
-                                        <span>Jadwal Servis Berikutnya</span>
+                                        <span>Servis Berikutnya</span>
                                     </span>
                                     <span class="font-mono font-extrabold text-amber-300 text-xs">
                                         {{ getNextServiceDate(car) }}
                                     </span>
                                 </div>
-                                <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-900 pt-1 font-mono">
+                                <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1 font-mono">
                                     <span>Target Odometer:</span>
                                     <span class="text-sky-400 font-bold">{{ getNextServiceKm(car).toLocaleString('id-ID') }} KM</span>
                                 </div>
-                                <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-900 pt-1">
+                                <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1">
                                     <span class="flex items-center gap-1.5 text-slate-400">
                                         <i class="fa-solid fa-gauge-high text-sky-400"></i>
                                         <span>Odometer Terkini:</span>
                                     </span>
-                                    <button @click.stop="openUpdateKmModal(car)" class="text-sky-400 hover:text-sky-300 font-mono font-extrabold text-xs flex items-center gap-1.5 px-2 py-0.5 bg-sky-950/60 hover:bg-sky-900/80 border border-sky-800/80 rounded-lg transition" title="Klik untuk update Odometer">
+                                    <button @click.stop="openUpdateKmModal(car)" class="text-sky-400 hover:text-sky-300 font-mono font-extrabold text-xs flex items-center gap-1 px-2 py-0.5 bg-sky-950/60 hover:bg-sky-900/80 border border-sky-800/80 rounded-lg transition" title="Klik untuk update Odometer">
                                         <span>{{ (car.currentKm || 0).toLocaleString('id-ID') }} KM</span>
                                         <i class="fa-solid fa-pen-to-square text-[10px] text-sky-400"></i>
                                     </button>
                                 </div>
-                                <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-900 pt-1">
+                                <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1">
                                     <span class="flex items-center gap-1.5 text-slate-400">
                                         <i class="fa-solid fa-wrench text-sky-400"></i>
                                         <span>Bengkel Terakhir:</span>
                                     </span>
-                                    <span class="text-slate-200 font-bold font-mono">{{ getLastWorkshop(car) }}</span>
+                                    <span class="text-slate-200 font-bold font-mono text-[11px] truncate max-w-[120px] sm:max-w-none text-right">{{ getLastWorkshop(car) }}</span>
                                 </div>
                             </div>
 
                             <!-- In-Service Banner vs Progress Bar -->
                             <div v-if="car.isUnderService" @click.stop class="bg-sky-950/60 border border-sky-800 p-2.5 rounded-xl text-xs space-y-1.5">
                                 <div class="flex items-center justify-between text-sky-300 font-semibold">
-                                    <span>Bengkel Tujuan: {{ car.targetWorkshop || 'Nasmoco' }}</span>
+                                    <span>Bengkel: {{ car.targetWorkshop || 'Nasmoco' }}</span>
                                     <span class="text-[10px] text-slate-400">{{ formatDateWib(car.inServiceDate) }}</span>
                                 </div>
                                 <div class="text-[11px] text-slate-300 font-mono">
-                                    <span>Odometer Dilaporkan: </span>
+                                    <span>Odometer: </span>
                                     <span class="font-bold text-sky-400">{{ (car.currentKm || 0).toLocaleString('id-ID') }} KM</span>
                                 </div>
-                                <p v-if="car.inServiceNotes" class="text-[11px] text-slate-300 italic">"{{ car.inServiceNotes }}"</p>
+                                <p v-if="car.inServiceNotes" class="text-[11px] text-slate-300 italic truncate">"{{ car.inServiceNotes }}"</p>
                                 
                                 <div class="flex items-center gap-2 pt-1">
                                     <button v-if="isAdmin" @click.stop="completeInServiceAndOpenServiceModal(car)" class="flex-1 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-[11px] transition shadow flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-circle-check"></i>
-                                        <span>Selesaikan & Input Invoice</span>
+                                        <span>Input Invoice</span>
                                     </button>
                                     
                                     <button v-else @click.stop="activeAdminModal = true" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-[11px] transition shadow flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-lock text-amber-400"></i>
-                                        <span>🔒 Admin (Input Invoice)</span>
+                                        <span>🔒 Admin</span>
                                     </button>
 
-                                    <button v-if="isAdmin" @click.stop="cancelInService(car.id)" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px]" title="Batalkan status pengajuan servis">
+                                    <button v-if="isAdmin" @click.stop="cancelInService(car.id)" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px]">
                                         Batal
                                     </button>
                                 </div>
                             </div>
 
                             <div v-else class="space-y-1 pt-1">
-                                <div class="flex justify-between text-xs font-semibold">
-                                    <span class="text-slate-400">Servis Rutin (7.000 KM / 6 Bln)</span>
-                                    <span :class="getRoutineStatus(car).type === 'danger' ? 'text-rose-400' : (getRoutineStatus(car).type === 'warning' ? 'text-amber-400' : 'text-emerald-400')" class="font-mono">
+                                <div class="flex justify-between text-[11px] sm:text-xs font-semibold">
+                                    <span class="text-slate-400 truncate">Servis Rutin (7.000 KM / 6 Bln)</span>
+                                    <span :class="getRoutineStatus(car).type === 'danger' ? 'text-rose-400' : (getRoutineStatus(car).type === 'warning' ? 'text-amber-400' : 'text-emerald-400')" class="font-mono text-right shrink-0">
                                         {{ getRoutineStatus(car).label }}
                                     </span>
                                 </div>
@@ -398,26 +401,26 @@
                         </div>
 
                         <!-- Card Action Buttons Footer -->
-                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2" @click.stop>
-                            <button @click.stop="openVehicleDrawer(car)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap sm:flex-nowrap" @click.stop>
+                            <button @click.stop="openVehicleDrawer(car)" class="flex-1 py-2 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 min-w-[120px]">
                                 <i class="fa-solid fa-square-poll-vertical text-sky-400"></i>
-                                <span>Rincian Terperinci</span>
+                                <span>Rincian</span>
                             </button>
 
-                            <button v-if="!car.isUnderService" @click.stop="openInServiceModal(car)" class="py-2 px-3 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="Ajukan Servis Armada">
+                            <button v-if="!car.isUnderService" @click.stop="openInServiceModal(car)" class="py-2 px-3 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-xl text-xs font-bold transition flex items-center gap-1" title="Ajukan Servis Armada">
                                 <i class="fa-solid fa-paper-plane text-sky-400"></i>
-                                <span class="hidden sm:inline">Ajukan Servis</span>
+                                <span>Ajukan</span>
                             </button>
 
-                            <button v-if="isAdmin" @click.stop="openEditVehicleModal(car)" class="py-2 px-3 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition shadow" title="Edit Data Armada (Admin)">
+                            <button v-if="isAdmin" @click.stop="openEditVehicleModal(car)" class="py-2 px-2.5 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition shadow" title="Edit Data Armada">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
 
-                            <button v-if="isAdmin" @click.stop="openDeleteVehicleModal(car)" class="py-2 px-3 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition shadow" title="Hapus Armada (Admin)">
+                            <button v-if="isAdmin" @click.stop="openDeleteVehicleModal(car)" class="py-2 px-2.5 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition shadow" title="Hapus Armada">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
 
-                            <button v-if="isAdmin" @click.stop="openQuickServiceForCar(car)" class="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow" title="Catat nota servis (Admin)">
+                            <button v-if="isAdmin" @click.stop="openQuickServiceForCar(car)" class="py-2 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow" title="Catat nota servis">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
@@ -425,13 +428,13 @@
                 </div>
 
                 <!-- Empty State Vehicles -->
-                <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-2xl">
+                <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center space-y-3">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-xl sm:text-2xl">
                         <i class="fa-solid fa-car-side"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white">Tidak Ada Data Armada Kendaraan</h3>
+                    <h3 class="text-sm sm:text-base font-bold text-white">Tidak Ada Data Armada Kendaraan</h3>
                     <p class="text-xs text-slate-400 max-w-md mx-auto">Database armada kendaraan saat ini kosong atau tidak ada kendaraan yang sesuai dengan pencarian / filter.</p>
-                    <div class="flex justify-center gap-2 pt-2">
+                    <div class="flex justify-center gap-2 pt-2 flex-wrap">
                         <button v-if="isAdmin" @click="openAddVehicleModal" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">
                             <i class="fa-solid fa-plus mr-1"></i> Tambah Armada Baru
                         </button>
@@ -442,37 +445,37 @@
                 </div>
             </section>
 
-            <section v-if="currentTab === 'logs' && isAdmin" class="space-y-6">
+            <section v-if="currentTab === 'logs' && isAdmin" class="space-y-4 sm:space-y-6">
                 <!-- Log Actions & Filter Toolbar -->
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3">
                     <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold">
+                            <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold shrink-0">
                                 <i class="fa-solid fa-receipt"></i>
                             </div>
-                            <h2 class="font-extrabold text-base text-white">Riwayat Servis & Pemeliharaan Armada</h2>
+                            <h2 class="font-extrabold text-sm sm:text-base text-white">Riwayat Servis Armada</h2>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button v-if="selectedLogIds.length > 0" @click="openBulkDeleteModal('selected')" class="px-3.5 py-2 bg-rose-900 hover:bg-rose-800 border border-rose-700 text-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow animate-pulse">
+                        <div class="flex flex-wrap items-center gap-2 justify-stretch sm:justify-end">
+                            <button v-if="selectedLogIds.length > 0" @click="openBulkDeleteModal('selected')" class="px-3 py-1.5 sm:py-2 bg-rose-900 hover:bg-rose-800 border border-rose-700 text-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow animate-pulse">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Hapus Terpilih ({{ selectedLogIds.length }})</span>
                             </button>
 
-                            <button v-if="filteredServiceLogs.length > 0" @click="openBulkDeleteModal('filtered')" class="px-3 py-2 bg-slate-800 hover:bg-rose-950/60 hover:text-rose-300 text-slate-400 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <button v-if="filteredServiceLogs.length > 0" @click="openBulkDeleteModal('filtered')" class="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-rose-950/60 hover:text-rose-300 text-slate-400 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-broom"></i>
-                                <span>Hapus Semua ({{ filteredServiceLogs.length }})</span>
+                                <span>Hapus Semua</span>
                             </button>
 
-                            <button @click="openImportModal" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                            <button @click="openImportModal" class="px-3 py-1.5 sm:py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
                                 <i class="fa-solid fa-file-excel"></i>
-                                <span>Import Log</span>
+                                <span>Import</span>
                             </button>
-                            <button @click="exportLogsToExcel" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <button @click="exportLogsToExcel" class="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-file-export text-emerald-400"></i>
-                                <span>Export Log</span>
+                                <span>Export</span>
                             </button>
-                            <button @click="openNewServiceModal" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
+                            <button @click="openNewServiceModal" class="px-3 py-1.5 sm:py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
                                 <i class="fa-solid fa-plus"></i>
                                 <span>Tambah Log</span>
                             </button>
@@ -483,7 +486,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Pilih Armada</label>
                             <select v-model="logVehicleFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white focus:border-sky-500">
-                                <option value="ALL">Semua Armada / Kendaraan</option>
+                                <option value="ALL">Semua Armada</option>
                                 <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
                             </select>
                         </div>
@@ -528,7 +531,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between text-xs gap-2">
+                    <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between text-xs gap-2">
                         <div class="flex items-center gap-2 text-slate-300">
                             <span class="font-bold">Menampilkan:</span>
                             <span class="px-2 py-0.5 bg-sky-950 text-sky-400 rounded-lg font-mono font-bold">{{ filteredServiceLogs.length }} transaksi</span>
@@ -537,14 +540,14 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-slate-400 font-bold">Total Biaya Filtered:</span>
+                            <span class="text-slate-400 font-bold">Total Filtered:</span>
                             <span class="text-emerald-400 font-mono font-bold text-sm">{{ maskMoney(filteredLogsSubtotal, true) }}</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Logs Table -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <!-- Logs Desktop Table View (md: block) -->
+                <div class="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-950 text-slate-400 uppercase font-mono border-b border-slate-800 text-[10px]">
@@ -580,7 +583,7 @@
                                     <td class="p-3 max-w-xs text-slate-300">
                                         <div class="flex flex-wrap gap-1 items-center">
                                             <span :class="isRoutineItem(log) ? 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60' : 'bg-slate-950 text-slate-400 border-slate-800'" class="px-1.5 py-0.5 rounded text-[9px] font-bold border">
-                                                {{ isRoutineItem(log) ? 'Servis Rutin' : 'Perbaikan / Non-Rutin' }}
+                                                {{ isRoutineItem(log) ? 'Servis Rutin' : 'Perbaikan' }}
                                             </span>
 
                                             <span v-for="cKey in (log.replacedComponents || [])" :key="cKey" class="px-1.5 py-0.5 bg-sky-950/80 text-sky-300 border border-sky-800 rounded text-[9px] font-bold">
@@ -621,19 +624,78 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Mobile Log List View (< md) -->
+                <div class="block md:hidden space-y-2.5">
+                    <div v-if="filteredServiceLogs.length > 0">
+                        <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+                            <div class="flex items-start justify-between gap-2 border-b border-slate-800 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" :value="log.id" v-model="selectedLogIds" class="w-4 h-4 accent-sky-500 rounded">
+                                    <div>
+                                        <span class="font-mono font-extrabold text-sky-400 text-sm">{{ getVehiclePlate(log.vehicleId) }}</span>
+                                        <p class="text-[10px] text-slate-400">{{ getVehicleModel(log.vehicleId) }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-mono font-black text-emerald-400 text-sm block">{{ maskMoney(log.totalCost) }}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">{{ formatDateWib(log.date) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <div>
+                                    <span class="text-slate-400 block">Bengkel:</span>
+                                    <span class="font-bold text-white">{{ log.workshop }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block">No. Invoice:</span>
+                                    <span class="font-mono text-slate-200">{{ log.invoiceNo || '-' }}</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Items & Spareparts:</span>
+                                <div class="flex flex-wrap gap-1">
+                                    <span :class="isRoutineItem(log) ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-slate-950 text-slate-400 border-slate-800'" class="px-1.5 py-0.5 rounded text-[9px] font-bold border">
+                                        {{ isRoutineItem(log) ? 'Rutin' : 'Perbaikan' }}
+                                    </span>
+                                    <span v-for="(it, idx) in log.items" :key="idx" class="px-1.5 py-0.5 bg-slate-950 text-slate-300 border border-slate-800 rounded text-[10px]">
+                                        {{ it.name }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-800/80">
+                                <button @click="openInvoiceModal(log)" class="px-2.5 py-1 bg-slate-800 text-sky-400 rounded-lg text-xs font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-file-invoice"></i> Faktur
+                                </button>
+                                <button @click="openEditServiceModal(log)" class="px-2.5 py-1 bg-amber-950 border border-amber-800 text-amber-300 rounded-lg text-xs font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                                <button @click="openDeleteServiceModal(log.id)" class="px-2.5 py-1 bg-rose-950 border border-rose-800 text-rose-300 rounded-lg text-xs font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-trash-can"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-500 text-xs">
+                        Tidak ada riwayat servis.
+                    </div>
+                </div>
             </section>
 
-            <section v-if="currentTab === 'recap' && isAdmin" class="space-y-6">
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <section v-if="currentTab === 'recap' && isAdmin" class="space-y-4 sm:space-y-6">
+                <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div>
-                        <h2 class="font-extrabold text-base text-white flex items-center gap-2">
+                        <h2 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
                             <i class="fa-solid fa-calendar-days text-sky-400"></i>
-                            <span>Rekapitulasi Pengeluaran Pemeliharaan Bulanan & Tahunan</span>
+                            <span>Rekapitulasi Pemeliharaan Bulanan & Tahunan</span>
                         </h2>
-                        <p class="text-xs text-slate-400">Laporan akumulasi biaya pemeliharaan armada UNS per tahun dan per bulan</p>
+                        <p class="text-[11px] sm:text-xs text-slate-400">Laporan akumulasi biaya pemeliharaan armada UNS per tahun dan per bulan</p>
                     </div>
 
-                    <select v-model="recapYear" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold">
+                    <select v-model="recapYear" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold self-start md:self-auto">
                         <option :value="2024">Tahun 2024</option>
                         <option :value="2025">Tahun 2025</option>
                         <option :value="2026">Tahun 2026</option>
@@ -641,40 +703,40 @@
                 </div>
 
                 <!-- Annual Summary Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xl border border-emerald-500/20">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-emerald-500/20 shrink-0">
                             <i class="fa-solid fa-wallet"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-400 font-medium">Total Biaya Service ({{ recapYear }})</p>
-                            <p class="text-xl font-black text-emerald-400 font-mono">{{ maskMoney(annualRecapStats.totalCost, true) }}</p>
+                            <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Total Biaya ({{ recapYear }})</p>
+                            <p class="text-lg sm:text-xl font-black text-emerald-400 font-mono">{{ maskMoney(annualRecapStats.totalCost, true) }}</p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-xl border border-sky-500/20">
+                    <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-sky-500/20 shrink-0">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-400 font-medium">Total Transaksi ({{ recapYear }})</p>
-                            <p class="text-xl font-black text-white font-mono">{{ annualRecapStats.totalCount }} <span class="text-xs text-slate-500 font-sans font-normal">Transaksi</span></p>
+                            <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Total Transaksi</p>
+                            <p class="text-lg sm:text-xl font-black text-white font-mono">{{ annualRecapStats.totalCount }} <span class="text-xs text-slate-500 font-sans font-normal">Transaksi</span></p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xl border border-indigo-500/20">
+                    <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-indigo-500/20 shrink-0">
                             <i class="fa-solid fa-chart-line"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-400 font-medium">Rata-Rata Biaya / Bulan</p>
-                            <p class="text-xl font-black text-indigo-300 font-mono">{{ maskMoney(annualRecapStats.averageMonthly, true) }}</p>
+                            <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Rata-Rata / Bulan</p>
+                            <p class="text-lg sm:text-xl font-black text-indigo-300 font-mono">{{ maskMoney(annualRecapStats.averageMonthly, true) }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div v-for="m in 12" :key="m" @click="openMonthDetailModal(m)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition shadow-lg">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                    <div v-for="m in 12" :key="m" @click="openMonthDetailModal(m)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-xl sm:rounded-2xl p-4 space-y-3 cursor-pointer transition shadow-lg">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                             <span class="font-extrabold text-sm text-white">{{ getMonthName(m) }} {{ recapYear }}</span>
                             <span class="text-[10px] font-mono font-bold bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full">
@@ -684,14 +746,14 @@
 
                         <div class="space-y-1">
                             <p class="text-[11px] text-slate-400 font-medium">Total Pengeluaran Servis:</p>
-                            <p class="text-lg font-black text-emerald-400 font-mono">
+                            <p class="text-base sm:text-lg font-black text-emerald-400 font-mono">
                                 {{ maskMoney(getServicedVehiclesForMonth(m, recapYear).totalCost) }}
                             </p>
                         </div>
 
                         <button class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-list-check text-sky-400"></i>
-                            <span>Lihat Rincian Transaksi & Bengkel</span>
+                            <span>Rincian Transaksi</span>
                         </button>
                     </div>
                 </div>
@@ -701,8 +763,8 @@
 
 
         <!-- MODAL: Delete Vehicle Confirmation -->
-        <div v-if="activeDeleteVehicleModal && vehicleToDelete" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 text-center">
+        <div v-if="activeDeleteVehicleModal && vehicleToDelete" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 text-center">
                 <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
@@ -711,51 +773,51 @@
                         Hapus Armada {{ vehicleToDelete.plate }}?
                     </h3>
                     <p class="text-xs text-slate-400 mt-1">
-                        Tindakan ini akan menghapus kendaraan <b>{{ vehicleToDelete.model }}</b> beserta seluruh {{ getVehicleLogs(vehicleToDelete.id).length }} catatan riwayat servicenya. Data tidak dapat dikembalikan.
+                        Tindakan ini akan menghapus kendaraan <b>{{ vehicleToDelete.model }}</b> beserta seluruh {{ getVehicleLogs(vehicleToDelete.id).length }} catatan servicenya.
                     </p>
                 </div>
 
                 <div class="flex items-center justify-center gap-2 pt-2">
-                    <button type="button" @click="activeDeleteVehicleModal = false; vehicleToDelete = null" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
-                    <button type="button" @click="confirmDeleteVehicle" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus Armada</button>
+                    <button type="button" @click="activeDeleteVehicleModal = false; vehicleToDelete = null" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="button" @click="confirmDeleteVehicle" class="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus</button>
                 </div>
             </div>
         </div>
 
         <!-- MODAL: Single / Bulk Log Deletion Confirmation -->
-        <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 text-center">
+        <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 text-center">
                 <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-white">
-                        {{ deleteType === 'single' ? 'Hapus Riwayat Servis?' : (deleteType === 'selected' ? `Hapus ${selectedLogIds.length} Data Terpilih?` : `Hapus ${filteredServiceLogs.length} Data Hasil Filter?`) }}
+                        {{ deleteType === 'single' ? 'Hapus Riwayat Servis?' : (deleteType === 'selected' ? `Hapus ${selectedLogIds.length} Terpilih?` : `Hapus ${filteredServiceLogs.length} Data Filter?`) }}
                     </h3>
                     <p class="text-xs text-slate-400 mt-1">Data riwayat servis yang dihapus tidak dapat dikembalikan lagi.</p>
                 </div>
 
                 <div class="flex items-center justify-center gap-2 pt-2">
-                    <button type="button" @click="activeDeleteModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
-                    <button type="button" @click="confirmDeleteServiceLog" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus Data</button>
+                    <button type="button" @click="activeDeleteModal = false" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="button" @click="confirmDeleteServiceLog" class="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Ya, Hapus</button>
                 </div>
             </div>
         </div>
 
         <!-- MODAL: Google Sheets Auto-Sync Settings -->
-        <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
+        <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold shrink-0">
                             <i class="fa-solid fa-file-spreadsheet"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-base text-white">Integrasi Auto-Write Google Spreadsheet</h3>
-                            <p class="text-xs text-slate-400">Setiap data bertambah/diubah/dihapus otomatis tertulis ke Google Sheets</p>
+                            <h3 class="font-extrabold text-sm sm:text-base text-white">Integrasi Auto-Write Google Sheets</h3>
+                            <p class="text-[11px] sm:text-xs text-slate-400">Sinkronisasi data otomatis ke Google Spreadsheet</p>
                         </div>
                     </div>
-                    <button @click="activeSheetsModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeSheetsModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -763,59 +825,104 @@
                 <div class="space-y-4 text-xs">
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Google Apps Script Web App URL *</label>
-                        <input type="url" v-model="sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
-                        <p class="text-[10px] text-slate-400 mt-1">Tempelkan URL Web App dari Apps Script Google Sheets Anda di sini.</p>
+                        <input type="url" v-model="sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
                     </div>
 
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-300">Auto-Write Realtime (Tanpa Klik Button):</span>
+                            <span class="font-bold text-slate-300">Auto-Write Realtime:</span>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" v-model="autoSyncSheets" class="sr-only peer">
                                 <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
                             </label>
                         </div>
-                        <p class="text-[10px] text-slate-400">Jika aktif, setiap penambahan/pengubahan/penghapusan data akan langsung memperbarui Google Sheets secara otomatis.</p>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="block font-bold text-slate-300">Kode Apps Script (Salin ke Google Sheets -> Ekstensi -> Apps Script):</label>
-                        <pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[10px] text-emerald-300 font-mono overflow-x-auto max-h-36">
-function doPost(e) {
-  var data = JSON.parse(e.postData.contents);
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  if (data.type === 'SYNC_ALL' || data.type === 'AUTO_WRITE') {
-    var sheetV = ss.getSheetByName('Master Armada') || ss.insertSheet('Master Armada');
-    sheetV.clear();
-    sheetV.appendRow(['Plat Nomor', 'Model Armada', 'Sopir', 'Kategori', 'Odometer Terkini (KM)', 'Odometer Servis Terakhir (KM)', 'Status']);
-    if (data.vehicles && data.vehicles.length) {
-      data.vehicles.forEach(function(v) {
-        sheetV.appendRow([v.plate, v.model, v.driver || '-', v.category || 'Operasional', v.currentKm || 0, v.lastServiceKm || 0, v.isUnderService ? 'Dalam Pengajuan Servis' : 'Aktif']);
-      });
-    }
-    
-    var sheetL = ss.getSheetByName('Riwayat Servis') || ss.insertSheet('Riwayat Servis');
-    sheetL.clear();
-    sheetL.appendRow(['ID Log', 'Tanggal', 'Plat Nomor', 'Bengkel', 'No Invoice', 'Odometer (KM)', 'Total Biaya (Rp)']);
-    if (data.logs && data.logs.length) {
-      data.logs.forEach(function(l) {
-        sheetL.appendRow([l.id, l.date, l.vehicleId, l.workshop, l.invoiceNo || '-', l.km || 0, l.totalCost || 0]);
-      });
-    }
-  }
-  return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
-}</pre>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-                        <button type="button" @click="saveSheetsSettingsAndTest" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center gap-1.5">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                        <button type="button" @click="saveSheetsSettingsAndTest" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-floppy-disk"></i>
-                            <span>Simpan URL & Tes Koneksi</span>
+                            <span>Simpan URL & Tes</span>
                         </button>
-                        <button type="button" @click="triggerManualSheetsSync" :disabled="isSheetsSyncing" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+                        <button type="button" @click="triggerManualSheetsSync" :disabled="isSheetsSyncing" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-1.5">
                             <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin text-emerald-400' : 'fa-solid fa-arrows-rotate text-emerald-400'"></i>
-                            <span>Tulis Ulang Seluruh Data Sekarang</span>
+                            <span>Tulis Ulang Data</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: WhatsApp & Telegram Notification Settings -->
+        <div v-if="activeNotifModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold shrink-0">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-sm sm:text-base text-white">Notifikasi WhatsApp & Telegram</h3>
+                            <p class="text-[11px] text-slate-400">Pemberitahuan otomatis pengajuan servis armada</p>
+                        </div>
+                    </div>
+                    <button @click="activeNotifModal = false" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <!-- WhatsApp Section -->
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+                                <span class="font-bold text-slate-200">WhatsApp Admin</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" v-model="enableWaNotification" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+
+                        <div v-if="enableWaNotification" class="space-y-1">
+                            <input type="text" v-model="waNumber" placeholder="Contoh: 6282294949474" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Telegram Section -->
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-brands fa-telegram text-sky-400 text-lg"></i>
+                                <span class="font-bold text-slate-200">Telegram Bot</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" v-model="enableTelegramNotification" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
+                            </label>
+                        </div>
+
+                        <div v-if="enableTelegramNotification" class="space-y-2">
+                            <div>
+                                <label class="block font-bold text-slate-300 mb-0.5">Bot Token</label>
+                                <input type="text" v-model="telegramBotToken" placeholder="Telegram Bot Token..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-300 mb-0.5">Chat ID / Group ID</label>
+                                <input type="text" v-model="telegramChatId" placeholder="Telegram Chat ID..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                        <button type="button" @click="testTelegramNotif" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane text-sky-400"></i>
+                            <span>Tes Telegram</span>
+                        </button>
+
+                        <button type="button" @click="saveNotifSettings" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Simpan</span>
                         </button>
                     </div>
                 </div>
@@ -823,34 +930,33 @@ function doPost(e) {
         </div>
 
         <!-- MODAL: Service Log Input / Edit -->
-        <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
+        <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold">
+                        <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold shrink-0">
                             <i class="fa-solid fa-receipt"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-base text-white">{{ editingLogId ? 'Edit Catatan Servis' : 'Input Catatan Servis Baru' }}</h3>
-                            <p class="text-xs text-slate-400">Masukkan nota / invoice bengkel resmi atau rekanan</p>
+                            <h3 class="font-extrabold text-sm sm:text-base text-white">{{ editingLogId ? 'Edit Catatan Servis' : 'Input Catatan Servis Baru' }}</h3>
+                            <p class="text-[11px] text-slate-400">Masukkan nota / invoice bengkel resmi atau rekanan</p>
                         </div>
                     </div>
-                    <button @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
                 <form @submit.prevent="saveServiceLog" class="space-y-4 text-xs">
-                    
-                    <div class="bg-slate-950 p-3 rounded-xl border border-dashed border-sky-800/80 flex items-center justify-between">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-dashed border-sky-800/80 flex items-center justify-between flex-wrap gap-2">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-base"></i>
                             <div>
-                                <p class="font-bold text-white text-xs">AI Scan Invoice Nota Bengkel</p>
-                                <p class="text-[10px] text-slate-400">Upload foto nota untuk otomatis terbaca nomor invoice & nominal</p>
+                                <p class="font-bold text-white text-xs">AI Scan Invoice Nota</p>
+                                <p class="text-[10px] text-slate-400">Upload foto nota untuk terbaca otomatis</p>
                             </div>
                         </div>
-                        <label class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg cursor-pointer transition shadow">
+                        <label class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg cursor-pointer transition shadow text-xs">
                             <span>Scan Nota</span>
                             <input type="file" accept="image/*" @change="handleInvoiceScan" class="hidden">
                         </label>
@@ -893,38 +999,38 @@ function doPost(e) {
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">Kategori Jenis Servis</label>
                             <select v-model="serviceForm.isRoutine" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold">
-                                <option :value="true">Servis Berkala Rutin (Reset Status Rutin)</option>
+                                <option :value="true">Servis Berkala Rutin (Reset Status)</option>
                                 <option :value="false">Perbaikan Non-Rutin (Insidental)</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="space-y-1.5 pt-2 border-t border-slate-800">
-                        <label class="block font-bold text-slate-300">Penggantian Komponen Vital (Centang untuk Reset Keausan):</label>
+                        <label class="block font-bold text-slate-300">Penggantian Komponen Vital:</label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <label class="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                            <label class="flex items-center gap-1.5 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
                                 <input type="checkbox" value="filterOli" v-model="serviceForm.replacedComponents" class="w-4 h-4 accent-sky-500 rounded">
-                                <span>Filter Oli (14.000 KM)</span>
+                                <span class="text-[11px]">Filter Oli</span>
                             </label>
-                            <label class="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                            <label class="flex items-center gap-1.5 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
                                 <input type="checkbox" value="aki" v-model="serviceForm.replacedComponents" class="w-4 h-4 accent-sky-500 rounded">
-                                <span>Aki / Battery (2 Thn)</span>
+                                <span class="text-[11px]">Aki / Battery</span>
                             </label>
-                            <label class="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                            <label class="flex items-center gap-1.5 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
                                 <input type="checkbox" value="oliMatic" v-model="serviceForm.replacedComponents" class="w-4 h-4 accent-sky-500 rounded">
-                                <span>Oli Transmisi (40.000 KM)</span>
+                                <span class="text-[11px]">Oli Transmisi</span>
                             </label>
-                            <label class="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                            <label class="flex items-center gap-1.5 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
                                 <input type="checkbox" value="ban" v-model="serviceForm.replacedComponents" class="w-4 h-4 accent-sky-500 rounded">
-                                <span>Ban / Tires (2 Thn)</span>
+                                <span class="text-[11px]">Ban / Tires</span>
                             </label>
-                            <label class="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                            <label class="flex items-center gap-1.5 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
                                 <input type="checkbox" value="oliGardan" v-model="serviceForm.replacedComponents" class="w-4 h-4 accent-sky-500 rounded">
-                                <span>Oli Gardan (40.000 KM)</span>
+                                <span class="text-[11px]">Oli Gardan</span>
                             </label>
-                            <label class="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                            <label class="flex items-center gap-1.5 p-2 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
                                 <input type="checkbox" value="ac" v-model="serviceForm.replacedComponents" class="w-4 h-4 accent-sky-500 rounded">
-                                <span>Sistem AC (2 Thn)</span>
+                                <span class="text-[11px]">Sistem AC</span>
                             </label>
                         </div>
                     </div>
@@ -933,26 +1039,25 @@ function doPost(e) {
                         <div class="flex items-center justify-between">
                             <label class="font-bold text-slate-300">Rincian Sparepart / Pengerjaan *</label>
                             <button type="button" @click="addServiceItem" class="text-sky-400 hover:text-sky-300 font-bold text-xs flex items-center gap-1">
-                                <i class="fa-solid fa-plus"></i> Tambah Item
+                                <i class="fa-solid fa-plus"></i> Tambah
                             </button>
                         </div>
 
-                        <!-- Autocomplete datalist for quick sparepart names -->
                         <datalist id="sparepartDatalist">
                             <option v-for="sug in allSparepartSuggestions" :key="sug.name" :value="sug.name"></option>
                         </datalist>
 
-                        <div class="flex flex-wrap gap-1.5 py-1">
-                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran Cepat (15 Tersering):</span>
-                            <button type="button" v-for="sug in combinedQuickSuggestions" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-sky-500 rounded-lg text-[10px] transition font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-plus text-[9px] text-sky-400"></i> {{ sug.name }}
+                        <div class="flex flex-wrap gap-1 py-1">
+                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran:</span>
+                            <button type="button" v-for="sug in combinedQuickSuggestions.slice(0, 8)" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[10px] flex items-center gap-1">
+                                + {{ sug.name }}
                             </button>
                         </div>
 
                         <div v-for="(item, idx) in serviceForm.items" :key="idx" class="flex items-center gap-2">
-                            <input type="text" v-model="item.name" list="sparepartDatalist" placeholder="Ketik nama sparepart / merk..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500 focus:outline-none">
-                            <input type="number" v-model.number="item.cost" placeholder="Biaya (Rp)..." required min="0" class="w-32 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white font-mono text-emerald-400">
-                            <button type="button" @click="removeServiceItem(idx)" class="text-rose-400 hover:text-rose-300 p-2">
+                            <input type="text" v-model="item.name" list="sparepartDatalist" placeholder="Nama sparepart..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500">
+                            <input type="number" v-model.number="item.cost" placeholder="Biaya..." required min="0" class="w-28 sm:w-32 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white font-mono text-emerald-400">
+                            <button type="button" @click="removeServiceItem(idx)" class="text-rose-400 hover:text-rose-300 p-1.5">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -960,119 +1065,112 @@ function doPost(e) {
 
                     <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
                         <button type="button" @click="activeNewServiceModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20">Simpan Catatan Servis</button>
+                        <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20">Simpan Log</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- MODAL: Master Data Manager -->
-        <div v-if="activeMasterDataModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
+        <div v-if="activeMasterDataModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold shrink-0">
                             <i class="fa-solid fa-database"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-base text-white">Pengelolaan Master Data Admin</h3>
-                            <p class="text-xs text-slate-400">Kelola & hapus sebagian atau seluruh database kendaraan & servis</p>
+                            <h3 class="font-extrabold text-sm sm:text-base text-white">Pengelolaan Master Data Admin</h3>
+                            <p class="text-[11px] text-slate-400">Kelola & hapus database kendaraan & servis</p>
                         </div>
                     </div>
-                    <button @click="activeMasterDataModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeMasterDataModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2 border-b border-slate-800 pb-2 flex-wrap">
-                    <button @click="masterDataTab = 'vehicles'" :class="masterDataTab === 'vehicles' ? 'bg-sky-600 text-white font-bold' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl text-xs transition">
-                        Armada Kendaraan ({{ vehicles.length }})
+                <div class="flex items-center gap-1.5 border-b border-slate-800 pb-2 flex-wrap text-xs">
+                    <button @click="masterDataTab = 'vehicles'" :class="masterDataTab === 'vehicles' ? 'bg-sky-600 text-white font-bold' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl transition">
+                        Armada ({{ vehicles.length }})
                     </button>
-                    <button @click="masterDataTab = 'logs'" :class="masterDataTab === 'logs' ? 'bg-sky-600 text-white font-bold' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl text-xs transition">
-                        Riwayat Servis ({{ serviceLogs.length }})
+                    <button @click="masterDataTab = 'logs'" :class="masterDataTab === 'logs' ? 'bg-sky-600 text-white font-bold' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl transition">
+                        Servis ({{ serviceLogs.length }})
                     </button>
-                    <button @click="triggerVehicleImport" class="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1">
+                    <button @click="triggerVehicleImport" class="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex items-center gap-1">
                         <i class="fa-solid fa-file-excel"></i>
-                        <span>Import Excel Armada</span>
+                        <span>Import Excel</span>
                     </button>
                     <input type="file" ref="vehicleFileInput" accept=".xlsx, .xls" @change="handleVehicleExcelImport" class="hidden">
 
-                    <button @click="exportVehiclesToExcel" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold border border-slate-700 rounded-xl text-xs transition flex items-center gap-1">
+                    <button @click="exportVehiclesToExcel" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold border border-slate-700 rounded-xl transition flex items-center gap-1">
                         <i class="fa-solid fa-file-export"></i>
-                        <span>Export Excel Armada</span>
+                        <span>Export Excel</span>
                     </button>
-                    <button @click="loadSampleData" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 font-bold border border-emerald-800 rounded-xl text-xs transition flex items-center gap-1">
+                    <button @click="loadSampleData" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 font-bold border border-emerald-800 rounded-xl transition flex items-center gap-1">
                         <i class="fa-solid fa-database"></i>
-                        <span>Muat Data Uji Coba</span>
+                        <span>Data Uji Coba</span>
                     </button>
-                    <button @click="masterDataTab = 'reset'" :class="masterDataTab === 'reset' ? 'bg-rose-950 text-rose-300 font-bold border border-rose-800' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl text-xs transition">
-                        ⚠️ Reset Total Database
+                    <button @click="masterDataTab = 'reset'" :class="masterDataTab === 'reset' ? 'bg-rose-950 text-rose-300 font-bold border border-rose-800' : 'bg-slate-950 text-slate-400'" class="px-3 py-1.5 rounded-xl transition">
+                        ⚠️ Reset
                     </button>
                 </div>
 
                 <div v-if="masterDataTab === 'vehicles'" class="space-y-3">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-400 font-bold">Daftar Master Kendaraan Armada:</span>
-                        <div class="flex gap-2">
-                            <button v-if="selectedMasterVehicleIds.length > 0" @click="confirmBulkDeleteMasterData('vehicles_selected')" class="px-3 py-1 bg-rose-900 hover:bg-rose-800 text-rose-200 rounded-lg font-bold text-xs">
+                        <span class="text-slate-400 font-bold">Master Kendaraan Armada:</span>
+                        <div class="flex gap-1.5">
+                            <button v-if="selectedMasterVehicleIds.length > 0" @click="confirmBulkDeleteMasterData('vehicles_selected')" class="px-2.5 py-1 bg-rose-900 text-rose-200 rounded-lg font-bold text-[11px]">
                                 Hapus Terpilih ({{ selectedMasterVehicleIds.length }})
                             </button>
-                            <button v-if="vehicles.length > 0" @click="confirmBulkDeleteMasterData('vehicles_all')" class="px-3 py-1 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 rounded-lg font-bold text-xs">
-                                Hapus Semua Armada
+                            <button v-if="vehicles.length > 0" @click="confirmBulkDeleteMasterData('vehicles_all')" class="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg font-bold text-[11px]">
+                                Hapus Semua
                             </button>
                         </div>
                     </div>
 
-                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
-                        <div v-for="v in vehicles" :key="v.id" class="p-2.5 bg-slate-950 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2">
+                    <div class="max-h-56 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
+                        <div v-for="v in vehicles" :key="v.id" class="p-2 bg-slate-950 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2 truncate">
                                 <input type="checkbox" :value="v.id" v-model="selectedMasterVehicleIds" class="w-4 h-4 accent-sky-500 rounded">
                                 <span class="font-mono font-bold text-sky-400">{{ v.plate }}</span>
-                                <span class="text-white font-semibold">{{ v.model }}</span>
-                                <span class="text-[10px] bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded">{{ v.category }}</span>
+                                <span class="text-white font-semibold truncate">{{ v.model }}</span>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <button @click="openEditVehicleModal(v)" class="text-amber-400 hover:text-amber-300 text-xs px-2 py-1" title="Edit Armada">
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button @click="openEditVehicleModal(v)" class="text-amber-400 p-1">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                                <button @click="openDeleteVehicleModal(v)" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1" title="Hapus Armada">
+                                <button @click="deleteSingleVehicleMaster(v.id)" class="text-rose-400 p-1">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
-                        </div>
-                        <div v-if="vehicles.length === 0" class="p-4 text-center text-slate-500">
-                            Tidak ada kendaraan di master database.
                         </div>
                     </div>
                 </div>
 
                 <div v-if="masterDataTab === 'logs'" class="space-y-3">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-400 font-bold">Daftar Master Riwayat Servis:</span>
-                        <div class="flex gap-2">
-                            <button v-if="selectedMasterLogIds.length > 0" @click="confirmBulkDeleteMasterData('logs_selected')" class="px-3 py-1 bg-rose-900 hover:bg-rose-800 text-rose-200 rounded-lg font-bold text-xs">
+                        <span class="text-slate-400 font-bold">Master Riwayat Servis:</span>
+                        <div class="flex gap-1.5">
+                            <button v-if="selectedMasterLogIds.length > 0" @click="confirmBulkDeleteMasterData('logs_selected')" class="px-2.5 py-1 bg-rose-900 text-rose-200 rounded-lg font-bold text-[11px]">
                                 Hapus Terpilih ({{ selectedMasterLogIds.length }})
                             </button>
-                            <button v-if="serviceLogs.length > 0" @click="confirmBulkDeleteMasterData('logs_all')" class="px-3 py-1 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 rounded-lg font-bold text-xs">
-                                Hapus Semua Log Servis
+                            <button v-if="serviceLogs.length > 0" @click="confirmBulkDeleteMasterData('logs_all')" class="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg font-bold text-[11px]">
+                                Hapus Semua
                             </button>
                         </div>
                     </div>
 
-                    <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
-                        <div v-for="l in serviceLogs" :key="l.id" class="p-2.5 bg-slate-950 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2">
+                    <div class="max-h-56 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800">
+                        <div v-for="l in serviceLogs" :key="l.id" class="p-2 bg-slate-950 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2 truncate">
                                 <input type="checkbox" :value="l.id" v-model="selectedMasterLogIds" class="w-4 h-4 accent-sky-500 rounded">
-                                <span class="font-mono text-slate-400">{{ formatDateWib(l.date) }}</span>
+                                <span class="font-mono text-slate-400 text-[10px]">{{ formatDateWib(l.date) }}</span>
                                 <span class="font-mono font-bold text-sky-400">{{ getVehiclePlate(l.vehicleId) }}</span>
-                                <span class="text-slate-300">{{ l.workshop }}</span>
+                                <span class="text-slate-300 truncate">{{ l.workshop }}</span>
                             </div>
-                            <button @click="deleteSingleLogMaster(l.id)" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1" title="Hapus Log">
+                            <button @click="deleteSingleLogMaster(l.id)" class="text-rose-400 p-1 shrink-0">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
-                        </div>
-                        <div v-if="serviceLogs.length === 0" class="p-4 text-center text-slate-500">
-                            Tidak ada log riwayat servis di master database.
                         </div>
                     </div>
                 </div>
@@ -1080,9 +1178,9 @@ function doPost(e) {
                 <div v-if="masterDataTab === 'reset'" class="bg-rose-950/40 border border-rose-800/80 p-4 rounded-xl text-xs space-y-3">
                     <h4 class="font-bold text-rose-300 flex items-center gap-2">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Peringatan Kosongkan Database Total</span>
+                        <span>Kosongkan Database Total</span>
                     </h4>
-                    <p class="text-slate-300">Tindakan ini akan menghapus seluruh armada kendaraan dan seluruh riwayat servis dari Firebase Cloud & penyimpanan lokal browser. Data tidak dapat dikembalikan!</p>
+                    <p class="text-slate-300">Menghapus seluruh armada kendaraan dan seluruh riwayat servis dari Cloud & penyimpanan lokal browser.</p>
                     <button @click="confirmBulkDeleteMasterData('reset_total')" class="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow">
                         Kosongkan Seluruh Database Sekarang
                     </button>
@@ -1091,17 +1189,17 @@ function doPost(e) {
         </div>
 
         <!-- MODAL: Driver Service Request -->
-        <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div>
-                        <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                        <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
                             <i class="fa-solid fa-paper-plane text-sky-400"></i>
                             <span>Pengajuan Servis Armada</span>
                         </h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Form pengajuan perbaikan / servis oleh Pengemudi / Unit</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Form pengajuan perbaikan oleh Pengemudi / Unit</p>
                     </div>
-                    <button @click="activeInServiceModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeInServiceModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1127,7 +1225,7 @@ function doPost(e) {
 
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Odometer Saat Ini (KM) *</label>
-                        <input type="number" v-model.number="inServiceForm.km" required min="0" placeholder="Masukkan KM odometer terbaca..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-sky-400">
+                        <input type="number" v-model.number="inServiceForm.km" required min="0" placeholder="KM odometer..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-sky-400">
                     </div>
 
                     <div>
@@ -1137,62 +1235,67 @@ function doPost(e) {
 
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Catatan Keluhan / Pengerjaan</label>
-                        <textarea v-model="inServiceForm.notes" rows="3" placeholder="Contoh: Ganti oli berkala, cek rem bunyi, servis AC..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none"></textarea>
+                        <textarea v-model="inServiceForm.notes" rows="3" placeholder="Contoh: Ganti oli, cek rem..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none"></textarea>
                     </div>
 
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                         <button type="button" @click="activeInServiceModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow-lg shadow-sky-600/20">Kirim Pengajuan Servis</button>
+                        <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow-lg shadow-sky-600/20 flex items-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Kirim Pengajuan</span>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- DRAWER: Vehicle Details -->
+        <!-- DRAWER: Vehicle Details (Mobile Full Width / Desktop Sidebar) -->
         <div v-if="activeVehicleDrawer && selectedDrawerVehicle" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end">
-            <div class="bg-slate-900 border-l border-slate-800 w-full max-w-xl h-full p-6 overflow-y-auto space-y-6 shadow-2xl">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="bg-slate-900 border-l border-slate-800 w-full sm:max-w-xl h-full p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
                     <div>
-                        <span class="inline-block px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-sm tracking-wider uppercase mb-1">
+                        <span class="inline-block px-2.5 py-0.5 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-xs sm:text-sm tracking-wider uppercase mb-1">
                             {{ selectedDrawerVehicle.plate }}
                         </span>
-                        <h2 class="font-extrabold text-lg text-white">{{ selectedDrawerVehicle.model }}</h2>
-                        <div v-if="isAdmin" class="flex items-center gap-2 mt-2">
-                            <button @click="openEditVehicleModal(selectedDrawerVehicle)" class="px-3 py-1 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>Edit Data Armada</span>
-                            </button>
-                            <button @click="openDeleteVehicleModal(selectedDrawerVehicle)" class="px-3 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-trash-can"></i>
-                                <span>Hapus Armada</span>
-                            </button>
-                        </div>
+                        <h2 class="font-extrabold text-base sm:text-lg text-white">{{ selectedDrawerVehicle.model }}</h2>
+                        <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Sopir: {{ selectedDrawerVehicle.driver || '-' }} | {{ selectedDrawerVehicle.category || 'Operasional' }}</p>
                     </div>
-                    <button @click="activeVehicleDrawer = false" class="text-slate-400 hover:text-white text-xl">
+                    <button @click="activeVehicleDrawer = false" class="text-slate-400 hover:text-white p-2 text-xl">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                        <span class="text-slate-400 block mb-1">Odometer Terkini:</span>
-                        <span class="font-mono font-bold text-sky-400 text-base">{{ (selectedDrawerVehicle.currentKm || 0).toLocaleString('id-ID') }} KM</span>
+                <div class="grid grid-cols-2 gap-2.5 text-xs">
+                    <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800">
+                        <span class="text-slate-400 block mb-0.5">Odometer Terkini:</span>
+                        <span class="font-mono font-bold text-sky-400 text-sm sm:text-base">{{ (selectedDrawerVehicle.currentKm || 0).toLocaleString('id-ID') }} KM</span>
                     </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                        <span class="text-slate-400 block mb-1">Odometer Servis Terakhir:</span>
-                        <span class="font-mono font-bold text-emerald-400 text-base">{{ (selectedDrawerVehicle.lastServiceKm || 0).toLocaleString('id-ID') }} KM</span>
+                    <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800">
+                        <span class="text-slate-400 block mb-0.5">Servis Terakhir:</span>
+                        <span class="font-mono font-bold text-emerald-400 text-sm sm:text-base">{{ (selectedDrawerVehicle.lastServiceKm || 0).toLocaleString('id-ID') }} KM</span>
                     </div>
                 </div>
 
+                <div v-if="isAdmin" class="flex items-center gap-2 pt-1 border-t border-slate-800">
+                    <button @click="openEditVehicleModal(selectedDrawerVehicle)" class="flex-1 py-2 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Edit Armada</span>
+                    </button>
+                    <button @click="openDeleteVehicleModal(selectedDrawerVehicle)" class="py-2 px-3 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Hapus</span>
+                    </button>
+                </div>
+
                 <div class="space-y-3">
-                    <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                         <i class="fa-solid fa-gauge-high text-sky-400"></i>
-                        <span>Status Keausan Komponen Vital Armada</span>
+                        <span>Keausan Komponen Vital Armada</span>
                     </h3>
 
-                    <div class="space-y-2 text-xs bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <div class="space-y-2 text-xs bg-slate-950 p-3.5 sm:p-4 rounded-xl border border-slate-800">
                         <div v-for="compKey in ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac']" :key="compKey" class="space-y-1">
-                            <div class="flex justify-between font-semibold">
+                            <div class="flex justify-between font-semibold text-[11px] sm:text-xs">
                                 <span class="text-slate-300">{{ getComponentNameLabel(compKey) }}</span>
                                 <span :class="getComponentWear(selectedDrawerVehicle, compKey).percent >= 100 ? 'text-rose-400 font-bold' : 'text-slate-400'" class="font-mono">
                                     {{ getComponentWear(selectedDrawerVehicle, compKey).text }}
@@ -1208,37 +1311,35 @@ function doPost(e) {
                 </div>
 
                 <div class="space-y-3">
-                    <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-sky-400"></i>
-                        <span>Riwayat Pengerjaan & Pemeliharaan (Terbaru di Atas)</span>
+                        <span>Riwayat Servis</span>
                     </h3>
 
-                    <div class="space-y-2 max-h-64 overflow-y-auto">
-                        <div v-for="log in getVehicleLogs(selectedDrawerVehicle.id)" :key="log.id" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+                    <div class="space-y-2 max-h-56 overflow-y-auto">
+                        <div v-for="log in getVehicleLogs(selectedDrawerVehicle.id)" :key="log.id" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs space-y-1">
                             <div class="flex items-center justify-between font-bold text-white">
                                 <span>{{ log.workshop }} - {{ formatDateWib(log.date) }}</span>
                                 <span class="font-mono text-emerald-400">{{ maskMoney(log.totalCost) }}</span>
                             </div>
-                            <div class="text-[11px] text-slate-400 font-mono">
+                            <div class="text-[10px] text-slate-400 font-mono">
                                 Odometer: {{ log.km ? Number(log.km).toLocaleString('id-ID') : 0 }} KM | Invoice: {{ log.invoiceNo || '-' }}
                             </div>
-                            <div class="flex flex-wrap gap-1 pt-1">
-                                <span v-for="(it, idx) in log.items" :key="idx" class="px-2 py-0.5 bg-slate-900 text-slate-300 border border-slate-800 rounded text-[10px]">
+                            <div class="flex flex-wrap gap-1 pt-0.5">
+                                <span v-for="(it, idx) in log.items" :key="idx" class="px-1.5 py-0.5 bg-slate-900 text-slate-300 border border-slate-800 rounded text-[9px]">
                                     {{ it.name }}
                                 </span>
                             </div>
-                        </div>
-                        <div v-if="getVehicleLogs(selectedDrawerVehicle.id).length === 0" class="text-center p-4 text-slate-500 text-xs">
-                            Belum ada riwayat servis untuk kendaraan ini.
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+
         <!-- MODAL: Firebase Cloud Config & Status -->
-        <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
@@ -1246,7 +1347,7 @@ function doPost(e) {
                         </div>
                         <div>
                             <h3 class="font-extrabold text-sm text-white">Firebase Realtime Database</h3>
-                            <p class="text-[11px] text-slate-400">Penyimpanan cloud real-time terintegrasi</p>
+                            <p class="text-[11px] text-slate-400">Penyimpanan cloud terintegrasi</p>
                         </div>
                     </div>
                     <button @click="activeCloudModal = false" class="text-slate-400 hover:text-white">
@@ -1259,32 +1360,16 @@ function doPost(e) {
                         <div class="flex items-center gap-2">
                             <i :class="cloudStatus === 'connected' ? 'fa-solid fa-circle-check text-emerald-400 text-base' : 'fa-solid fa-triangle-exclamation text-rose-400 text-base'"></i>
                             <div>
-                                <p class="font-bold text-white">{{ cloudStatus === 'connected' ? 'Terkoneksi ke Firebase Cloud' : 'Status Koneksi Firebase' }}</p>
-                                <p class="text-[10px]">{{ cloudStatus === 'connected' ? 'Data tersinkronisasi secara real-time ke semua pengguna dan perangkat.' : (cloudErrorMessage || 'Menghubungkan ke database...') }}</p>
+                                <p class="font-bold text-white">{{ cloudStatus === 'connected' ? 'Terkoneksi Firebase Cloud' : 'Status Koneksi Firebase' }}</p>
+                                <p class="text-[10px]">{{ cloudStatus === 'connected' ? 'Data tersinkronisasi secara real-time.' : (cloudErrorMessage || 'Menghubungkan...') }}</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div v-if="cloudErrorMessage" class="bg-rose-950/30 border border-rose-800/60 p-3 rounded-xl text-[11px] text-rose-200 space-y-1">
-                        <p class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i>Petunjuk Perbaikan Rules Firebase:</p>
-                        <p>Pastikan di Firebase Console -> <b>Realtime Database</b> -> Tab <b>Rules</b> sudah diset:</p>
-                        <pre class="bg-slate-950 p-2 rounded text-[10px] text-amber-300 font-mono mt-1">
-{
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}</pre>
                     </div>
 
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 font-mono text-[11px]">
                         <div class="flex justify-between">
                             <span class="text-slate-400">App ID:</span>
-                            <span class="text-sky-400 font-bold">{{ firebaseAppId }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">User UID:</span>
-                            <span class="text-emerald-400 font-bold truncate max-w-[200px]">{{ firebaseUserId || 'Akses Lokal / Anonim' }}</span>
+                            <span class="text-sky-400 font-bold truncate max-w-[180px]">{{ firebaseAppId }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-400">Total Armada:</span>
@@ -1306,14 +1391,14 @@ function doPost(e) {
         </div>
 
         <!-- MODAL: Admin Login -->
-        <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="text-center space-y-1">
-                    <div class="w-12 h-12 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-xl border border-sky-500/20">
+                    <div class="w-11 h-11 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-lg border border-sky-500/20">
                         <i class="fa-solid fa-user-shield"></i>
                     </div>
-                    <h3 class="text-base font-extrabold text-white">Login Admin Pengelola Armada</h3>
-                    <p class="text-xs text-slate-400">Masukkan password pengelola untuk melihat laporan finansial & mengelola data.</p>
+                    <h3 class="text-base font-extrabold text-white">Login Admin Armada</h3>
+                    <p class="text-xs text-slate-400">Masukkan password pengelola untuk mengelola data.</p>
                 </div>
 
                 <form @submit.prevent="loginAdmin" class="space-y-3 text-xs">
@@ -1323,19 +1408,19 @@ function doPost(e) {
                     </div>
 
                     <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" @click="activeAdminModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold">Login Admin</button>
+                        <button type="button" @click="activeAdminModal = false" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
+                        <button type="submit" class="flex-1 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold">Login</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- MODAL: Vehicle Add / Edit -->
-        <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h3 class="font-extrabold text-sm text-white">{{ vehicleForm.id ? 'Edit Data Armada' : 'Tambah Data Armada Baru' }}</h3>
-                    <button @click="activeVehicleModal = false" class="text-slate-400 hover:text-white">
+                    <h3 class="font-extrabold text-sm sm:text-base text-white">{{ vehicleForm.id ? 'Edit Data Armada' : 'Tambah Armada Baru' }}</h3>
+                    <button @click="activeVehicleModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1372,9 +1457,9 @@ function doPost(e) {
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">Status Operasional Armada</label>
+                        <label class="block font-bold text-slate-300 mb-1">Status Operasional Servis</label>
                         <select v-model="vehicleForm.isUnderService" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold">
-                            <option :value="false">🟢 Beroperasi Normal (Aktif)</option>
+                            <option :value="false">🟢 Beroperasi Normal / Aktif</option>
                             <option :value="true">🔵 Dalam Pengajuan / Sedang Servis</option>
                         </select>
                     </div>
@@ -1388,14 +1473,14 @@ function doPost(e) {
         </div>
 
         <!-- MODAL: Digital Invoice View -->
-        <div v-if="activeInvoiceModal && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeInvoiceModal && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
                         <i class="fa-solid fa-file-invoice text-sky-400"></i>
                         <span>Faktur Pemeliharaan Digital</span>
                     </h3>
-                    <button @click="activeInvoiceModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeInvoiceModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1422,7 +1507,7 @@ function doPost(e) {
 
                     <div>
                         <h4 class="font-bold text-slate-300 mb-1">Rincian Sparepart & Pengerjaan:</h4>
-                        <div class="border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800 bg-slate-950">
+                        <div class="border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800 bg-slate-950 max-h-48 overflow-y-auto">
                             <div v-for="(it, idx) in selectedLog.items" :key="idx" class="p-2.5 flex justify-between">
                                 <span class="text-slate-200">{{ it.name }}</span>
                                 <span class="font-mono font-bold text-emerald-400">{{ maskMoney(it.cost) }}</span>
@@ -1439,37 +1524,37 @@ function doPost(e) {
         </div>
 
         <!-- MODAL: Monthly Recap Detail -->
-        <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-4 my-8">
+        <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h3 class="font-extrabold text-base text-white">Rincian Laporan Bulan {{ getMonthName(selectedRecapMonth) }} {{ recapYear }}</h3>
-                    <button @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white">
+                    <h3 class="font-extrabold text-sm sm:text-base text-white">Laporan Bulan {{ getMonthName(selectedRecapMonth) }} {{ recapYear }}</h3>
+                    <button @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
                 <div class="space-y-4 text-xs">
                     <div class="space-y-2">
-                        <h4 class="font-bold text-slate-300">Akumulasi Biaya Per Bengkel Mitra:</h4>
+                        <h4 class="font-bold text-slate-300">Biaya Per Bengkel Mitra:</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                            <div v-for="ws in getMonthlyWorkshopBreakdown(selectedRecapMonth, recapYear)" :key="ws.name" class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
+                            <div v-for="ws in getMonthlyWorkshopBreakdown(selectedRecapMonth, recapYear)" :key="ws.name" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
                                 <span class="font-bold text-sky-400 block">{{ ws.name }}</span>
                                 <p class="text-slate-400 text-[10px]">{{ ws.count }} Transaksi</p>
-                                <p class="font-mono font-bold text-emerald-400 text-sm">{{ maskMoney(ws.total) }}</p>
+                                <p class="font-mono font-bold text-emerald-400 text-xs sm:text-sm">{{ maskMoney(ws.total) }}</p>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="font-bold text-slate-300 mb-2">Daftar Transaksi Servis Bulan Ini:</h4>
-                        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950">
-                            <div v-for="log in getServicedVehiclesForMonth(selectedRecapMonth, recapYear).logs" :key="log.id" class="p-3 flex items-center justify-between text-xs">
+                        <h4 class="font-bold text-slate-300 mb-2">Daftar Transaksi Servis:</h4>
+                        <div class="max-h-52 overflow-y-auto border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950">
+                            <div v-for="log in getServicedVehiclesForMonth(selectedRecapMonth, recapYear).logs" :key="log.id" class="p-2.5 flex items-center justify-between text-xs">
                                 <div>
                                     <span class="font-mono font-bold text-sky-400 mr-2">{{ getVehiclePlate(log.vehicleId) }}</span>
                                     <span class="text-slate-300 mr-2">{{ log.workshop }}</span>
-                                    <span class="text-slate-500 font-mono">({{ formatDateWib(log.date) }})</span>
+                                    <span class="text-slate-500 font-mono text-[10px]">({{ formatDateWib(log.date) }})</span>
                                 </div>
-                                <span class="font-mono font-bold text-emerald-400">{{ maskMoney(log.totalCost) }}</span>
+                                <span class="font-mono font-bold text-emerald-400 shrink-0">{{ maskMoney(log.totalCost) }}</span>
                             </div>
                         </div>
                     </div>
@@ -1478,36 +1563,36 @@ function doPost(e) {
         </div>
 
         <!-- MODAL: Excel Import -->
-        <div v-if="activeImportModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeImportModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h3 class="font-extrabold text-sm text-white">Import Data Riwayat Servis (Excel)</h3>
-                    <button @click="activeImportModal = false" class="text-slate-400 hover:text-white">
+                    <h3 class="font-extrabold text-sm text-white">Import Riwayat Servis (Excel)</h3>
+                    <button @click="activeImportModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <div class="space-y-3 text-xs">
-                    <p class="text-slate-300">Pilih berkas Excel (`.xlsx` / `.xls`) berisi kolom: <span class="font-mono text-sky-400">Plat Nomor, Bengkel, Invoice, Tanggal, Odometer, Total Biaya, Item</span>.</p>
-                    <input type="file" ref="logFileInput" accept=".xlsx, .xls" @change="handleExcelImport" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    <p class="text-slate-300">Pilih berkas Excel (`.xlsx` / `.xls`):</p>
+                    <input type="file" ref="logFileInput" accept=".xlsx, .xls" @change="handleExcelImport" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white">
                 </div>
             </div>
         </div>
 
         <!-- MODAL: Update Odometer -->
-        <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+        <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold shrink-0">
                             <i class="fa-solid fa-gauge-high"></i>
                         </div>
                         <div>
                             <h3 class="font-extrabold text-sm text-white">Update Odometer Armada</h3>
-                            <p class="text-[11px] text-slate-400">Perbarui angka kilometer (KM) terkini kendaraan</p>
+                            <p class="text-[11px] text-slate-400">Perbarui kilometer terkini kendaraan</p>
                         </div>
                     </div>
-                    <button @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white">
+                    <button @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1522,18 +1607,18 @@ function doPost(e) {
 
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
                         <div class="flex justify-between text-slate-400">
-                            <span>Odometer Tercatat Saat Ini:</span>
+                            <span>Odometer Tercatat:</span>
                             <span class="font-mono font-bold text-slate-200">{{ (updateKmForm.currentKm || 0).toLocaleString('id-ID') }} KM</span>
                         </div>
                         <div class="flex justify-between text-slate-400">
-                            <span>Servis Terakhir Pada:</span>
+                            <span>Servis Terakhir:</span>
                             <span class="font-mono text-emerald-400 font-bold">{{ (getVehicleLastServiceKm(updateKmForm.vehicleId) || 0).toLocaleString('id-ID') }} KM</span>
                         </div>
                     </div>
 
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Odometer Terkini Baru (KM) *</label>
-                        <input type="number" v-model.number="updateKmForm.newKm" required min="0" placeholder="Masukkan kilometer terbaca dari odometer..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-base text-sky-400 focus:border-sky-500 focus:outline-none">
+                        <input type="number" v-model.number="updateKmForm.newKm" required min="0" placeholder="Kilometer terbaca..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-base text-sky-400 focus:border-sky-500 focus:outline-none">
                     </div>
 
                     <div class="space-y-1.5">
@@ -1558,9 +1643,9 @@ function doPost(e) {
         </div>
 
         <!-- Toast Notifications -->
-        <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-6 right-6 z-50 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-bounce">
+        <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white px-3.5 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-bounce max-w-[90vw]">
             <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'"></i>
-            <span>{{ toast.message }}</span>
+            <span class="truncate">{{ toast.message }}</span>
         </div>
 
     </div>
@@ -1632,6 +1717,13 @@ function doPost(e) {
                     activeCloudModal: false,
                     activeUpdateKmModal: false,
                     activeSheetsModal: false,
+                    activeNotifModal: false,
+
+                    waNumber: localStorage.getItem('uns_wa_number') || '6282294949474',
+                    telegramBotToken: localStorage.getItem('uns_telegram_token') || '',
+                    telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '',
+                    enableWaNotification: JSON.parse(localStorage.getItem('uns_enable_wa_notif') || 'true'),
+                    enableTelegramNotification: JSON.parse(localStorage.getItem('uns_enable_tg_notif') || 'true'),
 
                     sheetsWebhookUrl: localStorage.getItem('uns_sheets_webhook_url') || '',
                     autoSyncSheets: JSON.parse(localStorage.getItem('uns_auto_sync_sheets') || 'true'),
@@ -1956,6 +2048,85 @@ function doPost(e) {
                     }
                 },
 
+                saveNotifSettings() {
+                    localStorage.setItem('uns_wa_number', this.waNumber);
+                    localStorage.setItem('uns_telegram_token', this.telegramBotToken);
+                    localStorage.setItem('uns_telegram_chat_id', this.telegramChatId);
+                    localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
+                    localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
+                    this.showToast('Pengaturan Notifikasi WA & Telegram disimpan!', 'success');
+                    this.activeNotifModal = false;
+                },
+
+                async testTelegramNotif() {
+                    if (!this.telegramBotToken || !this.telegramChatId) {
+                        this.showToast('Isi Telegram Bot Token & Chat ID terlebih dahulu!', 'error');
+                        return;
+                    }
+                    try {
+                        const tgUrl = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
+                        const res = await fetch(tgUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: this.telegramChatId,
+                                text: "🔔 *AUTOMAN UNS Test Notifikasi*\n\nSistem notifikasi Telegram Bot berhasil terhubung!",
+                                parse_mode: 'Markdown'
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.ok) {
+                            this.showToast('Pesan tes Telegram berhasil terkirim!', 'success');
+                        } else {
+                            this.showToast('Gagal: ' + (data.description || 'Cek Token/Chat ID'), 'error');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('Gagal terhubung ke Telegram API', 'error');
+                    }
+                },
+
+                async sendServiceRequestNotifications(car, inServiceForm) {
+                    const textMsg = `🚨 *PENGAJUAN SERVIS ARMADA BARU* 🚨\n\n` +
+                        `🚗 *Plat Nomor:* ${car.plate}\n` +
+                        `🚘 *Model:* ${car.model}\n` +
+                        `👤 *Pengemudi:* ${car.driver || '-'}\n` +
+                        `🏢 *Kategori:* ${car.category || 'Operasional'}\n` +
+                        `🏬 *Bengkel Tujuan:* ${inServiceForm.workshop}\n` +
+                        `📟 *Odometer Terkini:* ${Number(inServiceForm.km).toLocaleString('id-ID')} KM\n` +
+                        `📅 *Tanggal Pengajuan:* ${this.formatDateWib(inServiceForm.date)}\n` +
+                        `📝 *Catatan Keluhan:* ${inServiceForm.notes || '-'}`;
+
+                    // Telegram Bot Notification
+                    if (this.enableTelegramNotification && this.telegramBotToken && this.telegramChatId) {
+                        try {
+                            const tgUrl = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
+                            await fetch(tgUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: this.telegramChatId,
+                                    text: textMsg,
+                                    parse_mode: 'Markdown'
+                                })
+                            });
+                        } catch (err) {
+                            console.error('Telegram notification error:', err);
+                        }
+                    }
+
+                    // WhatsApp Direct Redirect
+                    if (this.enableWaNotification && this.waNumber) {
+                        let cleanPhone = this.waNumber.replace(/[^0-9]/g, '');
+                        if (cleanPhone.startsWith('0')) {
+                            cleanPhone = '62' + cleanPhone.slice(1);
+                        }
+                        const encodedText = encodeURIComponent(textMsg);
+                        const waUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
+                        window.open(waUrl, '_blank');
+                    }
+                },
+
                 async triggerManualSheetsSync() {
                     if (!this.sheetsWebhookUrl) {
                         this.showToast('Masukkan URL Apps Script Google Sheets terlebih dahulu!', 'error');
@@ -1977,7 +2148,7 @@ function doPost(e) {
                             body: JSON.stringify(payload)
                         });
 
-                        this.showToast('Data berhasil dituliskan otomatis ke Google Spreadsheet!', 'success');
+                        this.showToast('Data dituliskan ke Google Spreadsheet!', 'success');
                     } catch (e) {
                         console.error(e);
                         this.showToast('Gagal mengirimkan data ke Google Sheets', 'error');
@@ -2005,7 +2176,7 @@ function doPost(e) {
                             this.firebaseUserId = userCred.user.uid;
                         }
                     } catch (err) {
-                        console.warn("Auth warning (Akses lokal file:// detected):", err);
+                        console.warn("Auth warning:", err);
                         this.firebaseUserId = 'Akses Lokal Public';
                         this.cloudErrorMessage = err.message || String(err);
                     }
@@ -2029,6 +2200,15 @@ function doPost(e) {
                                 currentKm: Number(v.currentKm) || 0,
                                 lastServiceKm: Number(v.lastServiceKm) || 0
                             }));
+                            if (this.selectedDrawerVehicle) {
+                                const updated = this.vehicles.find(v => v.id === this.selectedDrawerVehicle.id);
+                                if (updated) {
+                                    this.selectedDrawerVehicle = updated;
+                                } else {
+                                    this.activeVehicleDrawer = false;
+                                    this.selectedDrawerVehicle = null;
+                                }
+                            }
                         } else {
                             if (this.vehicles && this.vehicles.length > 0) {
                                 this.vehicles.forEach(v => this.syncVehicleToCloud(v));
@@ -2141,7 +2321,7 @@ function doPost(e) {
                 },
 
                 parseExcelDate(val) {
-                    if (!val) return new Date().toISOString().substring(0, 10);
+                    if (!val) return '';
                     
                     if (typeof val === 'number') {
                         if (typeof XLSX !== 'undefined' && XLSX.SSF && XLSX.SSF.parse_date_code) {
@@ -2167,7 +2347,7 @@ function doPost(e) {
                         return `${year}-${month}-${day}`;
                     }
 
-                    return new Date().toISOString().substring(0, 10);
+                    return '';
                 },
 
                 loginAdmin() {
@@ -2275,6 +2455,10 @@ function doPost(e) {
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
+
+                        // Trigger notifications
+                        this.sendServiceRequestNotifications(car, this.inServiceForm);
+
                         this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
                     }
                     this.activeInServiceModal = false;
@@ -2733,9 +2917,12 @@ function doPost(e) {
                             this.showToast('AI Scan nota berhasil!', 'success');
                         }).catch(() => {
                             this.showToast('Gagal memproses gambar nota', 'error');
+                        }).finally(() => {
+                            event.target.value = '';
                         });
                     } else {
                         this.showToast('AI OCR belum siap', 'error');
+                        event.target.value = '';
                     }
                 },
 
@@ -2825,7 +3012,7 @@ function doPost(e) {
 
                     this.activeDeleteModal = false;
                     this.logToDeleteId = null;
-                    this.showToast('Penghapusan riwayat servis berhasil diproses.', 'success');
+                    this.showToast('Penghapusan riwayat servis diproses.', 'success');
                 },
 
                 recalculateVehicleStats(vId) {
@@ -2844,13 +3031,7 @@ function doPost(e) {
                             }, routineLogs[0]);
                             car.lastServiceKm = Number(latest.km) || 0;
                             car.lastServiceDate = latest.date;
-                        } else {
-                            car.lastServiceKm = Number(car.currentKm) || 0;
-                            car.lastServiceDate = '';
                         }
-                    } else {
-                        car.lastServiceKm = Number(car.currentKm) || 0;
-                        car.lastServiceDate = '';
                     }
                 },
 
@@ -2875,7 +3056,7 @@ function doPost(e) {
                     }
 
                     this.syncToGoogleSheetsAuto();
-                    this.showToast('Armada ' + plate + ' & riwayat servicenya berhasil dihapus', 'success');
+                    this.showToast('Armada ' + plate + ' berhasil dihapus', 'success');
                 },
 
                 deleteSingleLogMaster(id) {
@@ -3279,6 +3460,11 @@ function doPost(e) {
                 },
 
                 exportLogsToExcel() {
+                    if (!this.filteredServiceLogs || this.filteredServiceLogs.length === 0) {
+                        this.showToast('Tidak ada data riwayat servis untuk diexport', 'error');
+                        return;
+                    }
+
                     if (typeof XLSX === 'undefined') {
                         this.showToast('Library Excel belum siap', 'error');
                         return;
@@ -3299,6 +3485,7 @@ function doPost(e) {
                     const workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, 'RiwayatServis');
                     XLSX.writeFile(workbook, 'Riwayat_Servis_Armada_UNS.xlsx');
+                    this.showToast('Export data riwayat servis berhasil!', 'success');
                 },
 
                 loadSampleData() {
