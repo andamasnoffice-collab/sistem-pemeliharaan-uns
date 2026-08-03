@@ -14,7 +14,7 @@
     <!-- SheetJS (XLSX) for Excel Export/Import -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- Tesseract.js for AI Invoice OCR -->
+    <!-- Tesseract.js (Fallback OCR) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <!-- Custom Fonts -->
@@ -101,26 +101,22 @@
             </div>
 
             <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap">
-                <!-- Firebase Status Indicator -->
                 <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition">
                     <i :class="cloudStatus === 'connected' ? 'fa-solid fa-fire text-amber-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
                     <span class="inline">{{ cloudStatus === 'connected' ? 'Firebase' : (cloudStatus === 'loading' ? 'Sync...' : 'Offline') }}</span>
                 </button>
 
                 <div v-if="isAdmin" class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <!-- WhatsApp & Telegram Indicator -->
                     <button @click="activeNotifModal = true" :class="(waNumber || (telegramBotToken && telegramChatId)) ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition" title="Pengaturan Notifikasi WA & Telegram">
                         <i class="fa-solid fa-bell text-amber-400"></i>
                         <span class="hidden md:inline">Notif WA/TG</span>
                     </button>
 
-                    <!-- Google Sheets Indicator -->
                     <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition">
                         <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
                         <span class="hidden lg:inline">{{ sheetsWebhookUrl ? (isSheetsSyncing ? 'Writing...' : 'Sheets Active') : 'Set Sheets' }}</span>
                     </button>
 
-                    <!-- Password Management Button -->
                     <button @click="activePasswordModal = true" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-amber-950/90 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1 shadow">
                         <i class="fa-solid fa-key"></i>
                         <span class="hidden sm:inline">Pass Admin</span>
@@ -163,10 +159,8 @@
 
         <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
-            <!-- DASHBOARD TAB -->
             <section v-if="currentTab === 'dashboard'" class="space-y-4 sm:space-y-6">
                 
-                <!-- Quick Metrics Cards -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
                     <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-base sm:text-lg border border-sky-500/20 shrink-0">
@@ -219,7 +213,6 @@
                     </div>
                 </div>
 
-                <!-- Search and Filters -->
                 <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
                     <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                         <div class="relative w-full">
@@ -269,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- Vehicles Cards Grid -->
                 <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                     <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 transition rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
                         
@@ -417,7 +409,6 @@
                     </div>
                 </div>
 
-                <!-- Empty State -->
                 <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center space-y-3">
                     <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-xl sm:text-2xl">
                         <i class="fa-solid fa-car-side"></i>
@@ -435,7 +426,6 @@
                 </div>
             </section>
 
-            <!-- LOGS TAB -->
             <section v-if="currentTab === 'logs' && isAdmin" class="space-y-4 sm:space-y-6">
                 <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3">
                     <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -536,7 +526,6 @@
                     </div>
                 </div>
 
-                <!-- Desktop Table View -->
                 <div class="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
@@ -615,7 +604,6 @@
                     </div>
                 </div>
 
-                <!-- Mobile Log List View -->
                 <div class="block md:hidden space-y-2.5">
                     <div v-if="filteredServiceLogs.length > 0">
                         <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
@@ -675,7 +663,6 @@
                 </div>
             </section>
 
-            <!-- RECAP TAB -->
             <section v-if="currentTab === 'recap' && isAdmin" class="space-y-4 sm:space-y-6">
                 <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div>
@@ -693,7 +680,6 @@
                     </select>
                 </div>
 
-                <!-- Annual Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-emerald-500/20 shrink-0">
@@ -751,7 +737,6 @@
             </section>
 
         </main>
-
 
         <!-- MODAL: Password Management Modal -->
         <div v-if="activePasswordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
@@ -901,8 +886,8 @@
                             <i class="fa-solid fa-bell"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-sm sm:text-base text-white">Notifikasi WhatsApp & Telegram</h3>
-                            <p class="text-[11px] text-slate-400">Pemberitahuan otomatis pengajuan servis armada</p>
+                            <h3 class="font-extrabold text-sm sm:text-base text-white">Pengaturan Integrasi & Notifikasi</h3>
+                            <p class="text-[11px] text-slate-400">Pemberitahuan otomatis & Konfigurasi AI Gemini</p>
                         </div>
                     </div>
                     <button @click="activeNotifModal = false" class="text-slate-400 hover:text-white p-1">
@@ -911,6 +896,15 @@
                 </div>
 
                 <div class="space-y-4 text-xs">
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-sky-800/80 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-lg"></i>
+                            <span class="font-bold text-white">Google Gemini AI API Key (Multimodal Vision)</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400">Diperlukan untuk fitur otomatis membaca sparepart & harga dari foto nota di GitHub Pages / Server.</p>
+                        <input type="password" v-model="geminiApiKey" placeholder="Masukkan Gemini API Key (AIzaSy...)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
+                    </div>
+
                     <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -986,18 +980,35 @@
                 </div>
 
                 <form @submit.prevent="saveServiceLog" class="space-y-4 text-xs">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-dashed border-sky-800/80 flex items-center justify-between flex-wrap gap-2">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-base"></i>
-                            <div>
-                                <p class="font-bold text-white text-xs">AI Scan Invoice Nota</p>
-                                <p class="text-[10px] text-slate-400">Upload foto nota untuk terbaca otomatis</p>
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-dashed border-sky-800/80 space-y-3">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm font-bold shrink-0">
+                                    <i :class="isScanningInvoice ? 'fa-solid fa-spinner fa-spin text-amber-400' : 'fa-solid fa-wand-magic-sparkles'"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-white text-xs flex items-center gap-1.5">
+                                        <span>Gemini Vision AI Scan Nota</span>
+                                        <span class="text-[9px] bg-sky-950 text-sky-300 border border-sky-800 px-1.5 py-0.2 rounded font-mono">Auto Part & Price</span>
+                                    </p>
+                                    <p class="text-[10px] text-slate-400">Upload foto nota untuk otomatis mengekstrak sparepart & nominal harga</p>
+                                </div>
                             </div>
+
+                            <label :class="isScanningInvoice ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="px-3.5 py-2 bg-sky-600 text-white font-bold rounded-xl transition shadow text-xs flex items-center gap-1.5">
+                                <i :class="isScanningInvoice ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-camera'"></i>
+                                <span>{{ isScanningInvoice ? 'Menganalisis Nota...' : 'Scan Foto Nota' }}</span>
+                                <input type="file" accept="image/*" @change="handleInvoiceScan" :disabled="isScanningInvoice" class="hidden">
+                            </label>
                         </div>
-                        <label class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg cursor-pointer transition shadow text-xs">
-                            <span>Scan Nota</span>
-                            <input type="file" accept="image/*" @change="handleInvoiceScan" class="hidden">
-                        </label>
+
+                        <div class="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <label class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-key text-amber-400"></i>
+                                <span>Gemini API Key:</span>
+                            </label>
+                            <input type="password" v-model="geminiApiKey" @change="saveGeminiApiKey" placeholder="Tempel Gemini API Key di sini (AIzaSy...)" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white font-mono text-[11px] focus:border-sky-500 focus:outline-none">
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1075,9 +1086,12 @@
 
                     <div class="space-y-2 pt-2 border-t border-slate-800">
                         <div class="flex items-center justify-between">
-                            <label class="font-bold text-slate-300">Rincian Sparepart / Pengerjaan *</label>
+                            <label class="font-bold text-slate-300 flex items-center gap-1.5">
+                                <span>Rincian Sparepart / Pengerjaan *</span>
+                                <span class="text-[10px] text-emerald-400 font-mono font-normal">(Total: {{ maskMoney(serviceFormTotalCost, true) }})</span>
+                            </label>
                             <button type="button" @click="addServiceItem" class="text-sky-400 hover:text-sky-300 font-bold text-xs flex items-center gap-1">
-                                <i class="fa-solid fa-plus"></i> Tambah
+                                <i class="fa-solid fa-plus"></i> Tambah Item
                             </button>
                         </div>
 
@@ -1086,16 +1100,16 @@
                         </datalist>
 
                         <div class="flex flex-wrap gap-1 py-1">
-                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran:</span>
+                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran Cepat:</span>
                             <button type="button" v-for="sug in combinedQuickSuggestions.slice(0, 8)" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[10px] flex items-center gap-1">
                                 + {{ sug.name }}
                             </button>
                         </div>
 
                         <div v-for="(item, idx) in serviceForm.items" :key="idx" class="flex items-center gap-2">
-                            <input type="text" v-model="item.name" list="sparepartDatalist" placeholder="Nama sparepart..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500">
-                            <input type="number" v-model.number="item.cost" placeholder="Biaya..." required min="0" class="w-28 sm:w-32 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white font-mono text-emerald-400">
-                            <button type="button" @click="removeServiceItem(idx)" class="text-rose-400 hover:text-rose-300 p-1.5">
+                            <input type="text" v-model="item.name" list="sparepartDatalist" placeholder="Nama sparepart / pengerjaan..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500">
+                            <input type="number" v-model.number="item.cost" placeholder="Biaya (Rp)..." required min="0" class="w-28 sm:w-36 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white font-mono text-emerald-400">
+                            <button type="button" @click="removeServiceItem(idx)" class="text-rose-400 hover:text-rose-300 p-1.5" title="Hapus Item">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -1103,7 +1117,7 @@
 
                     <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
                         <button type="button" @click="activeNewServiceModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20">Simpan Log</button>
+                        <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20">Simpan Log Servis</button>
                     </div>
                 </form>
             </div>
@@ -1676,7 +1690,7 @@
 
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                         <button type="button" @click="activeUpdateKmModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-1.5">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-1.5">
                             <i class="fa-solid fa-floppy-disk"></i>
                             <span>Simpan Odometer</span>
                         </button>
@@ -1769,6 +1783,7 @@
                     activeSheetsModal: false,
                     activeNotifModal: false,
 
+                    geminiApiKey: localStorage.getItem('uns_gemini_api_key') || '',
                     waNumber: localStorage.getItem('uns_wa_number') || '6282294949474',
                     telegramBotToken: localStorage.getItem('uns_telegram_token') || '8957184277:AAFKvncrj-06muLB9D44IdD-NXvxeNvUK4Y',
                     telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '846031830',
@@ -1778,6 +1793,7 @@
                     sheetsWebhookUrl: localStorage.getItem('uns_sheets_webhook_url') || '',
                     autoSyncSheets: JSON.parse(localStorage.getItem('uns_auto_sync_sheets') || 'true'),
                     isSheetsSyncing: false,
+                    isScanningInvoice: false,
 
                     selectedDrawerVehicle: null,
                     vehicleToDelete: null,
@@ -1863,6 +1879,11 @@
             },
 
             computed: {
+                serviceFormTotalCost() {
+                    if (!this.serviceForm.items || !Array.isArray(this.serviceForm.items)) return 0;
+                    return this.serviceForm.items.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+                },
+
                 annualRecapStats() {
                     const yearNum = Number(this.recapYear);
                     const logs = (this.serviceLogs || []).filter(l => {
@@ -2010,46 +2031,43 @@
             },
 
             methods: {
-                async syncSettingsToCloud() {
-                    if (!db) return;
-                    try {
-                        const settingsRef = ref(db, 'artifacts/' + appId + '/public/data/settings');
-                        const settingsData = {
-                            adminPassword: this.adminPassword,
-                            waNumber: this.waNumber,
-                            telegramBotToken: this.telegramBotToken,
-                            telegramChatId: this.telegramChatId,
-                            enableWaNotification: this.enableWaNotification,
-                            enableTelegramNotification: this.enableTelegramNotification,
-                            sheetsWebhookUrl: this.sheetsWebhookUrl,
-                            autoSyncSheets: this.autoSyncSheets
-                        };
-                        await set(settingsRef, settingsData);
-                    } catch (e) {
-                        console.error("Error syncing settings to Realtime DB:", e);
-                    }
+                saveGeminiApiKey() {
+                    localStorage.setItem('uns_gemini_api_key', this.geminiApiKey);
+                    this.syncSettingsToCloud();
+                    this.showToast('Gemini API Key tersimpan!', 'success');
                 },
 
-                changeAdminPassword() {
+                async saveNotifSettings() {
+                    localStorage.setItem('uns_gemini_api_key', this.geminiApiKey);
+                    localStorage.setItem('uns_wa_number', this.waNumber);
+                    localStorage.setItem('uns_telegram_token', this.telegramBotToken);
+                    localStorage.setItem('uns_telegram_chat_id', this.telegramChatId);
+                    localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
+                    localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
+                    this.syncSettingsToCloud();
+                    this.showToast('Pengaturan disimpan!', 'success');
+                    this.activeNotifModal = false;
+                },
+
+                async changeAdminPassword() {
                     if (this.pwdForm.currentPwd !== this.adminPassword) {
-                        this.showToast('Password saat ini salah!', 'error');
-                        return;
-                    }
-                    if (!this.pwdForm.newPwd || this.pwdForm.newPwd.length < 3) {
-                        this.showToast('Password baru minimal 3 karakter!', 'error');
+                        this.showToast('Password lama tidak sesuai!', 'error');
                         return;
                     }
                     if (this.pwdForm.newPwd !== this.pwdForm.confirmPwd) {
                         this.showToast('Konfirmasi password baru tidak cocok!', 'error');
                         return;
                     }
-
+                    if (!this.pwdForm.newPwd || this.pwdForm.newPwd.length < 4) {
+                        this.showToast('Password baru minimal 4 karakter!', 'error');
+                        return;
+                    }
                     this.adminPassword = this.pwdForm.newPwd;
                     localStorage.setItem('uns_admin_pwd', this.adminPassword);
                     this.syncSettingsToCloud();
                     this.pwdForm = { currentPwd: '', newPwd: '', confirmPwd: '' };
                     this.activePasswordModal = false;
-                    this.showToast('Password Admin berhasil diubah!', 'success');
+                    this.showToast('Password admin berhasil diperbarui!', 'success');
                 },
 
                 resetAdminPasswordToDefault() {
@@ -2058,61 +2076,234 @@
                     this.syncSettingsToCloud();
                     this.pwdForm = { currentPwd: '', newPwd: '', confirmPwd: '' };
                     this.activePasswordModal = false;
-                    this.showToast('Password Admin direset ke default', 'success');
+                    this.showToast('Password direset ke default', 'success');
                 },
 
                 resetAdminPasswordFromLogin() {
                     this.adminPassword = 'ANDA321';
                     localStorage.setItem('uns_admin_pwd', 'ANDA321');
                     this.syncSettingsToCloud();
-                    this.showToast('Password direset ke default', 'success');
+                    this.adminPasswordInput = '';
+                    this.showToast('Password direset ke default. Silakan login kembali.', 'success');
                 },
 
-                async syncToGoogleSheetsAuto(vList = null, lList = null) {
-                    if (!this.sheetsWebhookUrl || !this.autoSyncSheets) return;
-                    
-                    this.isSheetsSyncing = true;
+                async syncSettingsToCloud() {
+                    if (!db) return;
                     try {
+                        const targetRef = ref(db, 'artifacts/' + appId + '/public/data/settings');
+                        await set(targetRef, {
+                            adminPassword: this.adminPassword,
+                            geminiApiKey: this.geminiApiKey,
+                            waNumber: this.waNumber,
+                            telegramBotToken: this.telegramBotToken,
+                            telegramChatId: this.telegramChatId,
+                            enableWaNotification: this.enableWaNotification,
+                            enableTelegramNotification: this.enableTelegramNotification,
+                            sheetsWebhookUrl: this.sheetsWebhookUrl,
+                            autoSyncSheets: this.autoSyncSheets
+                        });
+                    } catch (e) {
+                        console.error('Sync settings error:', e);
+                    }
+                },
+
+                async handleInvoiceScan(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    if (!this.geminiApiKey || !this.geminiApiKey.trim()) {
+                        this.showToast('Masukkan Gemini API Key terlebih dahulu di kolom yang disediakan!', 'error');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    this.isScanningInvoice = true;
+                    this.showToast('🤖 AI Gemini Vision sedang membaca rincian nota & harga...', 'success');
+
+                    try {
+                        const base64Data = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const res = reader.result;
+                                const base64 = res.substring(res.indexOf(',') + 1);
+                                resolve(base64);
+                            };
+                            reader.onerror = error => reject(error);
+                            reader.readAsDataURL(file);
+                        });
+
+                        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + this.geminiApiKey.trim();
+
+                        const systemPrompt = "Anda adalah AI OCR khusus invoice/nota/kwitansi bengkel perbaikan kendaraan. Tugas Anda adalah membaca seluruh teks dari foto nota dan mengekstrak rincian secara lengkap ke format JSON.";
+                        const userPrompt = "Analisis foto nota/kwitansi bengkel ini. Ekstrak:\n" +
+                            "1. Nomor invoice/faktur (invoiceNo)\n" +
+                            "2. Nama bengkel (workshop: pilih dari 'Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', atau 'Bengkel Luar')\n" +
+                            "3. Tanggal transaksi (date: format YYYY-MM-DD)\n" +
+                            "4. Kilometer/Odometer terbaca jika ada (km: angka)\n" +
+                            "5. Daftar SELURUH sparepart, barang, minyak/oli, atau jasa pengerjaan beserta HARGA/BIAYA masing-masing dalam satuan Rupiah (items: [{name, cost}])\n" +
+                            "6. Komponen vital yang diganti (replacedComponents: daftar string yang cocok dari ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac']).";
+
                         const payload = {
-                            type: 'AUTO_WRITE',
-                            timestamp: new Date().toISOString(),
-                            vehicles: vList || this.vehicles,
-                            logs: lList || this.serviceLogs
+                            contents: [{
+                                role: "user",
+                                parts: [
+                                    { text: userPrompt },
+                                    {
+                                        inlineData: {
+                                            mimeType: file.type || "image/jpeg",
+                                            data: base64Data
+                                        }
+                                    }
+                                ]
+                            }],
+                            systemInstruction: {
+                                parts: [{ text: systemPrompt }]
+                            },
+                            generationConfig: {
+                                responseMimeType: "application/json",
+                                responseSchema: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        invoiceNo: { type: "STRING" },
+                                        workshop: { type: "STRING" },
+                                        date: { type: "STRING" },
+                                        km: { type: "NUMBER" },
+                                        items: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    name: { type: "STRING" },
+                                                    cost: { type: "NUMBER" }
+                                                },
+                                                propertyOrdering: ["name", "cost"]
+                                            }
+                                        },
+                                        replacedComponents: {
+                                            type: "ARRAY",
+                                            items: { type: "STRING" }
+                                        }
+                                    },
+                                    propertyOrdering: ["invoiceNo", "workshop", "date", "km", "items", "replacedComponents"]
+                                }
+                            }
                         };
 
-                        await fetch(this.sheetsWebhookUrl, {
+                        const response = await fetch(apiUrl, {
                             method: 'POST',
-                            mode: 'no-cors',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
-                    } catch (e) {
-                        console.error('Google Sheets Auto-Sync Write error:', e);
+
+                        const result = await response.json();
+                        const jsonText = result && result.candidates && result.candidates[0] && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0] ? result.candidates[0].content.parts[0].text : null;
+
+                        if (jsonText) {
+                            const parsed = JSON.parse(jsonText);
+                            
+                            if (parsed.invoiceNo) this.serviceForm.invoiceNo = parsed.invoiceNo;
+                            if (parsed.workshop) {
+                                const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
+                                const matched = wsList.find(w => w.toLowerCase() === parsed.workshop.toLowerCase());
+                                if (matched) this.serviceForm.workshop = matched;
+                            }
+                            if (parsed.date) {
+                                const formattedDate = this.parseExcelDate(parsed.date);
+                                if (formattedDate) this.serviceForm.date = formattedDate;
+                            }
+                            if (parsed.km && Number(parsed.km) > 0) {
+                                this.serviceForm.km = Number(parsed.km);
+                            }
+
+                            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                this.serviceForm.items = parsed.items.map(it => ({
+                                    name: String(it.name || 'Sparepart/Jasa').trim(),
+                                    cost: Number(it.cost) || 0
+                                }));
+                            }
+
+                            if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
+                                const validComps = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
+                                const filteredComps = parsed.replacedComponents.filter(c => validComps.includes(c));
+                                if (filteredComps.length > 0) {
+                                    this.serviceForm.replacedComponents = Array.from(new Set([...(this.serviceForm.replacedComponents || []), ...filteredComps]));
+                                }
+                            }
+
+                            this.showToast('✨ AI Scan Berhasil! ' + (parsed.items ? parsed.items.length : 0) + ' rincian part & biaya terisi.', 'success');
+                        } else {
+                            throw new Error("Respon AI tidak mengembalikan teks JSON.");
+                        }
+                    } catch (err) {
+                        console.warn("Gemini Vision OCR failed, fallback to Tesseract:", err);
+                        this.fallbackTesseractScan(file);
                     } finally {
-                        this.isSheetsSyncing = false;
+                        this.isScanningInvoice = false;
+                        event.target.value = '';
                     }
                 },
 
-                saveSheetsSettingsAndTest() {
-                    localStorage.setItem('uns_sheets_webhook_url', this.sheetsWebhookUrl);
-                    localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
-                    this.syncSettingsToCloud();
-                    if (this.sheetsWebhookUrl) {
-                        this.triggerManualSheetsSync();
+                fallbackTesseractScan(file) {
+                    if (typeof Tesseract !== 'undefined') {
+                        Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+                            const invMatch = text.match(/(INV|FAKTUR|NO)[\s:-]*([A-Z0-9-]+)/i);
+                            if (invMatch) this.serviceForm.invoiceNo = invMatch[2];
+                            
+                            const amountMatches = text.match(/(RP|TOTAL)[\s:.]*([0-9.,]+)/gi);
+                            if (amountMatches && amountMatches.length > 0) {
+                                const cleanNum = amountMatches[0].replace(/[^0-9]/g, '');
+                                if (cleanNum && Number(cleanNum) > 1000) {
+                                    if (!this.serviceForm.items || this.serviceForm.items.length === 0) {
+                                        this.serviceForm.items = [{ name: 'Servis/Sparepart', cost: Number(cleanNum) }];
+                                    } else {
+                                        this.serviceForm.items[0].cost = Number(cleanNum);
+                                    }
+                                }
+                            }
+                            this.showToast('Fallback OCR Tesseract Selesai!', 'success');
+                        }).catch(() => {
+                            this.showToast('Gagal memproses gambar nota', 'error');
+                        });
                     } else {
-                        this.showToast('URL Google Apps Script dikosongkan', 'success');
+                        this.showToast('Gagal membaca nota. Periksa Gemini API Key.', 'error');
                     }
                 },
 
-                saveNotifSettings() {
-                    localStorage.setItem('uns_wa_number', this.waNumber);
-                    localStorage.setItem('uns_telegram_token', this.telegramBotToken);
-                    localStorage.setItem('uns_telegram_chat_id', this.telegramChatId);
-                    localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
-                    localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
-                    this.syncSettingsToCloud();
-                    this.showToast('Pengaturan Notifikasi WA & Telegram disimpan!', 'success');
-                    this.activeNotifModal = false;
+                async sendServiceRequestNotifications(car, inServiceForm) {
+                    const textMsg = "🚨 *PENGAJUAN SERVIS ARMADA BARU* 🚨\n\n" +
+                        "🚗 *Plat Nomor:* " + car.plate + "\n" +
+                        "🚘 *Model:* " + car.model + "\n" +
+                        "👤 *Pengemudi:* " + (car.driver || '-') + "\n" +
+                        "🏢 *Kategori:* " + (car.category || 'Operasional') + "\n" +
+                        "🏬 *Bengkel Tujuan:* " + inServiceForm.workshop + "\n" +
+                        "📟 *Odometer Terkini:* " + Number(inServiceForm.km).toLocaleString('id-ID') + " KM\n" +
+                        "📅 *Tanggal Pengajuan:* " + this.formatDateWib(inServiceForm.date) + "\n" +
+                        "📝 *Catatan Keluhan:* " + (inServiceForm.notes || '-');
+
+                    if (this.enableTelegramNotification && this.telegramBotToken && this.telegramChatId) {
+                        try {
+                            const tgUrl = "https://api.telegram.org/bot" + this.telegramBotToken + "/sendMessage";
+                            await fetch(tgUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: this.telegramChatId,
+                                    text: textMsg,
+                                    parse_mode: 'Markdown'
+                                })
+                            });
+                        } catch (err) {
+                            console.error('Telegram notification error:', err);
+                        }
+                    }
+
+                    if (this.enableWaNotification && this.waNumber) {
+                        let cleanPhone = this.waNumber.replace(/[^0-9]/g, '');
+                        if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+                        const encodedText = encodeURIComponent(textMsg);
+                        const waUrl = "https://wa.me/" + cleanPhone + "?text=" + encodedText;
+                        window.open(waUrl, '_blank');
+                    }
                 },
 
                 async testTelegramNotif() {
@@ -2121,7 +2312,7 @@
                         return;
                     }
                     try {
-                        const tgUrl = 'https://api.telegram.org/bot' + this.telegramBotToken + '/sendMessage';
+                        const tgUrl = "https://api.telegram.org/bot" + this.telegramBotToken + "/sendMessage";
                         const res = await fetch(tgUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2143,42 +2334,38 @@
                     }
                 },
 
-                async sendServiceRequestNotifications(car, inServiceForm) {
-                    const textMsg = "🚨 *PENGAJUAN SERVIS ARMADA BARU* 🚨\n\n" +
-                        "🚗 *Plat Nomor:* " + car.plate + "\n" +
-                        "🚘 *Model:* " + car.model + "\n" +
-                        "👤 *Pengemudi:* " + (car.driver || '-') + "\n" +
-                        "🏢 *Kategori:* " + (car.category || 'Operasional') + "\n" +
-                        "🏬 *Bengkel Tujuan:* " + inServiceForm.workshop + "\n" +
-                        "📟 *Odometer Terkini:* " + Number(inServiceForm.km).toLocaleString('id-ID') + " KM\n" +
-                        "📅 *Tanggal Pengajuan:* " + this.formatDateWib(inServiceForm.date) + "\n" +
-                        "📝 *Catatan Keluhan:* " + (inServiceForm.notes || '-');
+                async syncToGoogleSheetsAuto(vList = null, lList = null) {
+                    if (!this.sheetsWebhookUrl || !this.autoSyncSheets) return;
+                    this.isSheetsSyncing = true;
+                    try {
+                        const payload = {
+                            type: 'AUTO_WRITE',
+                            timestamp: new Date().toISOString(),
+                            vehicles: vList || this.vehicles,
+                            logs: lList || this.serviceLogs
+                        };
 
-                    if (this.enableTelegramNotification && this.telegramBotToken && this.telegramChatId) {
-                        try {
-                            const tgUrl = 'https://api.telegram.org/bot' + this.telegramBotToken + '/sendMessage';
-                            await fetch(tgUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    chat_id: this.telegramChatId,
-                                    text: textMsg,
-                                    parse_mode: 'Markdown'
-                                })
-                            });
-                        } catch (err) {
-                            console.error('Telegram notification error:', err);
-                        }
+                        await fetch(this.sheetsWebhookUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (e) {
+                        console.error('Google Sheets Auto-Sync error:', e);
+                    } finally {
+                        this.isSheetsSyncing = false;
                     }
+                },
 
-                    if (this.enableWaNotification && this.waNumber) {
-                        let cleanPhone = this.waNumber.replace(/[^0-9]/g, '');
-                        if (cleanPhone.startsWith('0')) {
-                            cleanPhone = '62' + cleanPhone.slice(1);
-                        }
-                        const encodedText = encodeURIComponent(textMsg);
-                        const waUrl = 'https://wa.me/' + cleanPhone + '?text=' + encodedText;
-                        window.open(waUrl, '_blank');
+                saveSheetsSettingsAndTest() {
+                    localStorage.setItem('uns_sheets_webhook_url', this.sheetsWebhookUrl);
+                    localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
+                    this.syncSettingsToCloud();
+                    if (this.sheetsWebhookUrl) {
+                        this.triggerManualSheetsSync();
+                    } else {
+                        this.showToast('URL Google Apps Script dikosongkan', 'success');
                     }
                 },
 
@@ -2246,48 +2433,6 @@
                     const logsRef = ref(db, 'artifacts/' + appId + '/public/data/logs');
                     const settingsRef = ref(db, 'artifacts/' + appId + '/public/data/settings');
 
-                    onValue(settingsRef, (snapshot) => {
-                        const data = snapshot.val();
-                        if (data) {
-                            if (data.adminPassword) {
-                                this.adminPassword = data.adminPassword;
-                                localStorage.setItem('uns_admin_pwd', data.adminPassword);
-                            }
-                            if (data.waNumber !== undefined) {
-                                this.waNumber = data.waNumber;
-                                localStorage.setItem('uns_wa_number', data.waNumber);
-                            }
-                            if (data.telegramBotToken !== undefined) {
-                                this.telegramBotToken = data.telegramBotToken;
-                                localStorage.setItem('uns_telegram_token', data.telegramBotToken);
-                            }
-                            if (data.telegramChatId !== undefined) {
-                                this.telegramChatId = data.telegramChatId;
-                                localStorage.setItem('uns_telegram_chat_id', data.telegramChatId);
-                            }
-                            if (data.enableWaNotification !== undefined) {
-                                this.enableWaNotification = Boolean(data.enableWaNotification);
-                                localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
-                            }
-                            if (data.enableTelegramNotification !== undefined) {
-                                this.enableTelegramNotification = Boolean(data.enableTelegramNotification);
-                                localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
-                            }
-                            if (data.sheetsWebhookUrl !== undefined) {
-                                this.sheetsWebhookUrl = data.sheetsWebhookUrl;
-                                localStorage.setItem('uns_sheets_webhook_url', data.sheetsWebhookUrl);
-                            }
-                            if (data.autoSyncSheets !== undefined) {
-                                this.autoSyncSheets = Boolean(data.autoSyncSheets);
-                                localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
-                            }
-                        } else {
-                            this.syncSettingsToCloud();
-                        }
-                    }, (err) => {
-                        console.error("Realtime DB settings listener error:", err);
-                    });
-
                     onValue(vehiclesRef, (snapshot) => {
                         this.cloudStatus = 'connected';
                         this.cloudErrorMessage = '';
@@ -2335,6 +2480,32 @@
                         localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
                     }, (err) => {
                         console.error("Realtime DB logs listener error:", err);
+                    });
+
+                    onValue(settingsRef, (snapshot) => {
+                        const s = snapshot.val();
+                        if (s) {
+                            if (s.adminPassword) {
+                                this.adminPassword = s.adminPassword;
+                                localStorage.setItem('uns_admin_pwd', s.adminPassword);
+                            }
+                            if (s.geminiApiKey !== undefined) {
+                                this.geminiApiKey = s.geminiApiKey;
+                                localStorage.setItem('uns_gemini_api_key', s.geminiApiKey);
+                            }
+                            if (s.waNumber !== undefined) {
+                                this.waNumber = s.waNumber;
+                                localStorage.setItem('uns_wa_number', s.waNumber);
+                            }
+                            if (s.telegramBotToken !== undefined) {
+                                this.telegramBotToken = s.telegramBotToken;
+                                localStorage.setItem('uns_telegram_token', s.telegramBotToken);
+                            }
+                            if (s.telegramChatId !== undefined) {
+                                this.telegramChatId = s.telegramChatId;
+                                localStorage.setItem('uns_telegram_chat_id', s.telegramChatId);
+                            }
+                        }
                     });
                 },
 
@@ -2421,7 +2592,7 @@
                                 const y = dObj.y;
                                 const m = String(dObj.m).padStart(2, '0');
                                 const d = String(dObj.d).padStart(2, '0');
-                                return y + '-' + m + '-' + d;
+                                return `${y}-${m}-${d}`;
                             }
                         }
                         const jsDate = new Date(Math.round((val - (25567 + 2)) * 86400 * 1000));
@@ -2435,7 +2606,7 @@
                         const year = parsed.getFullYear();
                         const month = String(parsed.getMonth() + 1).padStart(2, '0');
                         const day = String(parsed.getDate()).padStart(2, '0');
-                        return year + '-' + month + '-' + day;
+                        return `${year}-${month}-${day}`;
                     }
                     return '';
                 },
@@ -2520,7 +2691,7 @@
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
-                        this.showToast('Odometer ' + car.plate + ' diperbarui ke ' + car.currentKm.toLocaleString('id-ID') + ' KM', 'success');
+                        this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
                     }
                     this.activeUpdateKmModal = false;
                 },
@@ -2545,8 +2716,9 @@
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
+
                         this.sendServiceRequestNotifications(car, this.inServiceForm);
-                        this.showToast('Pengajuan servis ' + car.plate + ' berhasil dikirim!', 'success');
+                        this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
                     }
                     this.activeInServiceModal = false;
                 },
@@ -2578,7 +2750,7 @@
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
-                        this.showToast('Pengajuan servis ' + car.plate + ' dibatalkan', 'success');
+                        this.showToast(`Pengajuan servis ${car.plate} dibatalkan`, 'success');
                     }
                 },
 
@@ -2640,7 +2812,7 @@
                     const month = String(nextD.getMonth() + 1).padStart(2, '0');
                     const year = nextD.getFullYear();
 
-                    return day + '-' + month + '-' + year;
+                    return `${day}-${month}-${year}`;
                 },
 
                 getRoutineStatus(car) {
@@ -2688,11 +2860,11 @@
                     if (isKmDanger || isDateDanger) {
                         let label = '';
                         if (isKmDanger && isDateDanger) {
-                            label = 'Lewat ' + (diffKm - limitKm).toLocaleString('id-ID') + ' KM & Tgl';
+                            label = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM & Tgl`;
                         } else if (isKmDanger) {
-                            label = 'Lewat ' + (diffKm - limitKm).toLocaleString('id-ID') + ' KM';
+                            label = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM`;
                         } else {
-                            label = daysRemaining < 0 ? 'Lewat ' + Math.abs(daysRemaining) + ' Hr (Tgl)' : 'Jatuh Tempo Hari Ini';
+                            label = daysRemaining < 0 ? `Lewat ${Math.abs(daysRemaining)} Hr (Tgl)` : `Jatuh Tempo Hari Ini`;
                         }
                         return { label, type: 'danger', percent: 100 };
                     }
@@ -2700,18 +2872,18 @@
                     if (isKmWarning || isDateWarning) {
                         let label = '';
                         if (isKmWarning && isDateWarning) {
-                            label = 'Sisa ' + (limitKm - diffKm).toLocaleString('id-ID') + ' KM / ' + daysRemaining + ' Hr';
+                            label = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM / ${daysRemaining} Hr`;
                         } else if (isKmWarning) {
-                            label = 'Sisa ' + (limitKm - diffKm).toLocaleString('id-ID') + ' KM';
+                            label = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
                         } else {
-                            label = 'Sisa ' + daysRemaining + ' Hari (Tgl)';
+                            label = `Sisa ${daysRemaining} Hari (Tgl)`;
                         }
                         return { label, type: 'warning', percent: Math.max(kmPercent, datePercent) };
                     }
 
-                    let remainingText = 'Sisa ' + (limitKm - diffKm).toLocaleString('id-ID') + ' KM';
+                    let remainingText = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
                     if (daysRemaining !== null && daysRemaining > 0) {
-                        remainingText += ' (' + daysRemaining + ' hr)';
+                        remainingText += ` (${daysRemaining} hr)`;
                     }
                     return { label: remainingText, type: 'safe', percent: Math.max(kmPercent, datePercent) };
                 },
@@ -2746,16 +2918,8 @@
                 getComponentWear(car, compKey) {
                     if (!car) return { text: 'Aman', percent: 0 };
                     
-                    const kmLimits = {
-                        filterOli: 14000,
-                        oliMatic: 40000,
-                        oliGardan: 40000
-                    };
-                    const monthLimits = {
-                        aki: 24,
-                        ban: 24,
-                        ac: 24
-                    };
+                    const kmLimits = { filterOli: 14000, oliMatic: 40000, oliGardan: 40000 };
+                    const monthLimits = { aki: 24, ban: 24, ac: 24 };
 
                     const vLogs = this.getVehicleLogs(car.id);
                     let lastReplacementLog = null;
@@ -2792,10 +2956,7 @@
                         const currentKm = Number(car.currentKm) || 0;
                         const usedKm = Math.max(0, currentKm - lastKm);
                         const percent = Math.min(100, Math.round((usedKm / limit) * 100));
-                        return {
-                            text: usedKm.toLocaleString('id-ID') + ' / ' + limit.toLocaleString('id-ID') + ' KM',
-                            percent
-                        };
+                        return { text: `${usedKm.toLocaleString('id-ID')} / ${limit.toLocaleString('id-ID')} KM`, percent };
                     } else if (monthLimits[compKey]) {
                         const limitMonths = monthLimits[compKey];
                         let refDate = null;
@@ -2809,10 +2970,7 @@
                         const now = new Date();
                         const diffMonths = Math.max(0, (now.getFullYear() - refDate.getFullYear()) * 12 + (now.getMonth() - refDate.getMonth()));
                         const percent = Math.min(100, Math.round((diffMonths / limitMonths) * 100));
-                        return {
-                            text: diffMonths + ' / ' + limitMonths + ' Bulan',
-                            percent
-                        };
+                        return { text: `${diffMonths} / ${limitMonths} Bulan`, percent };
                     }
 
                     return { text: 'Aman', percent: 0 };
@@ -2882,7 +3040,7 @@
                     const day = String(d.getDate()).padStart(2, '0');
                     const month = String(d.getMonth() + 1).padStart(2, '0');
                     const year = d.getFullYear();
-                    return day + '-' + month + '-' + year;
+                    return `${day}-${month}-${year}`;
                 },
 
                 openEditServiceModal(log) {
@@ -2894,7 +3052,7 @@
                         const year = d.getFullYear();
                         const month = String(d.getMonth() + 1).padStart(2, '0');
                         const day = String(d.getDate()).padStart(2, '0');
-                        formattedDate = year + '-' + month + '-' + day;
+                        formattedDate = `${year}-${month}-${day}`;
                     }
 
                     this.serviceForm = {
@@ -2912,16 +3070,12 @@
                 },
 
                 addServiceItem() {
-                    if (!this.serviceForm.items) {
-                        this.serviceForm.items = [];
-                    }
+                    if (!this.serviceForm.items) this.serviceForm.items = [];
                     this.serviceForm.items.push({ name: '', cost: 0 });
                 },
 
                 addQuickSparepart(sug) {
-                    if (!this.serviceForm.items) {
-                        this.serviceForm.items = [];
-                    }
+                    if (!this.serviceForm.items) this.serviceForm.items = [];
                     if (this.serviceForm.items.length === 1 && (!this.serviceForm.items[0].name || this.serviceForm.items[0].cost === 0)) {
                         this.serviceForm.items[0] = { name: sug.name, cost: sug.cost };
                     } else {
@@ -2940,7 +3094,7 @@
                 saveServiceLog() {
                     const totalCost = this.serviceForm.items.reduce((acc, i) => acc + (Number(i.cost) || 0), 0);
                     const logData = {
-                        id: this.editingLogId || 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                        id: this.editingLogId || 'LOG-' + Date.now(),
                         vehicleId: this.serviceForm.vehicleId,
                         workshop: this.serviceForm.workshop,
                         date: this.serviceForm.date,
@@ -2981,40 +3135,6 @@
 
                     this.activeNewServiceModal = false;
                     this.showToast('Catatan servis tersimpan!', 'success');
-                },
-
-                handleInvoiceScan(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-
-                    if (!this.serviceForm.items || !this.serviceForm.items.length) {
-                        this.serviceForm.items = [{ name: 'Servis / Maintenance', cost: 0 }];
-                    }
-
-                    this.showToast('Menganalisis foto nota dengan AI Tesseract...', 'success');
-                    if (typeof Tesseract !== 'undefined') {
-                        Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
-                            const invMatch = text.match(/(INV|FAKTUR|NO)[\s:-]*([A-Z0-9-]+)/i);
-                            if (invMatch) {
-                                this.serviceForm.invoiceNo = invMatch[2];
-                            }
-                            const amountMatches = text.match(/(RP|TOTAL)[\s:.]*([0-9.,]+)/gi);
-                            if (amountMatches && amountMatches.length > 0 && this.serviceForm.items.length > 0) {
-                                const cleanNum = amountMatches[0].replace(/[^0-9]/g, '');
-                                if (cleanNum && Number(cleanNum) > 1000) {
-                                    this.serviceForm.items[0].cost = Number(cleanNum);
-                                }
-                            }
-                            this.showToast('AI Scan nota berhasil!', 'success');
-                        }).catch(() => {
-                            this.showToast('Gagal memproses gambar nota', 'error');
-                        }).finally(() => {
-                            event.target.value = '';
-                        });
-                    } else {
-                        this.showToast('AI OCR belum siap', 'error');
-                        event.target.value = '';
-                    }
                 },
 
                 toggleSelectAllLogs() {
@@ -3122,7 +3242,13 @@
                             }, routineLogs[0]);
                             car.lastServiceKm = Number(latest.km) || 0;
                             car.lastServiceDate = latest.date;
+                        } else {
+                            car.lastServiceKm = Number(car.currentKm) || 0;
+                            car.lastServiceDate = '';
                         }
+                    } else {
+                        car.lastServiceKm = Number(car.currentKm) || 0;
+                        car.lastServiceDate = '';
                     }
                 },
 
@@ -3251,16 +3377,13 @@
                 saveVehicle() {
                     const plateUpper = this.vehicleForm.plate.toUpperCase().trim();
                     
-                    if (!this.vehicleForm.id) {
-                        const exists = this.vehicles.some(v => v.plate.toUpperCase().trim() === plateUpper);
-                        if (exists) {
-                            this.showToast('Plat nomor ' + plateUpper + ' sudah terdaftar!', 'error');
-                            return;
-                        }
+                    const duplicate = this.vehicles.find(v => v.plate.toUpperCase() === plateUpper && v.id !== this.vehicleForm.id);
+                    if (duplicate) {
+                        this.showToast('Armada dengan plat nomor ' + plateUpper + ' sudah terdaftar!', 'error');
+                        return;
                     }
 
                     let updatedCar;
-
                     if (this.vehicleForm.id) {
                         const oldId = this.vehicleForm.id;
                         const idx = this.vehicles.findIndex(v => v.id === oldId);
@@ -3307,7 +3430,6 @@
                     if (updatedCar) this.syncVehicleToCloud(updatedCar);
 
                     this.syncToGoogleSheetsAuto();
-
                     this.activeVehicleModal = false;
                     this.showToast('Data armada ' + plateUpper + ' tersimpan!', 'success');
                 },
@@ -3495,7 +3617,7 @@
                                     const workshop = r['Bengkel Mitra'] || r['Bengkel'] || r['BENGKEL'] || 'Nasmoco';
                                     const invoiceNo = r['No Invoice'] || r['Invoice'] || r['NO INVOICE'] || r['No. Invoice'] || r['No Faktur'] || '';
                                     const dateVal = r['Tanggal Servis'] || r['Tanggal'] || r['TANGGAL'] || r['Tgl'];
-                                    const parsedDate = this.parseExcelDate(dateVal);
+                                    const parsedDate = this.parseExcelDate(dateVal) || new Date().toISOString().substring(0, 10);
                                     const kmVal = Number(r['Odometer (KM)']) || Number(r['Odometer']) || Number(r['ODOMETER']) || Number(r['KM']) || 0;
                                     const costVal = Number(r['Total Biaya (Rp)']) || Number(r['Total Biaya']) || Number(r['TOTAL BIAYA']) || Number(r['Biaya']) || 0;
                                     const itemRaw = r['Rincian Sparepart / Pekerjaan'] || r['Item'] || r['Pekerjaan'] || r['Rincian'] || 'Servis Berkala';
@@ -3592,12 +3714,16 @@
                     const sampleVehicles = [
                         { id: 'AD 1001 ZA', plate: 'AD 1001 ZA', model: 'Toyota Innova Zenix 2.0 HV', driver: 'Pak Bambang', category: 'Pimpinan', currentKm: 14200, lastServiceKm: 12000, lastServiceDate: '2026-05-10', isUnderService: false },
                         { id: 'AD 7002 GA', plate: 'AD 7002 GA', model: 'Toyota HiAce Commuter 2.5', driver: 'Pak Joko', category: 'Operasional', currentKm: 85200, lastServiceKm: 76000, lastServiceDate: '2025-11-15', isUnderService: false },
-                        { id: 'AD 1088 UB', plate: 'AD 1088 UB', model: 'Mitsubishi Pajero Sport Dakar', driver: 'Pak Haryanto', category: 'Pimpinan', currentKm: 32100, lastServiceKm: 28000, lastServiceDate: '2026-03-01', isUnderService: true, targetWorkshop: 'Nasmoco', inServiceDate: '2026-07-28', inServiceNotes: 'Servis berkala & ganti pad rem' }
+                        { id: 'AD 1088 UB', plate: 'AD 1088 UB', model: 'Mitsubishi Pajero Sport Dakar', driver: 'Pak Haryanto', category: 'Pimpinan', currentKm: 32100, lastServiceKm: 28000, lastServiceDate: '2026-03-01', isUnderService: true, targetWorkshop: 'Nasmoco', inServiceDate: '2026-07-28', inServiceNotes: 'Servis berkala & ganti pad rem' },
+                        { id: 'AD 9901 UNS', plate: 'AD 9901 UNS', model: 'Toyota Avanza 1.5 G CVT', driver: 'Sopir Fakultas', category: 'Fakultas', currentKm: 48900, lastServiceKm: 43000, lastServiceDate: '2026-02-12', isUnderService: false },
+                        { id: 'AD 1234 FA', plate: 'AD 1234 FA', model: 'Honda CR-V 1.5 Turbo', driver: 'Pak Supri', category: 'Unit', currentKm: 21500, lastServiceKm: 19000, lastServiceDate: '2026-06-20', isUnderService: false },
+                        { id: 'AD 8899 FK', plate: 'AD 8899 FK', model: 'Isuzu Elf Microbus 16 Seat', driver: 'Pak Wahyu', category: 'Operasional', currentKm: 112000, lastServiceKm: 108000, lastServiceDate: '2026-04-18', isUnderService: false }
                     ];
 
                     const sampleLogs = [
                         { id: 'LOG-101', vehicleId: 'AD 1001 ZA', workshop: 'Nasmoco', date: '2026-05-10', km: 12000, invoiceNo: 'INV-8821', isRoutine: true, items: [{ name: 'Oli Mesin TGO 0W-20', cost: 450000 }, { name: 'Filter Oli Genuine', cost: 85000 }], replacedComponents: ['filterOli'], totalCost: 535000 },
-                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Montecarlo', date: '2025-11-15', km: 76000, invoiceNo: 'MNT-402', isRoutine: true, items: [{ name: 'Ban Dunlop Enasave x4', cost: 4200000 }, { name: 'Spooring & Balancing', cost: 250000 }], replacedComponents: ['ban'], totalCost: 445000 }
+                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Montecarlo', date: '2025-11-15', km: 76000, invoiceNo: 'MNT-402', isRoutine: true, items: [{ name: 'Ban Dunlop Enasave x4', cost: 4200000 }, { name: 'Spooring & Balancing', cost: 250000 }], replacedComponents: ['ban'], totalCost: 445000 },
+                        { id: 'LOG-103', vehicleId: 'AD 9901 UNS', workshop: 'Zaini Auto', date: '2026-02-12', km: 43000, invoiceNo: 'ZAI-901', isRoutine: true, items: [{ name: 'Aki GS Astra Hybrid', cost: 1150000 }, { name: 'Servis AC & Evaporator', cost: 850000 }], replacedComponents: ['aki', 'ac'], totalCost: 2000000 }
                     ];
 
                     this.vehicles = sampleVehicles;
