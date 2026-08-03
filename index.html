@@ -60,7 +60,6 @@
 
         <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 shadow-xl">
             <div class="flex items-center gap-2.5 sm:gap-3">
-                <!-- Custom AUTOMAN Logo Emblem SVG -->
                 <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-800/80 p-1 flex items-center justify-center shadow-lg shadow-sky-500/20 group hover:scale-105 transition-transform duration-300">
                     <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -77,29 +76,17 @@
                                 <stop offset="100%" stop-color="#020617"/>
                             </linearGradient>
                         </defs>
-
-                        <!-- Outer Shield Frame -->
                         <path d="M60 14 L95 28 C95 72 60 98 60 106 C60 98 25 72 25 28 Z" fill="url(#automanDarkGrad)" stroke="url(#automanBlueGrad)" stroke-width="5" stroke-linejoin="round"/>
                         <path d="M60 21 L89 33 C89 67 60 90 60 96 C60 90 31 67 31 33 Z" stroke="url(#automanOrangeGrad)" stroke-width="3.5" stroke-linecap="round"/>
-
-                        <!-- Top Shield Checkmark Badge -->
                         <path d="M60 5 L73 13 C73 25 60 32 60 35 C60 32 47 25 47 13 Z" fill="url(#automanBlueGrad)" stroke="#ffffff" stroke-width="1.5"/>
                         <path d="M54 17 L58 21 L66 13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-
-                        <!-- Gear / Cog Background Right -->
                         <path d="M78 48 A 15 15 0 1 0 78 78 A 15 15 0 1 0 78 48 Z" stroke="url(#automanOrangeGrad)" stroke-width="3" fill="none" stroke-dasharray="5 3"/>
-
-                        <!-- Car Silhouette -->
                         <path d="M22 60 Q28 55 38 49 Q50 42 65 42 Q78 42 88 48 Q96 53 98 58 Q100 61 94 63 Q88 64 84 64 L25 64 Q20 64 22 60 Z" fill="url(#automanBlueGrad)"/>
                         <path d="M42 50 Q52 44 64 44 Q74 44 81 48 C72 49 56 49 42 50 Z" fill="#020617" opacity="0.85"/>
-
-                        <!-- Wheels -->
                         <circle cx="38" cy="64" r="7.5" fill="#0f172a" stroke="url(#automanBlueGrad)" stroke-width="2.5"/>
                         <circle cx="38" cy="64" r="2.5" fill="#ffffff"/>
                         <circle cx="78" cy="64" r="7.5" fill="#0f172a" stroke="url(#automanBlueGrad)" stroke-width="2.5"/>
                         <circle cx="78" cy="64" r="2.5" fill="#ffffff"/>
-
-                        <!-- Large Horizontal Wrench Across Bumper -->
                         <path d="M16 68 C16 62 22 60 26 64 L78 64 C82 60 88 62 88 68 C88 74 82 76 78 72 L26 72 C22 76 16 74 16 68 Z" fill="url(#automanBlueGrad)" stroke="#ffffff" stroke-width="1.5"/>
                         <circle cx="21" cy="68" r="3" fill="#0f172a"/>
                     </svg>
@@ -107,30 +94,36 @@
                 <div>
                     <h1 class="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
                         <span><span class="text-sky-400 font-black">AUTOMAN</span> UNS</span>
-                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Firebase Realtime</span>
+                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Realtime Cloud</span>
                     </h1>
                     <p class="text-[10px] sm:text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap">
-                <!-- Firebase Status & Sync Indicator -->
+                <!-- Firebase Status Indicator -->
                 <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition">
                     <i :class="cloudStatus === 'connected' ? 'fa-solid fa-fire text-amber-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
                     <span class="inline">{{ cloudStatus === 'connected' ? 'Firebase' : (cloudStatus === 'loading' ? 'Sync...' : 'Offline') }}</span>
                 </button>
 
                 <div v-if="isAdmin" class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <!-- WhatsApp & Telegram Notification Settings Indicator -->
+                    <!-- WhatsApp & Telegram Indicator -->
                     <button @click="activeNotifModal = true" :class="(waNumber || (telegramBotToken && telegramChatId)) ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition" title="Pengaturan Notifikasi WA & Telegram">
                         <i class="fa-solid fa-bell text-amber-400"></i>
                         <span class="hidden md:inline">Notif WA/TG</span>
                     </button>
 
-                    <!-- Google Sheets Auto-Sync Indicator (Admin Only) -->
+                    <!-- Google Sheets Indicator -->
                     <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition">
                         <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
                         <span class="hidden lg:inline">{{ sheetsWebhookUrl ? (isSheetsSyncing ? 'Writing...' : 'Sheets Active') : 'Set Sheets' }}</span>
+                    </button>
+
+                    <!-- Password Management Button -->
+                    <button @click="activePasswordModal = true" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-amber-950/90 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-key"></i>
+                        <span class="hidden sm:inline">Pass Admin</span>
                     </button>
 
                     <button @click="openMasterDataModal" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1 shadow">
@@ -157,7 +150,6 @@
                 <span>Dashboard Armada</span>
             </button>
 
-            <!-- Admin-Only Navigation Tabs -->
             <button v-if="isAdmin" @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-receipt"></i>
                 <span>Riwayat Servis</span>
@@ -171,9 +163,10 @@
 
         <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
+            <!-- DASHBOARD TAB -->
             <section v-if="currentTab === 'dashboard'" class="space-y-4 sm:space-y-6">
                 
-                <!-- Quick Metrics Cards - Fluid 2 to 5 columns -->
+                <!-- Quick Metrics Cards -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
                     <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-base sm:text-lg border border-sky-500/20 shrink-0">
@@ -226,6 +219,7 @@
                     </div>
                 </div>
 
+                <!-- Search and Filters -->
                 <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
                     <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                         <div class="relative w-full">
@@ -275,11 +269,11 @@
                     </div>
                 </div>
 
+                <!-- Vehicles Cards Grid -->
                 <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                     <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 transition rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
                         
                         <div class="space-y-3">
-                            <!-- Card Header -->
                             <div class="flex items-start justify-between gap-2">
                                 <div class="space-y-1 min-w-0">
                                     <span class="inline-block px-2.5 py-0.5 sm:py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-xs sm:text-sm tracking-wider uppercase">
@@ -310,7 +304,6 @@
                                         <span>AMAN</span>
                                     </span>
 
-                                    <!-- Quick Admin Edit & Delete Badges -->
                                     <div v-if="isAdmin" class="flex items-center gap-1 pt-0.5">
                                         <button @click.stop="openEditVehicleModal(car)" class="px-1.5 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded text-[9px] font-bold transition flex items-center gap-0.5 shadow" title="Edit">
                                             <i class="fa-solid fa-pen-to-square"></i>
@@ -322,7 +315,6 @@
                                 </div>
                             </div>
 
-                            <!-- Parameters Box -->
                             <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800/80 space-y-1.5">
                                 <div class="flex items-center justify-between text-[11px] sm:text-xs">
                                     <span class="text-slate-400 font-semibold flex items-center gap-1.5">
@@ -356,7 +348,6 @@
                                 </div>
                             </div>
 
-                            <!-- In-Service Banner vs Progress Bar -->
                             <div v-if="car.isUnderService" @click.stop class="bg-sky-950/60 border border-sky-800 p-2.5 rounded-xl text-xs space-y-1.5">
                                 <div class="flex items-center justify-between text-sky-300 font-semibold">
                                     <span>Bengkel: {{ car.targetWorkshop || 'Nasmoco' }}</span>
@@ -400,7 +391,6 @@
                             </div>
                         </div>
 
-                        <!-- Card Action Buttons Footer -->
                         <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap sm:flex-nowrap" @click.stop>
                             <button @click.stop="openVehicleDrawer(car)" class="flex-1 py-2 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 min-w-[120px]">
                                 <i class="fa-solid fa-square-poll-vertical text-sky-400"></i>
@@ -427,7 +417,7 @@
                     </div>
                 </div>
 
-                <!-- Empty State Vehicles -->
+                <!-- Empty State -->
                 <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center space-y-3">
                     <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-xl sm:text-2xl">
                         <i class="fa-solid fa-car-side"></i>
@@ -445,8 +435,8 @@
                 </div>
             </section>
 
+            <!-- LOGS TAB -->
             <section v-if="currentTab === 'logs' && isAdmin" class="space-y-4 sm:space-y-6">
-                <!-- Log Actions & Filter Toolbar -->
                 <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3">
                     <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                         <div class="flex items-center gap-2">
@@ -546,7 +536,7 @@
                     </div>
                 </div>
 
-                <!-- Logs Desktop Table View (md: block) -->
+                <!-- Desktop Table View -->
                 <div class="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
@@ -625,7 +615,7 @@
                     </div>
                 </div>
 
-                <!-- Mobile Log List View (< md) -->
+                <!-- Mobile Log List View -->
                 <div class="block md:hidden space-y-2.5">
                     <div v-if="filteredServiceLogs.length > 0">
                         <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
@@ -685,6 +675,7 @@
                 </div>
             </section>
 
+            <!-- RECAP TAB -->
             <section v-if="currentTab === 'recap' && isAdmin" class="space-y-4 sm:space-y-6">
                 <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div>
@@ -762,6 +753,53 @@
         </main>
 
 
+        <!-- MODAL: Password Management Modal -->
+        <div v-if="activePasswordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-sm text-white">Pengaturan Password Admin</h3>
+                            <p class="text-[11px] text-slate-400">Ubah password akses pengelola</p>
+                        </div>
+                    </div>
+                    <button @click="activePasswordModal = false" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form @submit.prevent="changeAdminPassword" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Password Saat Ini</label>
+                        <input type="password" v-model="pwdForm.currentPwd" required placeholder="Masukkan password lama..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Password Baru</label>
+                        <input type="password" v-model="pwdForm.newPwd" required placeholder="Password baru..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Konfirmasi Password Baru</label>
+                        <input type="password" v-model="pwdForm.confirmPwd" required placeholder="Ulangi password baru..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+
+                    <div class="pt-2 flex flex-col gap-2">
+                        <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Password Baru
+                        </button>
+                        
+                        <button type="button" @click="resetAdminPasswordToDefault" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold rounded-xl border border-slate-700">
+                            <i class="fa-solid fa-arrows-rotate mr-1"></i> Reset Password Default
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- MODAL: Delete Vehicle Confirmation -->
         <div v-if="activeDeleteVehicleModal && vehicleToDelete" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 text-center">
@@ -792,7 +830,9 @@
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-white">
-                        {{ deleteType === 'single' ? 'Hapus Riwayat Servis?' : (deleteType === 'selected' ? `Hapus ${selectedLogIds.length} Terpilih?` : `Hapus ${filteredServiceLogs.length} Data Filter?`) }}
+                        <span v-if="deleteType === 'single'">Hapus Riwayat Servis?</span>
+                        <span v-else-if="deleteType === 'selected'">Hapus {{ selectedLogIds.length }} Terpilih?</span>
+                        <span v-else>Hapus {{ filteredServiceLogs.length }} Data Filter?</span>
                     </h3>
                     <p class="text-xs text-slate-400 mt-1">Data riwayat servis yang dihapus tidak dapat dikembalikan lagi.</p>
                 </div>
@@ -871,7 +911,6 @@
                 </div>
 
                 <div class="space-y-4 text-xs">
-                    <!-- WhatsApp Section -->
                     <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -889,7 +928,6 @@
                         </div>
                     </div>
 
-                    <!-- Telegram Section -->
                     <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -1249,7 +1287,7 @@
             </div>
         </div>
 
-        <!-- DRAWER: Vehicle Details (Mobile Full Width / Desktop Sidebar) -->
+        <!-- DRAWER: Vehicle Details -->
         <div v-if="activeVehicleDrawer && selectedDrawerVehicle" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end">
             <div class="bg-slate-900 border-l border-slate-800 w-full sm:max-w-xl h-full p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
@@ -1336,8 +1374,7 @@
             </div>
         </div>
 
-
-        <!-- MODAL: Firebase Cloud Config & Status -->
+        <!-- MODAL: Firebase Cloud Config -->
         <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1410,6 +1447,12 @@
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="activeAdminModal = false" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
                         <button type="submit" class="flex-1 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold">Login</button>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800/80 text-center">
+                        <button type="button" @click="resetAdminPasswordFromLogin" class="text-slate-400 hover:text-amber-400 text-[11px] font-semibold transition">
+                            <i class="fa-solid fa-arrows-rotate mr-1"></i> Lupa Password? Reset Default
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1689,6 +1732,13 @@
                     adminPasswordInput: '',
                     adminPassword: localStorage.getItem('uns_admin_pwd') || 'ANDA321',
 
+                    pwdForm: {
+                        currentPwd: '',
+                        newPwd: '',
+                        confirmPwd: ''
+                    },
+                    activePasswordModal: false,
+
                     searchQuery: '',
                     categoryFilter: 'ALL',
                     statusFilter: 'ALL',
@@ -1720,8 +1770,8 @@
                     activeNotifModal: false,
 
                     waNumber: localStorage.getItem('uns_wa_number') || '6282294949474',
-                    telegramBotToken: localStorage.getItem('uns_telegram_token') || '',
-                    telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '',
+                    telegramBotToken: localStorage.getItem('uns_telegram_token') || '8957184277:AAFKvncrj-06muLB9D44IdD-NXvxeNvUK4Y',
+                    telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '846031830',
                     enableWaNotification: JSON.parse(localStorage.getItem('uns_enable_wa_notif') || 'true'),
                     enableTelegramNotification: JSON.parse(localStorage.getItem('uns_enable_tg_notif') || 'true'),
 
@@ -1796,46 +1846,9 @@
                         { name: 'Oli Mesin 5W-30 Synthetic', cost: 400000 },
                         { name: 'Filter Oli Genuine', cost: 85000 },
                         { name: 'Oli Transmisi Matic ATF / CVT', cost: 650000 },
-                        { name: 'Oli Transmisi Manual (MTF)', cost: 300000 },
-                        { name: 'Oli Gardan / Differential (GL-5)', cost: 250000 },
-                        { name: 'Minyak Rem DOT 4 / Brake Fluid', cost: 95000 },
-                        { name: 'Oli Power Steering', cost: 120000 },
-                        { name: 'Flashing Kuras Oli Transmisi Matic', cost: 350000 },
                         { name: 'Aki GS Astra Hybrid / MF Kering', cost: 1150000 },
-                        { name: 'Aki Yuasa / Incoe Heavy Duty', cost: 980000 },
-                        { name: 'Air Aki / Terminal Kepala Aki Set', cost: 45000 },
-                        { name: 'Busi Iridium Genuine Set', cost: 450000 },
-                        { name: 'Koil Pengapian (Ignition Coil)', cost: 650000 },
-                        { name: 'Alternator / Dinamo Ampere Charge', cost: 1850000 },
-                        { name: 'Dinamo Starter Set', cost: 1450000 },
-                        { name: 'Sekring Fuse Box & Relay Set', cost: 75000 },
-                        { name: 'Bohlam Lampu Utama LED / Halogen H4', cost: 250000 },
-                        { name: 'Sensor Oksigen / Sensor MAP/MAF', cost: 750000 },
-                        { name: 'Cairan Coolant Radiator Super Long Life', cost: 180000 },
-                        { name: 'Water Pump Radiator Set', cost: 750000 },
-                        { name: 'Thermostat Mesin & Gasket', cost: 350000 },
-                        { name: 'Selang Radiator Upper & Lower Set', cost: 220000 },
-                        { name: 'Kipas Radiator / Motor Extra Fan', cost: 850000 },
-                        { name: 'Radiator Assembly / Ganti Upper Tank Radiator', cost: 1350000 },
-                        { name: 'Tutup Radiator (Radiator Cap) Denso', cost: 95000 },
-                        { name: 'Filter Udara & Cabin AC Anti-Bakteri', cost: 150000 },
-                        { name: 'Evaporator AC Cabin Denso Genuine', cost: 850000 },
-                        { name: 'Flashing AC, Isu Freon R134a & Oli Kompresor', cost: 400000 },
-                        { name: 'Kompresor AC Set (Denso/Sandren)', cost: 2450000 },
-                        { name: 'Kondensor AC & Dryer Filter', cost: 950000 },
-                        { name: 'Katup Ekspansi AC (Expansion Valve)', cost: 320000 },
-                        { name: 'Blower AC Kabin & Motor Blower', cost: 650000 },
                         { name: 'Kampas Rem Depan (Brake Pad Genuine)', cost: 450000 },
-                        { name: 'Kampas Rem Belakang (Brake Shoe / Pad)', cost: 350000 },
-                        { name: 'Mangkuk / Disc Rotor Rem Depan', cost: 650000 },
-                        { name: 'Ball Joint Set (555 Japan)', cost: 350000 },
-                        { name: 'Tie Rod End & Rack End Set', cost: 450000 },
-                        { name: 'Link Stabilizer Depan Set', cost: 280000 },
-                        { name: 'Bushing Arm Depan & Belakang Set', cost: 480000 },
-                        { name: 'Bearing Roda / Wheel Hub Bearing', cost: 550000 },
-                        { name: 'Shockbreaker Depan Set (KYB/Tokico)', cost: 1450000 },
-                        { name: 'Shockbreaker Belakang Set', cost: 1100000 },
-                        { name: 'Support Shockbreaker & Rubber Mounting', cost: 380000 },
+                        { name: 'Busi Iridium Genuine Set', cost: 450000 },
                         { name: 'Ganti Ban (Bridgestone/Dunlop/GT Radial)', cost: 1100000 },
                         { name: 'Spooring 4 Roda & Balancing Roda', cost: 250000 }
                     ],
@@ -1846,9 +1859,6 @@
             },
 
             created() {
-                if (!this.vehicles || this.vehicles.length === 0) {
-                    this.loadSampleData();
-                }
                 this.initFirebase();
             },
 
@@ -1868,15 +1878,9 @@
 
                 allSparepartSuggestions() {
                     const counts = new Map();
-                    
                     this.quickSparepartSuggestions.forEach(s => {
-                        counts.set(s.name.toLowerCase(), {
-                            name: s.name,
-                            cost: s.cost,
-                            count: 1
-                        });
+                        counts.set(s.name.toLowerCase(), { name: s.name, cost: s.cost, count: 1 });
                     });
-
                     if (this.serviceLogs && this.serviceLogs.length) {
                         this.serviceLogs.forEach(l => {
                             if (l.items && Array.isArray(l.items)) {
@@ -1890,25 +1894,18 @@
                                             existing.count += 1;
                                             if (costNum > 0) existing.cost = costNum;
                                         } else {
-                                            counts.set(key, {
-                                                name: cleanName,
-                                                cost: costNum,
-                                                count: 2
-                                            });
+                                            counts.set(key, { name: cleanName, cost: costNum, count: 2 });
                                         }
                                     }
                                 });
                             }
                         });
                     }
-
                     return Array.from(counts.values());
                 },
 
                 combinedQuickSuggestions() {
-                    return [...this.allSparepartSuggestions]
-                        .sort((a, b) => b.count - a.count)
-                        .slice(0, 15);
+                    return [...this.allSparepartSuggestions].sort((a, b) => b.count - a.count).slice(0, 15);
                 },
 
                 routineVehiclesCount() {
@@ -2013,6 +2010,64 @@
             },
 
             methods: {
+                async syncSettingsToCloud() {
+                    if (!db) return;
+                    try {
+                        const settingsRef = ref(db, 'artifacts/' + appId + '/public/data/settings');
+                        const settingsData = {
+                            adminPassword: this.adminPassword,
+                            waNumber: this.waNumber,
+                            telegramBotToken: this.telegramBotToken,
+                            telegramChatId: this.telegramChatId,
+                            enableWaNotification: this.enableWaNotification,
+                            enableTelegramNotification: this.enableTelegramNotification,
+                            sheetsWebhookUrl: this.sheetsWebhookUrl,
+                            autoSyncSheets: this.autoSyncSheets
+                        };
+                        await set(settingsRef, settingsData);
+                    } catch (e) {
+                        console.error("Error syncing settings to Realtime DB:", e);
+                    }
+                },
+
+                changeAdminPassword() {
+                    if (this.pwdForm.currentPwd !== this.adminPassword) {
+                        this.showToast('Password saat ini salah!', 'error');
+                        return;
+                    }
+                    if (!this.pwdForm.newPwd || this.pwdForm.newPwd.length < 3) {
+                        this.showToast('Password baru minimal 3 karakter!', 'error');
+                        return;
+                    }
+                    if (this.pwdForm.newPwd !== this.pwdForm.confirmPwd) {
+                        this.showToast('Konfirmasi password baru tidak cocok!', 'error');
+                        return;
+                    }
+
+                    this.adminPassword = this.pwdForm.newPwd;
+                    localStorage.setItem('uns_admin_pwd', this.adminPassword);
+                    this.syncSettingsToCloud();
+                    this.pwdForm = { currentPwd: '', newPwd: '', confirmPwd: '' };
+                    this.activePasswordModal = false;
+                    this.showToast('Password Admin berhasil diubah!', 'success');
+                },
+
+                resetAdminPasswordToDefault() {
+                    this.adminPassword = 'ANDA321';
+                    localStorage.setItem('uns_admin_pwd', 'ANDA321');
+                    this.syncSettingsToCloud();
+                    this.pwdForm = { currentPwd: '', newPwd: '', confirmPwd: '' };
+                    this.activePasswordModal = false;
+                    this.showToast('Password Admin direset ke default', 'success');
+                },
+
+                resetAdminPasswordFromLogin() {
+                    this.adminPassword = 'ANDA321';
+                    localStorage.setItem('uns_admin_pwd', 'ANDA321');
+                    this.syncSettingsToCloud();
+                    this.showToast('Password direset ke default', 'success');
+                },
+
                 async syncToGoogleSheetsAuto(vList = null, lList = null) {
                     if (!this.sheetsWebhookUrl || !this.autoSyncSheets) return;
                     
@@ -2041,6 +2096,7 @@
                 saveSheetsSettingsAndTest() {
                     localStorage.setItem('uns_sheets_webhook_url', this.sheetsWebhookUrl);
                     localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
+                    this.syncSettingsToCloud();
                     if (this.sheetsWebhookUrl) {
                         this.triggerManualSheetsSync();
                     } else {
@@ -2054,6 +2110,7 @@
                     localStorage.setItem('uns_telegram_chat_id', this.telegramChatId);
                     localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
                     localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
+                    this.syncSettingsToCloud();
                     this.showToast('Pengaturan Notifikasi WA & Telegram disimpan!', 'success');
                     this.activeNotifModal = false;
                 },
@@ -2064,7 +2121,7 @@
                         return;
                     }
                     try {
-                        const tgUrl = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
+                        const tgUrl = 'https://api.telegram.org/bot' + this.telegramBotToken + '/sendMessage';
                         const res = await fetch(tgUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2087,20 +2144,19 @@
                 },
 
                 async sendServiceRequestNotifications(car, inServiceForm) {
-                    const textMsg = `🚨 *PENGAJUAN SERVIS ARMADA BARU* 🚨\n\n` +
-                        `🚗 *Plat Nomor:* ${car.plate}\n` +
-                        `🚘 *Model:* ${car.model}\n` +
-                        `👤 *Pengemudi:* ${car.driver || '-'}\n` +
-                        `🏢 *Kategori:* ${car.category || 'Operasional'}\n` +
-                        `🏬 *Bengkel Tujuan:* ${inServiceForm.workshop}\n` +
-                        `📟 *Odometer Terkini:* ${Number(inServiceForm.km).toLocaleString('id-ID')} KM\n` +
-                        `📅 *Tanggal Pengajuan:* ${this.formatDateWib(inServiceForm.date)}\n` +
-                        `📝 *Catatan Keluhan:* ${inServiceForm.notes || '-'}`;
+                    const textMsg = "🚨 *PENGAJUAN SERVIS ARMADA BARU* 🚨\n\n" +
+                        "🚗 *Plat Nomor:* " + car.plate + "\n" +
+                        "🚘 *Model:* " + car.model + "\n" +
+                        "👤 *Pengemudi:* " + (car.driver || '-') + "\n" +
+                        "🏢 *Kategori:* " + (car.category || 'Operasional') + "\n" +
+                        "🏬 *Bengkel Tujuan:* " + inServiceForm.workshop + "\n" +
+                        "📟 *Odometer Terkini:* " + Number(inServiceForm.km).toLocaleString('id-ID') + " KM\n" +
+                        "📅 *Tanggal Pengajuan:* " + this.formatDateWib(inServiceForm.date) + "\n" +
+                        "📝 *Catatan Keluhan:* " + (inServiceForm.notes || '-');
 
-                    // Telegram Bot Notification
                     if (this.enableTelegramNotification && this.telegramBotToken && this.telegramChatId) {
                         try {
-                            const tgUrl = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
+                            const tgUrl = 'https://api.telegram.org/bot' + this.telegramBotToken + '/sendMessage';
                             await fetch(tgUrl, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -2115,14 +2171,13 @@
                         }
                     }
 
-                    // WhatsApp Direct Redirect
                     if (this.enableWaNotification && this.waNumber) {
                         let cleanPhone = this.waNumber.replace(/[^0-9]/g, '');
                         if (cleanPhone.startsWith('0')) {
                             cleanPhone = '62' + cleanPhone.slice(1);
                         }
                         const encodedText = encodeURIComponent(textMsg);
-                        const waUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
+                        const waUrl = 'https://wa.me/' + cleanPhone + '?text=' + encodedText;
                         window.open(waUrl, '_blank');
                     }
                 },
@@ -2189,6 +2244,49 @@
 
                     const vehiclesRef = ref(db, 'artifacts/' + appId + '/public/data/vehicles');
                     const logsRef = ref(db, 'artifacts/' + appId + '/public/data/logs');
+                    const settingsRef = ref(db, 'artifacts/' + appId + '/public/data/settings');
+
+                    onValue(settingsRef, (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            if (data.adminPassword) {
+                                this.adminPassword = data.adminPassword;
+                                localStorage.setItem('uns_admin_pwd', data.adminPassword);
+                            }
+                            if (data.waNumber !== undefined) {
+                                this.waNumber = data.waNumber;
+                                localStorage.setItem('uns_wa_number', data.waNumber);
+                            }
+                            if (data.telegramBotToken !== undefined) {
+                                this.telegramBotToken = data.telegramBotToken;
+                                localStorage.setItem('uns_telegram_token', data.telegramBotToken);
+                            }
+                            if (data.telegramChatId !== undefined) {
+                                this.telegramChatId = data.telegramChatId;
+                                localStorage.setItem('uns_telegram_chat_id', data.telegramChatId);
+                            }
+                            if (data.enableWaNotification !== undefined) {
+                                this.enableWaNotification = Boolean(data.enableWaNotification);
+                                localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
+                            }
+                            if (data.enableTelegramNotification !== undefined) {
+                                this.enableTelegramNotification = Boolean(data.enableTelegramNotification);
+                                localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
+                            }
+                            if (data.sheetsWebhookUrl !== undefined) {
+                                this.sheetsWebhookUrl = data.sheetsWebhookUrl;
+                                localStorage.setItem('uns_sheets_webhook_url', data.sheetsWebhookUrl);
+                            }
+                            if (data.autoSyncSheets !== undefined) {
+                                this.autoSyncSheets = Boolean(data.autoSyncSheets);
+                                localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
+                            }
+                        } else {
+                            this.syncSettingsToCloud();
+                        }
+                    }, (err) => {
+                        console.error("Realtime DB settings listener error:", err);
+                    });
 
                     onValue(vehiclesRef, (snapshot) => {
                         this.cloudStatus = 'connected';
@@ -2285,14 +2383,8 @@
                 },
 
                 showToast(message, type = 'success') {
-                    this.toast = {
-                        show: true,
-                        message,
-                        type
-                    };
-                    setTimeout(() => {
-                        this.toast.show = false;
-                    }, 3000);
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => { this.toast.show = false; }, 3000);
                 },
 
                 parseLocalDate(dateStr) {
@@ -2322,7 +2414,6 @@
 
                 parseExcelDate(val) {
                     if (!val) return '';
-                    
                     if (typeof val === 'number') {
                         if (typeof XLSX !== 'undefined' && XLSX.SSF && XLSX.SSF.parse_date_code) {
                             const dObj = XLSX.SSF.parse_date_code(val);
@@ -2330,7 +2421,7 @@
                                 const y = dObj.y;
                                 const m = String(dObj.m).padStart(2, '0');
                                 const d = String(dObj.d).padStart(2, '0');
-                                return `${y}-${m}-${d}`;
+                                return y + '-' + m + '-' + d;
                             }
                         }
                         const jsDate = new Date(Math.round((val - (25567 + 2)) * 86400 * 1000));
@@ -2344,9 +2435,8 @@
                         const year = parsed.getFullYear();
                         const month = String(parsed.getMonth() + 1).padStart(2, '0');
                         const day = String(parsed.getDate()).padStart(2, '0');
-                        return `${year}-${month}-${day}`;
+                        return year + '-' + month + '-' + day;
                     }
-
                     return '';
                 },
 
@@ -2430,7 +2520,7 @@
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
-                        this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
+                        this.showToast('Odometer ' + car.plate + ' diperbarui ke ' + car.currentKm.toLocaleString('id-ID') + ' KM', 'success');
                     }
                     this.activeUpdateKmModal = false;
                 },
@@ -2455,11 +2545,8 @@
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
-
-                        // Trigger notifications
                         this.sendServiceRequestNotifications(car, this.inServiceForm);
-
-                        this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
+                        this.showToast('Pengajuan servis ' + car.plate + ' berhasil dikirim!', 'success');
                     }
                     this.activeInServiceModal = false;
                 },
@@ -2491,7 +2578,7 @@
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
-                        this.showToast(`Pengajuan servis ${car.plate} dibatalkan`, 'success');
+                        this.showToast('Pengajuan servis ' + car.plate + ' dibatalkan', 'success');
                     }
                 },
 
@@ -2553,7 +2640,7 @@
                     const month = String(nextD.getMonth() + 1).padStart(2, '0');
                     const year = nextD.getFullYear();
 
-                    return `${day}-${month}-${year}`;
+                    return day + '-' + month + '-' + year;
                 },
 
                 getRoutineStatus(car) {
@@ -2601,11 +2688,11 @@
                     if (isKmDanger || isDateDanger) {
                         let label = '';
                         if (isKmDanger && isDateDanger) {
-                            label = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM & Tgl`;
+                            label = 'Lewat ' + (diffKm - limitKm).toLocaleString('id-ID') + ' KM & Tgl';
                         } else if (isKmDanger) {
-                            label = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM`;
+                            label = 'Lewat ' + (diffKm - limitKm).toLocaleString('id-ID') + ' KM';
                         } else {
-                            label = daysRemaining < 0 ? `Lewat ${Math.abs(daysRemaining)} Hr (Tgl)` : `Jatuh Tempo Hari Ini`;
+                            label = daysRemaining < 0 ? 'Lewat ' + Math.abs(daysRemaining) + ' Hr (Tgl)' : 'Jatuh Tempo Hari Ini';
                         }
                         return { label, type: 'danger', percent: 100 };
                     }
@@ -2613,18 +2700,18 @@
                     if (isKmWarning || isDateWarning) {
                         let label = '';
                         if (isKmWarning && isDateWarning) {
-                            label = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM / ${daysRemaining} Hr`;
+                            label = 'Sisa ' + (limitKm - diffKm).toLocaleString('id-ID') + ' KM / ' + daysRemaining + ' Hr';
                         } else if (isKmWarning) {
-                            label = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
+                            label = 'Sisa ' + (limitKm - diffKm).toLocaleString('id-ID') + ' KM';
                         } else {
-                            label = `Sisa ${daysRemaining} Hari (Tgl)`;
+                            label = 'Sisa ' + daysRemaining + ' Hari (Tgl)';
                         }
                         return { label, type: 'warning', percent: Math.max(kmPercent, datePercent) };
                     }
 
-                    let remainingText = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
+                    let remainingText = 'Sisa ' + (limitKm - diffKm).toLocaleString('id-ID') + ' KM';
                     if (daysRemaining !== null && daysRemaining > 0) {
-                        remainingText += ` (${daysRemaining} hr)`;
+                        remainingText += ' (' + daysRemaining + ' hr)';
                     }
                     return { label: remainingText, type: 'safe', percent: Math.max(kmPercent, datePercent) };
                 },
@@ -2706,7 +2793,7 @@
                         const usedKm = Math.max(0, currentKm - lastKm);
                         const percent = Math.min(100, Math.round((usedKm / limit) * 100));
                         return {
-                            text: `${usedKm.toLocaleString('id-ID')} / ${limit.toLocaleString('id-ID')} KM`,
+                            text: usedKm.toLocaleString('id-ID') + ' / ' + limit.toLocaleString('id-ID') + ' KM',
                             percent
                         };
                     } else if (monthLimits[compKey]) {
@@ -2723,7 +2810,7 @@
                         const diffMonths = Math.max(0, (now.getFullYear() - refDate.getFullYear()) * 12 + (now.getMonth() - refDate.getMonth()));
                         const percent = Math.min(100, Math.round((diffMonths / limitMonths) * 100));
                         return {
-                            text: `${diffMonths} / ${limitMonths} Bulan`,
+                            text: diffMonths + ' / ' + limitMonths + ' Bulan',
                             percent
                         };
                     }
@@ -2795,7 +2882,7 @@
                     const day = String(d.getDate()).padStart(2, '0');
                     const month = String(d.getMonth() + 1).padStart(2, '0');
                     const year = d.getFullYear();
-                    return `${day}-${month}-${year}`;
+                    return day + '-' + month + '-' + year;
                 },
 
                 openEditServiceModal(log) {
@@ -2807,7 +2894,7 @@
                         const year = d.getFullYear();
                         const month = String(d.getMonth() + 1).padStart(2, '0');
                         const day = String(d.getDate()).padStart(2, '0');
-                        formattedDate = `${year}-${month}-${day}`;
+                        formattedDate = year + '-' + month + '-' + day;
                     }
 
                     this.serviceForm = {
@@ -2853,7 +2940,7 @@
                 saveServiceLog() {
                     const totalCost = this.serviceForm.items.reduce((acc, i) => acc + (Number(i.cost) || 0), 0);
                     const logData = {
-                        id: this.editingLogId || 'LOG-' + Date.now(),
+                        id: this.editingLogId || 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
                         vehicleId: this.serviceForm.vehicleId,
                         workshop: this.serviceForm.workshop,
                         date: this.serviceForm.date,
@@ -2899,6 +2986,10 @@
                 handleInvoiceScan(event) {
                     const file = event.target.files[0];
                     if (!file) return;
+
+                    if (!this.serviceForm.items || !this.serviceForm.items.length) {
+                        this.serviceForm.items = [{ name: 'Servis / Maintenance', cost: 0 }];
+                    }
 
                     this.showToast('Menganalisis foto nota dengan AI Tesseract...', 'success');
                     if (typeof Tesseract !== 'undefined') {
@@ -2948,7 +3039,7 @@
                         this.deleteSingleVehicleMaster(carId);
                         this.activeDeleteVehicleModal = false;
                         this.vehicleToDelete = null;
-                        if (this.activeVehicleDrawer && this.selectedDrawerVehicle?.id === carId) {
+                        if (this.activeVehicleDrawer && this.selectedDrawerVehicle && this.selectedDrawerVehicle.id === carId) {
                             this.activeVehicleDrawer = false;
                         }
                     }
@@ -3159,6 +3250,15 @@
 
                 saveVehicle() {
                     const plateUpper = this.vehicleForm.plate.toUpperCase().trim();
+                    
+                    if (!this.vehicleForm.id) {
+                        const exists = this.vehicles.some(v => v.plate.toUpperCase().trim() === plateUpper);
+                        if (exists) {
+                            this.showToast('Plat nomor ' + plateUpper + ' sudah terdaftar!', 'error');
+                            return;
+                        }
+                    }
+
                     let updatedCar;
 
                     if (this.vehicleForm.id) {
@@ -3319,7 +3419,7 @@
 
                             localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                             this.syncToGoogleSheetsAuto();
-                            this.showToast(`Berhasil mengimpor ${importedCount} data armada!`, 'success');
+                            this.showToast('Berhasil mengimpor ' + importedCount + ' data armada!', 'success');
                         } catch (err) {
                             console.error('Import vehicle error:', err);
                             this.showToast('Gagal mengimpor berkas Excel Armada', 'error');
@@ -3386,7 +3486,7 @@
                             const affectedPlates = new Set();
                             let count = 0;
 
-                            rows.forEach(r => {
+                            rows.forEach((r, idx) => {
                                 const plateRaw = r['Plat Nomor'] || r['Plat'] || r['NO PLAT'] || r['No Plat'] || r['PLAT'];
                                 if (plateRaw) {
                                     const plate = String(plateRaw).toUpperCase().trim();
@@ -3401,7 +3501,7 @@
                                     const itemRaw = r['Rincian Sparepart / Pekerjaan'] || r['Item'] || r['Pekerjaan'] || r['Rincian'] || 'Servis Berkala';
 
                                     const newLog = {
-                                        id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                                        id: 'LOG-' + Date.now() + '-' + idx + '-' + Math.floor(Math.random() * 10000),
                                         vehicleId: plate,
                                         workshop,
                                         invoiceNo,
@@ -3445,7 +3545,7 @@
                                 
                                 this.syncToGoogleSheetsAuto();
                                 this.activeImportModal = false;
-                                this.showToast(`Berhasil mengimpor ${count} data riwayat servis!`, 'success');
+                                this.showToast('Berhasil mengimpor ' + count + ' data riwayat servis!', 'success');
                             } else {
                                 this.showToast('Kolom "Plat Nomor" tidak ditemukan pada file Excel', 'error');
                             }
@@ -3492,16 +3592,12 @@
                     const sampleVehicles = [
                         { id: 'AD 1001 ZA', plate: 'AD 1001 ZA', model: 'Toyota Innova Zenix 2.0 HV', driver: 'Pak Bambang', category: 'Pimpinan', currentKm: 14200, lastServiceKm: 12000, lastServiceDate: '2026-05-10', isUnderService: false },
                         { id: 'AD 7002 GA', plate: 'AD 7002 GA', model: 'Toyota HiAce Commuter 2.5', driver: 'Pak Joko', category: 'Operasional', currentKm: 85200, lastServiceKm: 76000, lastServiceDate: '2025-11-15', isUnderService: false },
-                        { id: 'AD 1088 UB', plate: 'AD 1088 UB', model: 'Mitsubishi Pajero Sport Dakar', driver: 'Pak Haryanto', category: 'Pimpinan', currentKm: 32100, lastServiceKm: 28000, lastServiceDate: '2026-03-01', isUnderService: true, targetWorkshop: 'Nasmoco', inServiceDate: '2026-07-28', inServiceNotes: 'Servis berkala & ganti pad rem' },
-                        { id: 'AD 9901 UNS', plate: 'AD 9901 UNS', model: 'Toyota Avanza 1.5 G CVT', driver: 'Sopir Fakultas', category: 'Fakultas', currentKm: 48900, lastServiceKm: 43000, lastServiceDate: '2026-02-12', isUnderService: false },
-                        { id: 'AD 1234 FA', plate: 'AD 1234 FA', model: 'Honda CR-V 1.5 Turbo', driver: 'Pak Supri', category: 'Unit', currentKm: 21500, lastServiceKm: 19000, lastServiceDate: '2026-06-20', isUnderService: false },
-                        { id: 'AD 8899 FK', plate: 'AD 8899 FK', model: 'Isuzu Elf Microbus 16 Seat', driver: 'Pak Wahyu', category: 'Operasional', currentKm: 112000, lastServiceKm: 108000, lastServiceDate: '2026-04-18', isUnderService: false }
+                        { id: 'AD 1088 UB', plate: 'AD 1088 UB', model: 'Mitsubishi Pajero Sport Dakar', driver: 'Pak Haryanto', category: 'Pimpinan', currentKm: 32100, lastServiceKm: 28000, lastServiceDate: '2026-03-01', isUnderService: true, targetWorkshop: 'Nasmoco', inServiceDate: '2026-07-28', inServiceNotes: 'Servis berkala & ganti pad rem' }
                     ];
 
                     const sampleLogs = [
                         { id: 'LOG-101', vehicleId: 'AD 1001 ZA', workshop: 'Nasmoco', date: '2026-05-10', km: 12000, invoiceNo: 'INV-8821', isRoutine: true, items: [{ name: 'Oli Mesin TGO 0W-20', cost: 450000 }, { name: 'Filter Oli Genuine', cost: 85000 }], replacedComponents: ['filterOli'], totalCost: 535000 },
-                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Montecarlo', date: '2025-11-15', km: 76000, invoiceNo: 'MNT-402', isRoutine: true, items: [{ name: 'Ban Dunlop Enasave x4', cost: 4200000 }, { name: 'Spooring & Balancing', cost: 250000 }], replacedComponents: ['ban'], totalCost: 445000 },
-                        { id: 'LOG-103', vehicleId: 'AD 9901 UNS', workshop: 'Zaini Auto', date: '2026-02-12', km: 43000, invoiceNo: 'ZAI-901', isRoutine: true, items: [{ name: 'Aki GS Astra Hybrid', cost: 1150000 }, { name: 'Servis AC & Evaporator', cost: 850000 }], replacedComponents: ['aki', 'ac'], totalCost: 2000000 }
+                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Montecarlo', date: '2025-11-15', km: 76000, invoiceNo: 'MNT-402', isRoutine: true, items: [{ name: 'Ban Dunlop Enasave x4', cost: 4200000 }, { name: 'Spooring & Balancing', cost: 250000 }], replacedComponents: ['ban'], totalCost: 445000 }
                     ];
 
                     this.vehicles = sampleVehicles;
