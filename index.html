@@ -937,7 +937,7 @@
                         <div v-if="enableTelegramNotification" class="space-y-2">
                             <div>
                                 <label class="block font-bold text-slate-300 mb-0.5">Bot Token</label>
-                                <input type="text" v-model="telegramBotToken" placeholder="Telegram Bot Token..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
+                                <input type="password" v-model="telegramBotToken" placeholder="Telegram Bot Token..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
                             </div>
                             <div>
                                 <label class="block font-bold text-slate-300 mb-0.5">Chat ID / Group ID</label>
@@ -989,25 +989,25 @@
                                 <div>
                                     <p class="font-bold text-white text-xs flex items-center gap-1.5">
                                         <span>Gemini Vision AI Scan Nota</span>
-                                        <span class="text-[9px] bg-sky-950 text-sky-300 border border-sky-800 px-1.5 py-0.2 rounded font-mono">Auto Part & Price</span>
+                                        <span class="text-[9px] bg-sky-950 text-sky-300 border border-sky-800 px-1.5 py-0.2 rounded font-mono">Foto & PDF</span>
                                     </p>
-                                    <p class="text-[10px] text-slate-400">Upload foto nota untuk otomatis mengekstrak sparepart & nominal harga</p>
+                                    <p class="text-[10px] text-slate-400">Upload foto (JPG, PNG) atau dokumen PDF nota untuk otomatis mengekstrak sparepart & nominal harga</p>
                                 </div>
                             </div>
 
                             <label :class="isScanningInvoice ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="px-3.5 py-2 bg-sky-600 text-white font-bold rounded-xl transition shadow text-xs flex items-center gap-1.5">
-                                <i :class="isScanningInvoice ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-camera'"></i>
-                                <span>{{ isScanningInvoice ? 'Menganalisis Nota...' : 'Scan Foto Nota' }}</span>
-                                <input type="file" accept="image/*" @change="handleInvoiceScan" :disabled="isScanningInvoice" class="hidden">
+                                <i :class="isScanningInvoice ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-up'"></i>
+                                <span>{{ isScanningInvoice ? 'Menganalisis Berkas...' : 'Scan Foto / PDF Nota' }}</span>
+                                <input type="file" accept="image/*,application/pdf" @change="handleInvoiceScan" :disabled="isScanningInvoice" class="hidden">
                             </label>
                         </div>
 
                         <div class="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <label class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                 <i class="fa-solid fa-key text-amber-400"></i>
-                                <span>Gemini API Key:</span>
+                                <span>Gemini API Key (Opsional):</span>
                             </label>
-                            <input type="password" v-model="geminiApiKey" @change="saveGeminiApiKey" placeholder="Tempel Gemini API Key di sini (AIzaSy...)" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white font-mono text-[11px] focus:border-sky-500 focus:outline-none">
+                            <input type="password" v-model="geminiApiKey" @change="saveGeminiApiKey" placeholder="Opsional / bawaan otomatis (AIzaSy...)" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white font-mono text-[11px] focus:border-sky-500 focus:outline-none">
                         </div>
                     </div>
 
@@ -1785,10 +1785,10 @@
 
                     geminiApiKey: localStorage.getItem('uns_gemini_api_key') || '',
                     waNumber: localStorage.getItem('uns_wa_number') || '6282294949474',
-                    telegramBotToken: localStorage.getItem('uns_telegram_token') || '8957184277:AAFKvncrj-06muLB9D44IdD-NXvxeNvUK4Y',
-                    telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '846031830',
+                    telegramBotToken: localStorage.getItem('uns_telegram_token') || '',
+                    telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '',
                     enableWaNotification: JSON.parse(localStorage.getItem('uns_enable_wa_notif') || 'true'),
-                    enableTelegramNotification: JSON.parse(localStorage.getItem('uns_enable_tg_notif') || 'true'),
+                    enableTelegramNotification: JSON.parse(localStorage.getItem('uns_enable_tg_notif') || 'false'),
 
                     sheetsWebhookUrl: localStorage.getItem('uns_sheets_webhook_url') || '',
                     autoSyncSheets: JSON.parse(localStorage.getItem('uns_auto_sync_sheets') || 'true'),
@@ -1814,6 +1814,7 @@
                     firebaseAppId: appId,
                     firebaseUserId: '',
                     currentUser: null,
+                    isInitializedFromCloud: false,
 
                     toast: {
                         show: false,
@@ -2111,14 +2112,11 @@
                     const file = event.target.files[0];
                     if (!file) return;
 
-                    if (!this.geminiApiKey || !this.geminiApiKey.trim()) {
-                        this.showToast('Masukkan Gemini API Key terlebih dahulu di kolom yang disediakan!', 'error');
-                        event.target.value = '';
-                        return;
-                    }
+                    // Menggunakan API Key input pengguna atau default runtime bawaan
+                    const apiKey = (this.geminiApiKey || '').trim();
 
                     this.isScanningInvoice = true;
-                    this.showToast('🤖 AI Gemini Vision sedang membaca rincian nota & harga...', 'success');
+                    this.showToast('🤖 AI Gemini Vision sedang membaca foto/dokumen PDF nota & harga...', 'success');
 
                     try {
                         const base64Data = await new Promise((resolve, reject) => {
@@ -2132,16 +2130,31 @@
                             reader.readAsDataURL(file);
                         });
 
-                        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + this.geminiApiKey.trim();
+                        // Tentukan mimeType secara presisi untuk dukungan PDF maupun Gambar
+                        let mimeType = file.type;
+                        if (!mimeType || mimeType === '') {
+                            if (file.name.toLowerCase().endsWith('.pdf')) {
+                                mimeType = 'application/pdf';
+                            } else if (file.name.toLowerCase().endsWith('.png')) {
+                                mimeType = 'image/png';
+                            } else {
+                                mimeType = 'image/jpeg';
+                            }
+                        }
 
-                        const systemPrompt = "Anda adalah AI OCR khusus invoice/nota/kwitansi bengkel perbaikan kendaraan. Tugas Anda adalah membaca seluruh teks dari foto nota dan mengekstrak rincian secara lengkap ke format JSON.";
-                        const userPrompt = "Analisis foto nota/kwitansi bengkel ini. Ekstrak:\n" +
-                            "1. Nomor invoice/faktur (invoiceNo)\n" +
-                            "2. Nama bengkel (workshop: pilih dari 'Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', atau 'Bengkel Luar')\n" +
-                            "3. Tanggal transaksi (date: format YYYY-MM-DD)\n" +
-                            "4. Kilometer/Odometer terbaca jika ada (km: angka)\n" +
-                            "5. Daftar SELURUH sparepart, barang, minyak/oli, atau jasa pengerjaan beserta HARGA/BIAYA masing-masing dalam satuan Rupiah (items: [{name, cost}])\n" +
-                            "6. Komponen vital yang diganti (replacedComponents: daftar string yang cocok dari ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac']).";
+                        // Endpoint gemini-3-flash-preview untuk multimodal document & image understanding
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                        const systemPrompt = "Anda adalah AI OCR Vision berpengalaman khusus mengekstrak data dari dokumen PDF atau foto nota/invoice/faktur/kwitansi perbaikan dan pemeliharaan kendaraan bengkel (mobil/motor). Analisis berkas dengan teliti, baca seluruh baris item, harga, tanggal, nomor nota, dan nama bengkel.";
+
+                        const userPrompt = `Analisis foto atau dokumen PDF nota/kwitansi bengkel ini secara detail.
+Ekstrak informasi berikut ke dalam format JSON:
+1. invoiceNo: Nomor invoice/faktur/nota (string, e.g. "INV-1234"). Kosongkan jika tidak ada.
+2. workshop: Nama bengkel (pilih paling sesuai dari: "Nasmoco", "Montecarlo", "Zaini Auto", "Rekanan", atau "Bengkel Luar").
+3. date: Tanggal transaksi dalam format "YYYY-MM-DD" (string). Jika hanya ada tanggal biasa, konversi ke format standar YYYY-MM-DD.
+4. km: Odometer/Kilometer kendaraan yang tercatat di nota (number, e.g. 45000). Set 0 jika tidak tertera.
+5. items: Array dari seluruh sparepart, oli, bahan, atau jasa perbaikan yang tercantum pada nota. Setiap item memiliki objek { "name": string, "cost": number }. Pastikan cost dalam satuan Rupiah angka murni tanpa titik/koma.
+6. replacedComponents: Array string komponen vital yang diganti. Pilih HANYA dari kunci berikut yang teridentifikasi diganti pada nota: "filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac".`;
 
                         const payload = {
                             contents: [{
@@ -2150,7 +2163,7 @@
                                     { text: userPrompt },
                                     {
                                         inlineData: {
-                                            mimeType: file.type || "image/jpeg",
+                                            mimeType: mimeType,
                                             data: base64Data
                                         }
                                     }
@@ -2189,23 +2202,47 @@
                             }
                         };
 
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+                        // Exponential backoff untuk kestabilan fetch call
+                        let response;
+                        let attempts = 0;
+                        while (attempts < 3) {
+                            try {
+                                response = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(payload)
+                                });
+                                if (response.ok || response.status === 400 || response.status === 403) {
+                                    break;
+                                }
+                            } catch (e) {
+                                console.warn(`Fetch attempt ${attempts + 1} failed:`, e);
+                            }
+                            attempts++;
+                            await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts)));
+                        }
+
+                        if (!response || !response.ok) {
+                            const errData = response ? await response.json().catch(() => ({})) : {};
+                            const errMsg = errData?.error?.message || (response ? `HTTP ${response.status}` : 'Koneksi gagal');
+                            throw new Error(`API Gemini error: ${errMsg}`);
+                        }
 
                         const result = await response.json();
-                        const jsonText = result && result.candidates && result.candidates[0] && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0] ? result.candidates[0].content.parts[0].text : null;
+                        const candidate = result?.candidates?.[0];
+                        let jsonText = candidate?.content?.parts?.[0]?.text;
 
                         if (jsonText) {
+                            // Pembersihan format markdown code block jika ada
+                            jsonText = jsonText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
                             const parsed = JSON.parse(jsonText);
                             
                             if (parsed.invoiceNo) this.serviceForm.invoiceNo = parsed.invoiceNo;
                             if (parsed.workshop) {
                                 const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
-                                const matched = wsList.find(w => w.toLowerCase() === parsed.workshop.toLowerCase());
+                                const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
                                 if (matched) this.serviceForm.workshop = matched;
+                                else this.serviceForm.workshop = 'Bengkel Luar';
                             }
                             if (parsed.date) {
                                 const formattedDate = this.parseExcelDate(parsed.date);
@@ -2218,7 +2255,7 @@
                             if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
                                 this.serviceForm.items = parsed.items.map(it => ({
                                     name: String(it.name || 'Sparepart/Jasa').trim(),
-                                    cost: Number(it.cost) || 0
+                                    cost: Math.abs(Number(it.cost)) || 0
                                 }));
                             }
 
@@ -2235,8 +2272,13 @@
                             throw new Error("Respon AI tidak mengembalikan teks JSON.");
                         }
                     } catch (err) {
-                        console.warn("Gemini Vision OCR failed, fallback to Tesseract:", err);
-                        this.fallbackTesseractScan(file);
+                        console.warn("Gemini Vision OCR failed:", err);
+                        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                            this.showToast('Gagal membaca PDF (' + err.message + '). Pastikan dokumen PDF tidak terkunci/password.', 'error');
+                        } else {
+                            this.showToast('Gagal AI Scan (' + err.message + '). Menggunakan OCR Tesseract...', 'error');
+                            this.fallbackTesseractScan(file);
+                        }
                     } finally {
                         this.isScanningInvoice = false;
                         event.target.value = '';
@@ -2302,8 +2344,9 @@
                         if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
                         const encodedText = encodeURIComponent(textMsg);
                         const waUrl = "https://wa.me/" + cleanPhone + "?text=" + encodedText;
-                        window.open(waUrl, '_blank');
+                        return waUrl;
                     }
+                    return null;
                 },
 
                 async testTelegramNotif() {
@@ -2453,12 +2496,14 @@
                                 }
                             }
                         } else {
-                            if (this.vehicles && this.vehicles.length > 0) {
+                            // Sync only on cold boot if local has data and cloud is brand new
+                            if (!this.isInitializedFromCloud && this.vehicles && this.vehicles.length > 0) {
                                 this.vehicles.forEach(v => this.syncVehicleToCloud(v));
                             } else {
                                 this.vehicles = [];
                             }
                         }
+                        this.isInitializedFromCloud = true;
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     }, (err) => {
                         console.error("Realtime DB vehicles listener error:", err);
@@ -2703,7 +2748,7 @@
                     }
                 },
 
-                saveInService() {
+                async saveInService() {
                     const car = this.vehicles.find(v => v.id === this.inServiceForm.vehicleId);
                     if (car) {
                         car.isUnderService = true;
@@ -2717,10 +2762,16 @@
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
 
-                        this.sendServiceRequestNotifications(car, this.inServiceForm);
+                        const waUrl = await this.sendServiceRequestNotifications(car, this.inServiceForm);
                         this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
+                        this.activeInServiceModal = false;
+
+                        if (waUrl) {
+                            window.open(waUrl, '_blank');
+                        }
+                    } else {
+                        this.activeInServiceModal = false;
                     }
-                    this.activeInServiceModal = false;
                 },
 
                 completeInServiceAndOpenServiceModal(car) {
@@ -2805,8 +2856,14 @@
                     const d = this.parseLocalDate(car.lastServiceDate);
                     if (!d) return '-';
 
-                    const nextD = new Date(d);
-                    nextD.setMonth(nextD.getMonth() + 6);
+                    const targetYear = d.getFullYear();
+                    const targetMonth = d.getMonth() + 6;
+                    const targetDay = d.getDate();
+
+                    const nextD = new Date(targetYear, targetMonth, targetDay);
+                    if (nextD.getDate() !== targetDay) {
+                        nextD.setDate(0);
+                    }
 
                     const day = String(nextD.getDate()).padStart(2, '0');
                     const month = String(nextD.getMonth() + 1).padStart(2, '0');
@@ -2832,8 +2889,8 @@
                     if (car.lastServiceDate) {
                         const lastD = this.parseLocalDate(car.lastServiceDate);
                         if (lastD) {
-                            const nextD = new Date(lastD);
-                            nextD.setMonth(nextD.getMonth() + 6);
+                            const nextD = new Date(lastD.getFullYear(), lastD.getMonth() + 6, lastD.getDate());
+                            if (nextD.getDate() !== lastD.getDate()) nextD.setDate(0);
 
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
@@ -2901,8 +2958,9 @@
                     if (car.lastServiceDate) {
                         const lastD = this.parseLocalDate(car.lastServiceDate);
                         if (lastD) {
-                            const nextD = new Date(lastD);
-                            nextD.setMonth(nextD.getMonth() + 6);
+                            const nextD = new Date(lastD.getFullYear(), lastD.getMonth() + 6, lastD.getDate());
+                            if (nextD.getDate() !== lastD.getDate()) nextD.setDate(0);
+
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             nextD.setHours(0, 0, 0, 0);
@@ -3250,9 +3308,10 @@
                         car.lastServiceKm = Number(car.currentKm) || 0;
                         car.lastServiceDate = '';
                     }
+                    localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                 },
 
-                deleteSingleVehicleMaster(id) {
+                deleteSingleVehicleMaster(id, isBulkCall = false) {
                     const car = this.vehicles.find(v => v.id === id || v.plate === id);
                     const carId = car ? car.id : id;
                     const plate = car ? car.plate : id;
@@ -3272,11 +3331,13 @@
                         this.deleteVehicleFromCloud(plate);
                     }
 
-                    this.syncToGoogleSheetsAuto();
-                    this.showToast('Armada ' + plate + ' berhasil dihapus', 'success');
+                    if (!isBulkCall) {
+                        this.syncToGoogleSheetsAuto();
+                        this.showToast('Armada ' + plate + ' berhasil dihapus', 'success');
+                    }
                 },
 
-                deleteSingleLogMaster(id) {
+                deleteSingleLogMaster(id, isBulkCall = false) {
                     const log = this.serviceLogs.find(l => l.id === id);
                     this.serviceLogs = this.serviceLogs.filter(l => l.id !== id);
                     if (log) {
@@ -3288,20 +3349,22 @@
                     localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                     
                     this.deleteLogFromCloud(id);
-                    this.syncToGoogleSheetsAuto();
-                    this.showToast('Log servis berhasil dihapus', 'success');
+                    if (!isBulkCall) {
+                        this.syncToGoogleSheetsAuto();
+                        this.showToast('Log servis berhasil dihapus', 'success');
+                    }
                 },
 
                 confirmBulkDeleteMasterData(type) {
                     if (type === 'vehicles_selected') {
                         const selectedIds = [...this.selectedMasterVehicleIds];
                         selectedIds.forEach(id => {
-                            this.deleteSingleVehicleMaster(id);
+                            this.deleteSingleVehicleMaster(id, true);
                         });
                         this.selectedMasterVehicleIds = [];
                     } else if (type === 'vehicles_all') {
                         const allIds = this.vehicles.map(v => v.id);
-                        allIds.forEach(id => this.deleteSingleVehicleMaster(id));
+                        allIds.forEach(id => this.deleteSingleVehicleMaster(id, true));
                         this.vehicles = [];
                         this.serviceLogs = [];
                         this.selectedMasterVehicleIds = [];
