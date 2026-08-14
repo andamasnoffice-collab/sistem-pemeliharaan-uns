@@ -91,7 +91,7 @@
                 <div>
                     <h1 class="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
                         <span><span class="text-sky-400 font-black">AUTOMAN</span> UNS</span>
-                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Gemini 3 Flash</span>
+                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Cloud Synced</span>
                     </h1>
                     <p class="text-[10px] sm:text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
                 </div>
@@ -99,14 +99,14 @@
 
             <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap">
                 <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-rose-950/80 border-rose-800 text-rose-400')" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition">
-                    <i :class="cloudStatus === 'connected' ? 'fa-solid fa-fire text-amber-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
-                    <span class="inline">{{ cloudStatus === 'connected' ? 'Firebase Active' : (cloudStatus === 'loading' ? 'Sync...' : 'Offline') }}</span>
+                    <i :class="cloudStatus === 'connected' ? 'fa-solid fa-cloud-arrow-up text-emerald-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-triangle-exclamation')"></i>
+                    <span class="inline">{{ cloudStatus === 'connected' ? 'Cloud Active' : (cloudStatus === 'loading' ? 'Sync...' : 'Offline') }}</span>
                 </button>
 
                 <div v-if="isAdmin" class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     <button @click="activeNotifModal = true" :class="(waNumber || (telegramBotToken && telegramChatId) || geminiApiKey) ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition" title="Pengaturan Notifikasi & AI Key">
-                        <i class="fa-solid fa-wand-magic-sparkles text-sky-400"></i>
-                        <span class="hidden md:inline">Gemini AI / Notif</span>
+                        <i class="fa-solid fa-bell text-amber-400"></i>
+                        <span class="hidden md:inline">Bot Notif & AI</span>
                     </button>
 
                     <button @click="activeSheetsModal = true" :class="sheetsWebhookUrl ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition">
@@ -1338,7 +1338,7 @@
                 </div>
             </div>
 
-            <!-- MODAL: NOTIFICATIONS & GEMINI AI CONFIG -->
+            <!-- MODAL: NOTIFICATIONS & GEMINI AI CONFIG (CLOUD SYNC) -->
             <div v-if="activeNotifModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1347,49 +1347,103 @@
                                 <i class="fa-solid fa-bell"></i>
                             </div>
                             <div>
-                                <h3 class="font-extrabold text-sm sm:text-base text-white">Pengaturan Notifikasi & Gemini AI Key</h3>
-                                <p class="text-[11px] sm:text-xs text-slate-400">Model Gemini 3 Flash Preview & Layanan Notifikasi</p>
+                                <h3 class="font-extrabold text-sm sm:text-base text-white">Bot Notifikasi & Gemini AI (Cloud Sync)</h3>
+                                <p class="text-[11px] sm:text-xs text-slate-400">Tersimpan di Cloud & dapat digunakan bersama di banyak device</p>
                             </div>
                         </div>
                         <button @click="activeNotifModal = false" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
                     </div>
+
                     <div class="space-y-4 text-xs">
+                        
+                        <!-- GEMINI AI API KEY -->
                         <div class="bg-slate-950 p-3.5 rounded-xl border border-sky-800/80 space-y-2">
                             <div class="flex items-center gap-2">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-lg"></i>
                                 <span class="font-bold text-white">Google Gemini API Key (Model: gemini-3-flash-preview)</span>
                             </div>
                             <input type="password" v-model="geminiApiKey" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
-                            <p class="text-[10px] text-slate-400">API Key ini digunakan untuk analisis diagnostik servis cerdas dan pemindaian faktur/nota secara otomatis.</p>
+                            <p class="text-[10px] text-slate-400">Kunci API Gemini digunakan untuk analisis otomatis dan diagnostik pengajuan servis kendaraan.</p>
                         </div>
+
+                        <!-- TELEGRAM BOT CONFIG -->
                         <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i><span class="font-bold text-slate-200">WhatsApp Admin</span></div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" v-model="enableWaNotification" class="sr-only peer">
-                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                                </label>
-                            </div>
-                            <div v-if="enableWaNotification">
-                                <input type="text" v-model="waNumber" placeholder="6282294949474" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
-                            </div>
-                        </div>
-                        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2"><i class="fa-brands fa-telegram text-sky-400 text-lg"></i><span class="font-bold text-slate-200">Telegram Bot</span></div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-brands fa-telegram text-sky-400 text-xl"></i>
+                                    <div>
+                                        <span class="font-bold text-slate-200 block">Telegram Bot Notification</span>
+                                        <span class="text-[10px] text-slate-400">Kirim notifikasi otomatis ke Grup / Chat Telegram Admin</span>
+                                    </div>
+                                </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" v-model="enableTelegramNotification" class="sr-only peer">
                                     <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
                                 </label>
                             </div>
-                            <div v-if="enableTelegramNotification" class="space-y-2">
-                                <input type="password" v-model="telegramBotToken" placeholder="Telegram Bot Token..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
-                                <input type="text" v-model="telegramChatId" placeholder="Telegram Chat ID..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs">
+                            <div v-if="enableTelegramNotification" class="space-y-2 pt-1">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bot Token API</label>
+                                    <input type="password" v-model="telegramBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Chat ID / Group ID</label>
+                                    <input type="text" v-model="telegramChatId" placeholder="Contoh: -100123456789 atau 12345678" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
+                                </div>
+                                <div class="pt-1 flex justify-end">
+                                    <button type="button" @click="testTelegramNotif" class="px-3 py-1.5 bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-800 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>Tes Kirim Telegram</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-                            <button type="button" @click="testTelegramNotif" class="px-3 py-2 bg-slate-800 text-sky-400 border border-slate-700 rounded-xl font-bold">Tes Telegram</button>
-                            <button type="button" @click="saveNotifSettings" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">Simpan</button>
+
+                        <!-- WHATSAPP CONFIG -->
+                        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
+                                    <div>
+                                        <span class="font-bold text-slate-200 block">WhatsApp Admin / Gateway</span>
+                                        <span class="text-[10px] text-slate-400">Nomor WhatsApp Admin & Webhook Gateway Notifikasi</span>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" v-model="enableWaNotification" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                            </div>
+                            <div v-if="enableWaNotification" class="space-y-2 pt-1">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nomor WhatsApp Admin (Kode Negara 62)</label>
+                                    <input type="text" v-model="waNumber" placeholder="6282294949474" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">WhatsApp Webhook Gateway API (Opsional)</label>
+                                    <input type="text" v-model="waGatewayUrl" placeholder="https://api.fonnte.com/send atau Webhook Gateway WA..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                                    <p class="text-[10px] text-slate-500 mt-1">Jika diisi, notifikasi dikirim otomatis via API. Jika kosong, sistem menyediakan tombol kirim cepat ke WhatsApp Web/App.</p>
+                                </div>
+                                <div class="pt-1 flex justify-end">
+                                    <button type="button" @click="testWaNotif" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
+                                        <i class="fa-brands fa-whatsapp"></i>
+                                        <span>Tes Kirim WhatsApp</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-sky-950/40 border border-sky-800/60 rounded-xl text-[11px] text-sky-300 flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-amber-400 text-base"></i>
+                            <span>Seluruh isi pengaturan di atas tersimpan otomatis di Cloud Firebase dan langsung tersinkronisasi ke seluruh perangkat terhubung.</span>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                            <button type="button" @click="activeNotifModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
+                            <button type="button" @click="saveNotifSettings" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center gap-1.5">
+                                <i class="fa-solid fa-cloud"></i>
+                                <span>Simpan ke Cloud</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1400,8 +1454,8 @@
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-fire text-amber-400"></i>
-                            <h3 class="font-extrabold text-sm text-white">Status Koneksi Firebase Realtime Database</h3>
+                            <i class="fa-solid fa-cloud text-amber-400"></i>
+                            <h3 class="font-extrabold text-sm text-white">Status Koneksi Firebase Realtime Cloud</h3>
                         </div>
                         <button @click="activeCloudModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
                     </div>
@@ -1423,7 +1477,7 @@
                                 <span class="font-mono text-slate-300">{{ firebaseUserId || 'Anonim' }}</span>
                             </div>
                         </div>
-                        <p class="text-[11px] text-slate-400">Semua perubahan data disimpan secara lokal di peramban dan disinkronkan secara otomatis ke Firebase Realtime Database jika terhubung ke internet.</p>
+                        <p class="text-[11px] text-slate-400">Data kendaraan, log servis, serta pengaturan Telegram Bot & WhatsApp secara otomatis tersinkronisasi di Firebase Cloud ke semua perangkat pengelola.</p>
                         <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                             <button type="button" @click="initFirebase" class="px-3 py-2 bg-slate-800 text-sky-400 rounded-xl font-bold">Refresh Koneksi</button>
                             <button type="button" @click="activeCloudModal = false" class="px-4 py-2 bg-sky-600 text-white font-bold rounded-xl shadow">Tutup</button>
@@ -1554,10 +1608,11 @@
 
                     geminiApiKey: localStorage.getItem('uns_gemini_api_key') || '',
                     waNumber: localStorage.getItem('uns_wa_number') || '6282294949474',
+                    waGatewayUrl: localStorage.getItem('uns_wa_gateway_url') || '',
                     telegramBotToken: localStorage.getItem('uns_telegram_token') || '',
                     telegramChatId: localStorage.getItem('uns_telegram_chat_id') || '',
                     enableWaNotification: JSON.parse(localStorage.getItem('uns_enable_wa_notif') || 'true'),
-                    enableTelegramNotification: JSON.parse(localStorage.getItem('uns_enable_tg_notif') || 'false'),
+                    enableTelegramNotification: JSON.parse(localStorage.getItem('uns_enable_tg_notif') || 'true'),
 
                     sheetsWebhookUrl: localStorage.getItem('uns_sheets_webhook_url') || '',
                     autoSyncSheets: JSON.parse(localStorage.getItem('uns_auto_sync_sheets') || 'true'),
@@ -1724,6 +1779,132 @@
                     this.activeCloudModal = true;
                 },
 
+                // --- CLOUD SETTINGS MANAGEMENT ---
+                saveSettingsToCloud() {
+                    const settingsObj = {
+                        geminiApiKey: this.geminiApiKey || '',
+                        waNumber: this.waNumber || '',
+                        waGatewayUrl: this.waGatewayUrl || '',
+                        telegramBotToken: this.telegramBotToken || '',
+                        telegramChatId: this.telegramChatId || '',
+                        enableWaNotification: Boolean(this.enableWaNotification),
+                        enableTelegramNotification: Boolean(this.enableTelegramNotification),
+                        sheetsWebhookUrl: this.sheetsWebhookUrl || '',
+                        autoSyncSheets: Boolean(this.autoSyncSheets),
+                        adminPassword: this.adminPassword || 'ANDA321',
+                        updatedAt: new Date().toISOString()
+                    };
+
+                    // LocalStorage Cache
+                    localStorage.setItem('uns_gemini_api_key', settingsObj.geminiApiKey);
+                    localStorage.setItem('uns_wa_number', settingsObj.waNumber);
+                    localStorage.setItem('uns_wa_gateway_url', settingsObj.waGatewayUrl);
+                    localStorage.setItem('uns_telegram_token', settingsObj.telegramBotToken);
+                    localStorage.setItem('uns_telegram_chat_id', settingsObj.telegramChatId);
+                    localStorage.setItem('uns_enable_wa_notif', JSON.stringify(settingsObj.enableWaNotification));
+                    localStorage.setItem('uns_enable_tg_notif', JSON.stringify(settingsObj.enableTelegramNotification));
+                    localStorage.setItem('uns_sheets_webhook_url', settingsObj.sheetsWebhookUrl);
+                    localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(settingsObj.autoSyncSheets));
+                    localStorage.setItem('uns_admin_pwd', settingsObj.adminPassword);
+
+                    // Sync to Firebase Cloud Settings
+                    if (db) {
+                        set(ref(db, `artifacts/${appId}/public/settings`), settingsObj).catch(e => {
+                            console.warn('Gagal menyimpan settings ke Firebase:', e);
+                        });
+                    }
+                },
+
+                saveNotifSettings() {
+                    this.saveSettingsToCloud();
+                    this.activeNotifModal = false;
+                    this.showToast('Pengaturan Notifikasi tersimpan di Cloud!', 'success');
+                },
+
+                // --- TELEGRAM & WHATSAPP NOTIFICATION ENGINE ---
+                async dispatchSystemNotification(eventTitle, detailText) {
+                    const fullText = `🚗 *AUTOMAN UNS NOTIFICATION*\n\n📌 *${eventTitle}*\n${detailText}\n\n⏱️ _${new Date().toLocaleString('id-ID')}_`;
+
+                    if (this.enableTelegramNotification && this.telegramBotToken && this.telegramChatId) {
+                        this.sendTelegramMessage(fullText);
+                    }
+
+                    if (this.enableWaNotification && (this.waGatewayUrl || this.waNumber)) {
+                        this.sendWaMessage(fullText);
+                    }
+                },
+
+                async sendTelegramMessage(text) {
+                    if (!this.telegramBotToken || !this.telegramChatId) return false;
+                    try {
+                        const url = `https://api.telegram.org/bot${this.telegramBotToken.trim()}/sendMessage`;
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: this.telegramChatId.trim(),
+                                text: text,
+                                parse_mode: 'Markdown'
+                            })
+                        });
+                        return res.ok;
+                    } catch (e) {
+                        console.warn('Gagal mengirim Telegram notif:', e);
+                        return false;
+                    }
+                },
+
+                async sendWaMessage(text) {
+                    // Method 1: Gateway URL jika tersedia
+                    if (this.waGatewayUrl) {
+                        try {
+                            await fetch(this.waGatewayUrl.trim(), {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    target: this.waNumber,
+                                    message: text
+                                }),
+                                mode: 'no-cors'
+                            });
+                            return true;
+                        } catch (e) {
+                            console.warn('Gagal mengirim ke WA Gateway:', e);
+                        }
+                    }
+                    return true;
+                },
+
+                async testTelegramNotif() {
+                    if (!this.telegramBotToken || !this.telegramChatId) {
+                        this.showToast('Token Bot & Chat ID Telegram wajib diisi!', 'error');
+                        return;
+                    }
+                    this.showToast('Mengirim tes pesan Telegram...', 'success');
+                    const testMsg = `🔔 *TES NOTIFIKASI AUTOMAN UNS*\n\nSistem Notifikasi Telegram Bot berhasil terhubung secara realtime dengan Cloud Firebase.`;
+                    const ok = await this.sendTelegramMessage(testMsg);
+                    if (ok) {
+                        this.showToast('Pesan Telegram berhasil terkirim!', 'success');
+                    } else {
+                        this.showToast('Gagal terkirim. Periksa Token & Chat ID Telegram!', 'error');
+                    }
+                },
+
+                async testWaNotif() {
+                    if (!this.waNumber) {
+                        this.showToast('Isi Nomor WhatsApp Admin terlebih dahulu!', 'error');
+                        return;
+                    }
+                    const text = encodeURIComponent(`🔔 *TES NOTIFIKASI WHATSAPP AUTOMAN UNS*\nSistem Notifikasi WhatsApp terhubung.`);
+                    if (this.waGatewayUrl) {
+                        this.sendWaMessage(`🔔 TES NOTIFIKASI WHATSAPP AUTOMAN UNS`);
+                        this.showToast('Notifikasi dikirim via Gateway WhatsApp!', 'success');
+                    } else {
+                        window.open(`https://wa.me/${this.waNumber.replace(/[^0-9]/g, '')}?text=${text}`, '_blank');
+                        this.showToast('Membuka aplikasi WhatsApp...', 'success');
+                    }
+                },
+
                 async askGeminiForComplaintSuggestion() {
                     const car = this.vehicles.find(v => v.id === this.inServiceForm.vehicleId || v.plate === this.inServiceForm.vehicleId);
                     if (!car) {
@@ -1773,7 +1954,7 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                     try {
                         const apiKey = (this.geminiApiKey || '').trim();
                         if (!apiKey) {
-                            throw new Error('API Key Gemini belum diisi. Atur di menu Gemini AI / Notif.');
+                            throw new Error('API Key Gemini belum diisi. Atur di menu Bot Notif & AI.');
                         }
 
                         const modelName = 'gemini-3-flash-preview';
@@ -2121,7 +2302,7 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                         return;
                     }
                     this.adminPassword = this.pwdForm.newPwd;
-                    localStorage.setItem('uns_admin_pwd', this.pwdForm.newPwd);
+                    this.saveSettingsToCloud();
                     this.activePasswordModal = false;
                     this.pwdForm = { currentPwd: '', newPwd: '', confirmPwd: '' };
                     this.showToast('Password Admin berhasil diubah!', 'success');
@@ -2215,6 +2396,10 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                         localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
+
+                        // Kirim Notifikasi Otomatis ke Telegram & WhatsApp
+                        const notifDetails = `🚘 *Plat*: ${car.plate} (${car.model})\n👤 *Sopir*: ${car.driver || 'Sopir UNS'}\n🏬 *Bengkel*: ${f.workshop}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM\n📝 *Keluhan*: ${f.notes}`;
+                        this.dispatchSystemNotification('PENGAJUAN SERVIS BARU', notifDetails);
 
                         this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
                         this.activeInServiceModal = false;
@@ -2378,6 +2563,13 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                     localStorage.setItem('uns_logs', JSON.stringify(this.serviceLogs));
                     this.syncLogToCloud(f);
                     this.syncToGoogleSheetsAuto();
+
+                    // Kirim Notifikasi Selesai Servis / Input Invoice
+                    if (car) {
+                        const notifText = `🚘 *Plat*: ${car.plate}\n🏢 *Bengkel*: ${f.workshop}\n🧾 *No Invoice*: ${f.invoiceNo || '-'}\n💰 *Total Biaya*: Rp ${totalCost.toLocaleString('id-ID')}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM`;
+                        this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
+                    }
+
                     this.activeNewServiceModal = false;
                     this.showToast(f.isRoutine ? 'Nota servis rutin disimpan. Status jadwal disetel ulang!' : 'Nota perbaikan insidental disimpan (tanpa mereset jadwal rutin).', 'success');
                 },
@@ -2514,45 +2706,8 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                     reader.readAsArrayBuffer(file);
                 },
 
-                saveNotifSettings() {
-                    localStorage.setItem('uns_gemini_api_key', this.geminiApiKey);
-                    localStorage.setItem('uns_wa_number', this.waNumber);
-                    localStorage.setItem('uns_telegram_token', this.telegramBotToken);
-                    localStorage.setItem('uns_telegram_chat_id', this.telegramChatId);
-                    localStorage.setItem('uns_enable_wa_notif', JSON.stringify(this.enableWaNotification));
-                    localStorage.setItem('uns_enable_tg_notif', JSON.stringify(this.enableTelegramNotification));
-                    this.activeNotifModal = false;
-                    this.showToast('Pengaturan notifikasi tersimpan!', 'success');
-                },
-
-                async testTelegramNotif() {
-                    if (!this.telegramBotToken || !this.telegramChatId) {
-                        this.showToast('Token Telegram & Chat ID wajib diisi!', 'error');
-                        return;
-                    }
-                    try {
-                        const url = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: this.telegramChatId,
-                                text: '🔔 Tes Notifikasi AUTOMAN UNS Berhasil terhubung!'
-                            })
-                        });
-                        if (res.ok) {
-                            this.showToast('Pesan tes Telegram terkirim!', 'success');
-                        } else {
-                            throw new Error('Gagal terkirim');
-                        }
-                    } catch (e) {
-                        this.showToast('Uji coba Telegram gagal', 'error');
-                    }
-                },
-
                 saveSheetsSettings() {
-                    localStorage.setItem('uns_sheets_webhook_url', this.sheetsWebhookUrl);
-                    localStorage.setItem('uns_auto_sync_sheets', JSON.stringify(this.autoSyncSheets));
+                    this.saveSettingsToCloud();
                     this.activeSheetsModal = false;
                     this.syncToGoogleSheetsAuto();
                     this.showToast('Pengaturan Google Sheets tersimpan', 'success');
@@ -2569,6 +2724,25 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
 
                 setupRealtimeListeners() {
                     if (!db) return;
+
+                    // Sync Settings dari Cloud Realtime
+                    onValue(ref(db, `artifacts/${appId}/public/settings`), snap => {
+                        const cloudSettings = snap.val();
+                        if (cloudSettings) {
+                            if (cloudSettings.geminiApiKey !== undefined) this.geminiApiKey = cloudSettings.geminiApiKey;
+                            if (cloudSettings.waNumber !== undefined) this.waNumber = cloudSettings.waNumber;
+                            if (cloudSettings.waGatewayUrl !== undefined) this.waGatewayUrl = cloudSettings.waGatewayUrl;
+                            if (cloudSettings.telegramBotToken !== undefined) this.telegramBotToken = cloudSettings.telegramBotToken;
+                            if (cloudSettings.telegramChatId !== undefined) this.telegramChatId = cloudSettings.telegramChatId;
+                            if (cloudSettings.enableWaNotification !== undefined) this.enableWaNotification = cloudSettings.enableWaNotification;
+                            if (cloudSettings.enableTelegramNotification !== undefined) this.enableTelegramNotification = cloudSettings.enableTelegramNotification;
+                            if (cloudSettings.sheetsWebhookUrl !== undefined) this.sheetsWebhookUrl = cloudSettings.sheetsWebhookUrl;
+                            if (cloudSettings.autoSyncSheets !== undefined) this.autoSyncSheets = cloudSettings.autoSyncSheets;
+                            if (cloudSettings.adminPassword !== undefined) this.adminPassword = cloudSettings.adminPassword;
+                        }
+                    });
+
+                    // Sync Data Kendaraan dari Cloud
                     onValue(ref(db, `artifacts/${appId}/public/data/vehicles`), snap => {
                         this.cloudStatus = 'connected';
                         const data = snap.val();
@@ -2577,6 +2751,8 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                             localStorage.setItem('uns_vehicles', JSON.stringify(this.vehicles));
                         }
                     });
+
+                    // Sync Data Log Servis dari Cloud
                     onValue(ref(db, `artifacts/${appId}/public/data/logs`), snap => {
                         const data = snap.val();
                         if (data) {
@@ -2638,7 +2814,7 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
 
                 resetAdminPasswordFromLogin() {
                     this.adminPassword = 'ANDA321';
-                    localStorage.setItem('uns_admin_pwd', 'ANDA321');
+                    this.saveSettingsToCloud();
                     this.adminPasswordInput = '';
                     this.showToast('Password direset ke default. Silakan login.', 'success');
                 },
