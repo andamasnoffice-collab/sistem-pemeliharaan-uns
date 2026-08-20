@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AUTOMAN UNS - Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</title>
+    <title>AUTOMAN UNS - Sistem Terintegrasi Monitoring Perawatan Kendaraan</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,16 +34,21 @@
     <!-- SheetJS (XLSX) for Excel Export & Import -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- Custom Google Fonts -->
+    <!-- Vue 3 Global Standalone Production CDN (Bulleted & Fail-Safe) -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- Firebase 10 Compat Scripts (Reliable Global Builds) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* Sembunyikan elemen Vue sebelum siap, dengan fallback transisi */
-        [v-cloak] { 
-            display: none !important; 
-        }
+        [v-cloak] { display: none !important; }
         
         body {
             font-family: 'Inter', sans-serif;
@@ -71,19 +76,38 @@
             background: #475569;
         }
 
-        /* Mode Cetak Faktur Digital */
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             body { background: white !important; color: black !important; }
         }
     </style>
+
+    <!-- Inline Emergency Loader Dismiss Script -->
+    <script>
+        function forceDismissLoader() {
+            var loader = document.getElementById('loading-fallback');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(function() { 
+                    if (loader && loader.parentNode) loader.parentNode.removeChild(loader); 
+                }, 400);
+            }
+            var app = document.getElementById('app');
+            if (app && app.hasAttribute('v-cloak')) {
+                app.removeAttribute('v-cloak');
+            }
+        }
+        // Fail-safe timeout: Unblock UI after max 1.5 seconds under any network condition
+        setTimeout(forceDismissLoader, 1500);
+        window.addEventListener('error', function() { setTimeout(forceDismissLoader, 200); });
+    </script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white antialiased">
 
-    <!-- Emergency Fallback Loader apabila JS tertunda/gagal -->
-    <div id="loading-fallback" class="fixed inset-0 bg-slate-950 text-white flex flex-col items-center justify-center p-6 z-50 transition-opacity duration-500">
-        <div class="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <!-- Emergency Loader Overlay -->
+    <div id="loading-fallback" class="fixed inset-0 bg-slate-950 text-white flex flex-col items-center justify-center p-6 z-50 transition-opacity duration-500 pointer-events-none">
+        <div class="w-14 h-14 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <h2 class="text-lg font-bold tracking-wide flex items-center gap-2">
             <span class="text-sky-400 font-extrabold">AUTOMAN</span> UNS
         </h2>
@@ -141,6 +165,11 @@
                 </button>
 
                 <div v-if="isAdmin" class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <button @click="activeRulesModal = true" class="px-2 sm:px-2.5 py-1 sm:py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-300 rounded-xl text-[11px] sm:text-xs font-semibold transition flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved text-sky-400"></i>
+                        <span class="hidden md:inline">Rules JSON</span>
+                    </button>
+
                     <button @click="activeNotifModal = true" :class="(waNumber || (telegramBotToken && telegramChatId) || geminiApiKey) ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition" title="Pengaturan Notifikasi & AI Key">
                         <i class="fa-solid fa-bell text-amber-400"></i>
                         <span class="hidden md:inline">Bot Notif & AI</span>
@@ -164,7 +193,6 @@
             </div>
         </header>
 
-        <!-- NAV TAB BAR -->
         <nav class="bg-slate-900/80 border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none no-print">
             <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-chart-pie"></i>
@@ -184,7 +212,6 @@
 
         <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
-            <!-- DASHBOARD SECTION -->
             <section v-if="currentTab === 'dashboard'" class="space-y-4 sm:space-y-6">
                 
                 <!-- METRIC CARDS -->
@@ -435,7 +462,6 @@
                 </div>
             </section>
 
-            <!-- SERVICE LOGS SECTION -->
             <section v-if="currentTab === 'logs' && isAdmin" class="space-y-4 sm:space-y-6">
                 <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3">
                     <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -573,7 +599,6 @@
                 </div>
             </section>
 
-            <!-- ANNUAL & MONTHLY RECAP SECTION -->
             <section v-if="currentTab === 'recap' && isAdmin" class="space-y-4 sm:space-y-6">
                 <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg">
                     <div>
@@ -956,1336 +981,10 @@
         </main>
     </div>
 
-    <script type="module">
-        import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
-
-        // Hilangkan loader fallback setelah Vue terinisialisasi
-        const hideFallbackLoader = () => {
-            const loader = document.getElementById('loading-fallback');
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 500);
-            }
-        };
-
-        function safeGetStorage(key, fallback = null) {
-            try {
-                const item = localStorage.getItem(key);
-                if (item === null) return fallback;
-                return JSON.parse(item);
-            } catch (e) {
-                return fallback;
-            }
-        }
-
-        function safeSetStorage(key, val) {
-            try {
-                localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
-            } catch (e) {
-                console.warn('Gagal menyimpan ke localStorage:', e);
-            }
-        }
-
-        const vueApp = createApp({
-            data() {
-                return {
-                    currentTab: 'dashboard',
-                    isAdmin: true, // Default aktif untuk mempermudah manajemen awal
-
-                    loginForm: { identifier: '', password: '' },
-
-                    searchQuery: '',
-                    categoryFilter: 'ALL',
-                    statusFilter: 'ALL',
-                    vehicleSortOption: 'URGENT_FIRST',
-                    showHiddenVehicles: false,
-
-                    logVehicleFilter: 'ALL',
-                    logWorkshopFilter: 'ALL',
-                    logMonthFilter: 'ALL',
-                    logYearFilter: 'ALL',
-                    logSortOption: 'DATE_DESC',
-
-                    recapYear: 2026,
-                    selectedRecapMonth: 1,
-
-                    activeAdminModal: false,
-                    activeInServiceModal: false,
-                    activeNewServiceModal: false,
-                    activeVehicleModal: false,
-                    activeInvoiceModal: false,
-                    activeUpdateKmModal: false,
-                    activeNotifModal: false,
-
-                    selectedLog: null,
-                    editingLogId: null,
-
-                    cloudStatus: 'offline',
-
-                    toast: { show: false, message: '', type: 'success' },
-
-                    updateKmForm: { vehicleId: '', currentKm: 0, newKm: 0 },
-                    inServiceForm: { vehicleId: '', workshop: 'Nasmoco', date: new Date().toISOString().substring(0, 10), km: '', notes: '' },
-                    vehicleForm: { id: null, plate: '', model: '', driver: '', category: 'Operasional', currentKm: 0, isUnderService: false, isHidden: false },
-                    serviceForm: {
-                        vehicleId: '',
-                        workshop: 'Nasmoco',
-                        date: new Date().toISOString().substring(0, 10),
-                        km: 0,
-                        invoiceNo: '',
-                        isRoutine: true,
-                        items: [{ name: 'Servis Berkala & Maintenance', cost: 0 }]
-                    },
-
-                    vehicles: safeGetStorage('uns_vehicles', []),
-                    serviceLogs: safeGetStorage('uns_logs', [])
-                };
-            },
-
-            created() {
-                if (!this.vehicles || !this.vehicles.length) {
-                    this.loadSampleData();
-                }
-            },
-
-            mounted() {
-                hideFallbackLoader();
-            },
-
-            computed: {
-                visibleVehicles() { return (this.vehicles || []).filter(v => !v.isHidden); },
-                hiddenVehiclesCount() { return (this.vehicles || []).filter(v => v.isHidden).length; },
-                routineVehiclesCount() { return (this.vehicles || []).filter(v => !v.isHidden && !v.isUnderService && this.getRoutineStatus(v).type === 'safe').length; },
-                urgentVehiclesCount() { return (this.vehicles || []).filter(v => !v.isHidden && !v.isUnderService && this.getRoutineStatus(v).type === 'warning').length; },
-                expiredVehiclesCount() { return (this.vehicles || []).filter(v => !v.isHidden && !v.isUnderService && this.getRoutineStatus(v).type === 'danger').length; },
-                inServiceVehiclesCount() { return (this.vehicles || []).filter(v => !v.isHidden && v.isUnderService).length; },
-                
-                filteredVehicles() {
-                    let list = (this.vehicles || []).filter(car => {
-                        if (this.statusFilter === 'HIDDEN') {
-                            if (!car.isHidden) return false;
-                        } else if (!this.showHiddenVehicles && car.isHidden) {
-                            return false;
-                        }
-                        const q = this.searchQuery ? this.searchQuery.toLowerCase() : '';
-                        const matchesSearch = !q || (car.plate && car.plate.toLowerCase().includes(q)) || 
-                                              (car.model && car.model.toLowerCase().includes(q)) || 
-                                              (car.driver && car.driver.toLowerCase().includes(q));
-                        const matchesCategory = this.categoryFilter === 'ALL' || car.category === this.categoryFilter;
-                        let matchesStatus = true;
-                        if (this.statusFilter === 'IN_SERVICE') matchesStatus = car.isUnderService;
-                        else if (this.statusFilter === 'JATUH_TEMPO') matchesStatus = !car.isUnderService && this.getRoutineStatus(car).type === 'danger';
-                        else if (this.statusFilter === 'SEGERA') matchesStatus = !car.isUnderService && this.getRoutineStatus(car).type === 'warning';
-                        else if (this.statusFilter === 'AMAN') matchesStatus = !car.isUnderService && this.getRoutineStatus(car).type === 'safe';
-                        return matchesSearch && matchesCategory && matchesStatus;
-                    });
-
-                    return list;
-                },
-
-                filteredServiceLogs() {
-                    let logs = [...(this.serviceLogs || [])];
-                    if (this.logVehicleFilter !== 'ALL') logs = logs.filter(l => l.vehicleId === this.logVehicleFilter);
-                    if (this.logWorkshopFilter !== 'ALL') logs = logs.filter(l => l.workshop === this.logWorkshopFilter);
-                    return logs;
-                },
-
-                annualRecapStats() {
-                    const yearNum = Number(this.recapYear);
-                    const logs = (this.serviceLogs || []).filter(l => {
-                        if (!l.date) return false;
-                        return l.date.startsWith(String(yearNum));
-                    });
-                    const totalCost = logs.reduce((acc, curr) => acc + (Number(curr.totalCost) || 0), 0);
-                    const totalCount = logs.length;
-                    const averageMonthly = Math.round(totalCost / 12);
-                    return { totalCost, totalCount, averageMonthly };
-                }
-            },
-
-            methods: {
-                showToast(message, type = 'success') {
-                    this.toast = { show: true, message, type };
-                    setTimeout(() => { this.toast.show = false; }, 3500);
-                },
-
-                loginAdmin() {
-                    this.isAdmin = true;
-                    this.activeAdminModal = false;
-                    this.showToast('Login Admin Berhasil!', 'success');
-                },
-
-                logoutAdmin() {
-                    this.isAdmin = false;
-                    this.currentTab = 'dashboard';
-                    this.showToast('Admin Logout.', 'success');
-                },
-
-                getVehiclePlate(vId) { const car = this.vehicles.find(v => v.id === vId || v.plate === vId); return car ? car.plate : (vId || '-'); },
-                getVehicleModel(vId) { const car = this.vehicles.find(v => v.id === vId || v.plate === vId); return car ? car.model : '-'; },
-
-                maskMoney(amount, forceShow = false) {
-                    const num = Number(amount) || 0;
-                    if (this.isAdmin || forceShow) return 'Rp ' + num.toLocaleString('id-ID');
-                    return 'Rp ***.***';
-                },
-
-                getMonthName(m) {
-                    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                    return months[m - 1] || '';
-                },
-                getMonthNameShort(m) {
-                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-                    return months[m - 1] || '';
-                },
-
-                getServicedVehiclesForMonth(m, year) {
-                    const logs = (this.serviceLogs || []).filter(l => {
-                        if (!l.date) return false;
-                        const p = l.date.split('-');
-                        return Number(p[1]) === Number(m) && Number(p[0]) === Number(year);
-                    });
-                    const totalCost = logs.reduce((acc, curr) => acc + (Number(curr.totalCost) || 0), 0);
-                    return { logs, totalCost };
-                },
-
-                loadSampleData() {
-                    this.vehicles = [
-                        { id: 'AD 1001 ZA', plate: 'AD 1001 ZA', model: 'Toyota Innova Zenix 2.0 HV', driver: 'Pak Bambang', category: 'Pimpinan', currentKm: 14200, lastServiceKm: 12000, lastServiceDate: '2026-05-10', isUnderService: false, isHidden: false },
-                        { id: 'AD 7002 GA', plate: 'AD 7002 GA', model: 'Toyota HiAce Commuter 2.5', driver: 'Pak Joko', category: 'Operasional', currentKm: 85200, lastServiceKm: 76000, lastServiceDate: '2025-11-15', isUnderService: false, isHidden: false },
-                        { id: 'AD 1362 XA', plate: 'AD 1362 XA', model: 'Isuzu Panther Grand Royal', driver: 'Pak Sumpono', category: 'Operasional', currentKm: 198500, lastServiceKm: 185000, lastServiceDate: '2025-06-20', isUnderService: false, isHidden: false }
-                    ];
-                    this.serviceLogs = [
-                        { id: 'LOG-101', vehicleId: 'AD 1001 ZA', workshop: 'Nasmoco', date: '2026-05-10', km: 12000, invoiceNo: 'INV-8821', isRoutine: true, items: [{ name: 'Oli Mesin TGO 0W-20', cost: 450000 }], totalCost: 450000 },
-                        { id: 'LOG-102', vehicleId: 'AD 7002 GA', workshop: 'Nasmoco', date: '2025-11-15', km: 76000, invoiceNo: 'INV-7712', isRoutine: true, items: [{ name: 'Oli Mesin TGO 10W-30', cost: 500000 }], totalCost: 500000 }
-                    ];
-                    safeSetStorage('uns_vehicles', this.vehicles);
-                    safeSetStorage('uns_logs', this.serviceLogs);
-                    this.showToast('Data sampel berhasil dimuat!', 'success');
-                },
-
-                getServiceIntervalKm(car) {
-                    return 10000;
-                },
-
-                getRoutineStatus(car) {
-                    if (!car) return { label: 'Aman', type: 'safe', percent: 0 };
-                    const current = Number(car.currentKm) || 0;
-                    const lastKm = Number(car.lastServiceKm) || 0;
-                    const diffKm = Math.max(0, current - lastKm);
-                    const limitKm = this.getServiceIntervalKm(car);
-                    const percent = Math.min(100, Math.round((diffKm / limitKm) * 100));
-
-                    if (diffKm >= limitKm) return { label: 'Jatuh Tempo', type: 'danger', percent: 100 };
-                    if (diffKm >= limitKm - 1500) return { label: 'Segera Servis', type: 'warning', percent };
-                    return { label: 'Aman', type: 'safe', percent };
-                },
-
-                getNextServiceKm(car) { return (Number(car?.lastServiceKm) || 0) + 10000; },
-                getNextServiceDate(car) { return car?.lastServiceDate || '10-11-2026'; },
-                formatDateWib(dateStr) { return dateStr || '-'; },
-
-                openUpdateKmModal(car) {
-                    const targetCar = car || (this.vehicles[0] || null);
-                    if (targetCar) {
-                        this.updateKmForm = {
-                            vehicleId: targetCar.id,
-                            currentKm: Number(targetCar.currentKm) || 0,
-                            newKm: Number(targetCar.currentKm) || 0
-                        };
-                        this.activeUpdateKmModal = true;
-                    }
-                },
-
-                addKmToForm(amount) {
-                    this.updateKmForm.newKm = (Number(this.updateKmForm.newKm) || 0) + amount;
-                },
-
-                saveUpdateKm() {
-                    const car = this.vehicles.find(v => v.id === this.updateKmForm.vehicleId);
-                    if (car) {
-                        car.currentKm = Number(this.updateKmForm.newKm);
-                        safeSetStorage('uns_vehicles', this.vehicles);
-                        this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
-                        this.activeUpdateKmModal = false;
-                    }
-                },
-
-                openInServiceModal(car) {
-                    const targetCar = car || (this.vehicles[0] || null);
-                    if (targetCar) {
-                        this.inServiceForm = {
-                            vehicleId: targetCar.id,
-                            workshop: 'Nasmoco',
-                            date: new Date().toISOString().substring(0, 10),
-                            km: Number(targetCar.currentKm) || 0,
-                            notes: ''
-                        };
-                        this.activeInServiceModal = true;
-                    }
-                },
-
-                saveInService() {
-                    const car = this.vehicles.find(v => v.id === this.inServiceForm.vehicleId);
-                    if (car) {
-                        car.isUnderService = true;
-                        safeSetStorage('uns_vehicles', this.vehicles);
-                        this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
-                        this.activeInServiceModal = false;
-                    }
-                },
-
-                openAddVehicleModal() {
-                    this.vehicleForm = { id: null, plate: '', model: '', driver: '', category: 'Operasional', currentKm: 0, isUnderService: false, isHidden: false };
-                    this.activeVehicleModal = true;
-                },
-
-                saveVehicle() {
-                    if (!this.vehicleForm.plate || !this.vehicleForm.model) return;
-                    const plateUpper = this.vehicleForm.plate.toUpperCase().trim();
-                    const newCar = { ...this.vehicleForm, id: plateUpper, plate: plateUpper };
-                    
-                    const idx = this.vehicles.findIndex(v => v.id === plateUpper);
-                    if (idx !== -1) {
-                        this.vehicles[idx] = newCar;
-                    } else {
-                        this.vehicles.push(newCar);
-                    }
-                    safeSetStorage('uns_vehicles', this.vehicles);
-                    this.activeVehicleModal = false;
-                    this.showToast('Data armada disimpan!', 'success');
-                },
-
-                openInvoiceModal(log) {
-                    this.selectedLog = log;
-                    this.activeInvoiceModal = true;
-                },
-
-                printInvoice() { window.print(); },
-
-                calcServiceFormTotal() {
-                    return (this.serviceForm.items || []).reduce((sum, i) => sum + (Number(i.cost) || 0), 0);
-                },
-
-                addServiceItem() { this.serviceForm.items.push({ name: '', cost: 0 }); },
-                removeServiceItem(idx) { this.serviceForm.items.splice(idx, 1); },
-
-                saveServiceLog() {
-                    const totalCost = this.calcServiceFormTotal();
-                    const newLog = {
-                        ...this.serviceForm,
-                        id: 'LOG-' + Date.now(),
-                        totalCost
-                    };
-                    this.serviceLogs.unshift(newLog);
-                    safeSetStorage('uns_logs', this.serviceLogs);
-                    this.activeNewServiceModal = false;
-                    this.showToast('Nota transaksi servis berhasil disimpan!', 'success');
-                },
-
-                exportLogsToExcel() {
-                    if (typeof XLSX === 'undefined') {
-                        this.showToast('Pustaka Excel belum siap', 'error');
-                        return;
-                    }
-                    const data = this.serviceLogs.map(l => ({
-                        ID: l.id,
-                        Plat: l.vehicleId,
-                        Bengkel: l.workshop,
-                        Tanggal: l.date,
-                        KM: l.km,
-                        TotalBiaya: l.totalCost
-                    }));
-                    const ws = XLSX.utils.json_to_sheet(data);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "RiwayatServis");
-                    XLSX.writeFile(wb, "AUTOMAN_UNS_ServiceLogs.xlsx");
-                    this.showToast('File Excel diexport!', 'success');
-                }
-            }
-        });
-
-        try {
-            vueApp.mount('#app');
-        } catch (e) {
-            console.error('Mounting Error:', e);
-            hideFallbackLoader();
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="id" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AUTOMAN UNS - Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</title>
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
-                            950: '#082f49'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Font Awesome Icons CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- SheetJS (XLSX) for Excel Export & Import -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <!-- Custom Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        /* Sembunyikan elemen Vue sebelum siap, dengan fallback transisi */
-        [v-cloak] { 
-            display: none !important; 
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617;
-            color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Mode Cetak Faktur Digital */
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            body { background: white !important; color: black !important; }
-        }
-    </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white antialiased">
-
-    <!-- Emergency Fallback Loader apabila JS tertunda/gagal -->
-    <div id="loading-fallback" class="fixed inset-0 bg-slate-950 text-white flex flex-col items-center justify-center p-6 z-50 transition-opacity duration-500">
-        <div class="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <h2 class="text-lg font-bold tracking-wide flex items-center gap-2">
-            <span class="text-sky-400 font-extrabold">AUTOMAN</span> UNS
-        </h2>
-        <p class="text-xs text-slate-400 mt-1">Memuat Sistem Monitoring Perawatan Kendaraan...</p>
-    </div>
-
-    <div id="app" class="flex-1 flex flex-col min-h-screen" v-cloak>
-
-        <!-- HEADER APP -->
-        <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 shadow-xl no-print">
-            <div class="flex items-center gap-2.5 sm:gap-3">
-                <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-800/80 p-1 flex items-center justify-center shadow-lg shadow-sky-500/20 group hover:scale-105 transition-transform duration-300">
-                    <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="automanBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#38bdf8"/>
-                                <stop offset="100%" stop-color="#0284c7"/>
-                            </linearGradient>
-                            <linearGradient id="automanOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#fb923c"/>
-                                <stop offset="100%" stop-color="#ea580c"/>
-                            </linearGradient>
-                            <linearGradient id="automanDarkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#0f172a"/>
-                                <stop offset="100%" stop-color="#020617"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M60 14 L95 28 C95 72 60 98 60 106 C60 98 25 72 25 28 Z" fill="url(#automanDarkGrad)" stroke="url(#automanBlueGrad)" stroke-width="5" stroke-linejoin="round"/>
-                        <path d="M60 21 L89 33 C89 67 60 90 60 96 C60 90 31 67 31 33 Z" stroke="url(#automanOrangeGrad)" stroke-width="3.5" stroke-linecap="round"/>
-                        <path d="M60 5 L73 13 C73 25 60 32 60 35 C60 32 47 25 47 13 Z" fill="url(#automanBlueGrad)" stroke="#ffffff" stroke-width="1.5"/>
-                        <path d="M54 17 L58 21 L66 13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M78 48 A 15 15 0 1 0 78 78 A 15 15 0 1 0 78 48 Z" stroke="url(#automanOrangeGrad)" stroke-width="3" fill="none" stroke-dasharray="5 3"/>
-                        <path d="M22 60 Q28 55 38 49 Q50 42 65 42 Q78 42 88 48 Q96 53 98 58 Q100 61 94 63 Q88 64 84 64 L25 64 Q20 64 22 60 Z" fill="url(#automanBlueGrad)"/>
-                        <circle cx="38" cy="64" r="7.5" fill="#0f172a" stroke="url(#automanBlueGrad)" stroke-width="2.5"/>
-                        <circle cx="38" cy="64" r="2.5" fill="#ffffff"/>
-                        <circle cx="78" cy="64" r="7.5" fill="#0f172a" stroke="url(#automanBlueGrad)" stroke-width="2.5"/>
-                        <circle cx="78" cy="64" r="2.5" fill="#ffffff"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
-                        <span><span class="text-sky-400 font-black">AUTOMAN</span> UNS</span>
-                        <span :class="isAdmin ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-sky-950 text-sky-400 border-sky-800'" class="text-[9px] sm:text-[10px] border px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">
-                            {{ isAdmin ? '🔑 Admin Authenticated' : '🟢 Mode Publik' }}
-                        </span>
-                    </h1>
-                    <p class="text-[10px] sm:text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap">
-                <button @click="openCloudSetupModal" :class="cloudStatus === 'connected' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : (cloudStatus === 'loading' ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-300')" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition">
-                    <i :class="cloudStatus === 'connected' ? 'fa-solid fa-cloud-arrow-up text-emerald-400' : (cloudStatus === 'loading' ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-hard-drive text-amber-400')"></i>
-                    <span class="inline">{{ cloudStatus === 'connected' ? 'Cloud Active' : (cloudStatus === 'loading' ? 'Syncing...' : 'Mode Lokal') }}</span>
-                </button>
-
-                <div v-if="isAdmin" class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <button @click="activeNotifModal = true" :class="(waNumber || (telegramBotToken && telegramChatId) || geminiApiKey) ? 'bg-emerald-950/80 border-emerald-800 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition" title="Pengaturan Notifikasi & AI Key">
-                        <i class="fa-solid fa-bell text-amber-400"></i>
-                        <span class="hidden md:inline">Bot Notif & AI</span>
-                    </button>
-
-                    <button @click="openMasterDataModal" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1 shadow">
-                        <i class="fa-solid fa-database"></i>
-                        <span class="hidden sm:inline">Master Data</span>
-                    </button>
-
-                    <button @click="logoutAdmin" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center gap-1">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span class="hidden sm:inline">Keluar</span>
-                    </button>
-                </div>
-
-                <button v-else @click="activeAdminModal = true" class="px-2.5 sm:px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-[11px] sm:text-xs font-bold transition shadow-lg shadow-sky-600/20 flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <span>Login Admin</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- NAV TAB BAR -->
-        <nav class="bg-slate-900/80 border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none no-print">
-            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie"></i>
-                <span>Dashboard Armada</span>
-            </button>
-
-            <button v-if="isAdmin" @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-receipt"></i>
-                <span>Riwayat Servis</span>
-            </button>
-
-            <button v-if="isAdmin" @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-calendar-days"></i>
-                <span>Rekap Bulanan</span>
-            </button>
-        </nav>
-
-        <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
-
-            <!-- DASHBOARD SECTION -->
-            <section v-if="currentTab === 'dashboard'" class="space-y-4 sm:space-y-6">
-                
-                <!-- METRIC CARDS -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
-                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-base sm:text-lg border border-sky-500/20 shrink-0">
-                            <i class="fa-solid fa-car"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Total Tampil</p>
-                            <p class="text-base sm:text-lg font-black text-white font-mono">{{ visibleVehicles.length }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-base sm:text-lg border border-emerald-500/20 shrink-0">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Kondisi Aman</p>
-                            <p class="text-base sm:text-lg font-black text-emerald-400 font-mono">{{ routineVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base sm:text-lg border border-amber-500/20 shrink-0">
-                            <i class="fa-solid fa-clock font-normal"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Segera Servis</p>
-                            <p class="text-base sm:text-lg font-black text-amber-400 font-mono">{{ urgentVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-base sm:text-lg border border-rose-500/20 shrink-0">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Jatuh Tempo</p>
-                            <p class="text-base sm:text-lg font-black text-rose-400 font-mono">{{ expiredVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-base sm:text-lg border border-indigo-500/20 shrink-0">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Sedang Servis</p>
-                            <p class="text-base sm:text-lg font-black text-indigo-400 font-mono">{{ inServiceVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-base sm:text-lg border border-purple-500/20 shrink-0">
-                            <i class="fa-solid fa-eye-slash"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Tersembunyi</p>
-                            <p class="text-base sm:text-lg font-black text-purple-400 font-mono">{{ hiddenVehiclesCount }} <span class="text-[10px] sm:text-xs text-slate-500 font-sans font-normal">Unit</span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FILTER BAR & ACTION BUTTONS -->
-                <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
-                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                        <div class="relative w-full">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                            <input type="text" v-model="searchQuery" placeholder="Cari Plat, Tipe, Sopir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
-                        </div>
-
-                        <select v-model="categoryFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
-                            <option value="ALL">Semua Kategori</option>
-                            <option value="Pimpinan">Pimpinan</option>
-                            <option value="Operasional">Operasional</option>
-                            <option value="Fakultas">Fakultas</option>
-                            <option value="Unit">Unit</option>
-                        </select>
-
-                        <select v-model="statusFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
-                            <option value="ALL">Semua Status</option>
-                            <option value="JATUH_TEMPO">🔴 JATUH TEMPO</option>
-                            <option value="SEGERA">🟡 SEGERA SERVIS</option>
-                            <option value="IN_SERVICE">🔵 SEDANG SERVIS</option>
-                            <option value="AMAN">🟢 AMAN</option>
-                            <option v-if="isAdmin" value="HIDDEN">🙈 TERSEMBUNYI (HIDDEN)</option>
-                        </select>
-
-                        <select v-model="vehicleSortOption" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-semibold">
-                            <option value="URGENT_FIRST">⏳ Servis Terdekat → Terlama</option>
-                            <option value="URGENT_LAST">🟢 Servis Terlama → Terdekat</option>
-                            <option value="PLATE_ASC">🔤 Plat Nomor (A-Z)</option>
-                            <option value="KM_DESC">🚘 Odometer Terbanyak</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-stretch sm:justify-end">
-                        <button v-if="isAdmin" @click="showHiddenVehicles = !showHiddenVehicles" :class="showHiddenVehicles ? 'bg-purple-950/90 border-purple-700 text-purple-300' : 'bg-slate-950 border-slate-800 text-slate-400'" class="px-3 py-2 border rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
-                            <i :class="showHiddenVehicles ? 'fa-solid fa-eye-slash text-purple-400' : 'fa-solid fa-eye text-slate-400'"></i>
-                            <span>{{ showHiddenVehicles ? 'Sembunyikan Hidden' : 'Tampilkan Hidden (' + hiddenVehiclesCount + ')' }}</span>
-                        </button>
-
-                        <button @click="openUpdateKmModal(null)" class="flex-1 sm:flex-none px-3 py-2 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow" title="Update Odometer Terkini Armada">
-                            <i class="fa-solid fa-gauge-high text-indigo-400"></i>
-                            <span>Update KM</span>
-                        </button>
-
-                        <button @click="openInServiceModal(null)" class="flex-1 sm:flex-none px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-sky-600/20">
-                            <i class="fa-solid fa-paper-plane"></i>
-                            <span>Ajukan Servis</span>
-                        </button>
-
-                        <button v-if="isAdmin" @click="openAddVehicleModal" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>Tambah Armada</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- FLEET CARDS GRID -->
-                <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                    <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" :class="car.isHidden ? 'bg-slate-900/60 border-purple-900/60 hover:border-purple-500' : 'bg-slate-900 border-slate-800 hover:border-sky-500/50'" class="border transition rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
-                        
-                        <div class="space-y-3">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="space-y-1 min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <span class="inline-block px-2.5 py-0.5 sm:py-1 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-mono font-bold text-xs sm:text-sm tracking-wider uppercase">
-                                            {{ car.plate }}
-                                        </span>
-                                        <span v-if="car.isHidden" class="px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-bold font-mono flex items-center gap-1" title="Armada Tersembunyi">
-                                            <i class="fa-solid fa-eye-slash text-purple-400"></i>
-                                            <span>HIDDEN</span>
-                                        </span>
-                                    </div>
-                                    <h3 class="font-extrabold text-sm sm:text-base text-white group-hover:text-sky-400 transition leading-snug truncate">{{ car.model }}</h3>
-                                    <p class="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 pt-0.5 truncate">
-                                        <span class="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-sky-400 rounded text-[10px] font-bold shrink-0">{{ car.category || 'Operasional' }}</span>
-                                        <span class="truncate"><i class="fa-solid fa-user-gear text-slate-500 mr-1"></i>{{ car.driver || 'Sopir UNS' }}</span>
-                                    </p>
-                                </div>
-
-                                <div class="flex flex-col items-end gap-1 shrink-0">
-                                    <span v-if="car.isUnderService" class="px-2 py-0.5 sm:py-1 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1 animate-pulse">
-                                        <i class="fa-solid fa-clock-rotate-left"></i>
-                                        <span>PENGAJUAN</span>
-                                    </span>
-                                    <span v-else-if="getRoutineStatus(car).type === 'danger'" class="px-2 py-0.5 sm:py-1 bg-rose-950 text-rose-400 border border-rose-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
-                                        <i class="fa-solid fa-triangle-exclamation"></i>
-                                        <span>JATUH TEMPO</span>
-                                    </span>
-                                    <span v-else-if="getRoutineStatus(car).type === 'warning'" class="px-2 py-0.5 sm:py-1 bg-amber-950 text-amber-400 border border-amber-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
-                                        <i class="fa-solid fa-clock font-normal"></i>
-                                        <span>SEGERA SERVIS</span>
-                                    </span>
-                                    <span v-else class="px-2 py-0.5 sm:py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
-                                        <i class="fa-solid fa-circle-check"></i>
-                                        <span>AMAN</span>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800/80 space-y-1.5">
-                                <div class="flex items-center justify-between text-[11px] sm:text-xs">
-                                    <span class="text-slate-400 font-semibold flex items-center gap-1.5">
-                                        <i class="fa-solid fa-calendar-check text-sky-400"></i>
-                                        <span>Servis Berikutnya</span>
-                                    </span>
-                                    <span class="font-mono font-extrabold text-amber-300 text-xs">
-                                        {{ getNextServiceDate(car) }}
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1 font-mono">
-                                    <span>Target Odometer:</span>
-                                    <span class="text-sky-400 font-bold">{{ getNextServiceKm(car).toLocaleString('id-ID') }} KM</span>
-                                </div>
-                                <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1">
-                                    <span class="flex items-center gap-1.5 text-slate-400">
-                                        <i class="fa-solid fa-gauge-high text-sky-400"></i>
-                                        <span>Odometer Terkini:</span>
-                                    </span>
-                                    <button @click.stop="openUpdateKmModal(car)" class="text-sky-400 hover:text-sky-300 font-mono font-extrabold text-xs flex items-center gap-1 px-2 py-0.5 bg-sky-950/60 hover:bg-sky-900/80 border border-sky-800/80 rounded-lg transition" title="Klik untuk update Odometer">
-                                        <span>{{ (car.currentKm || 0).toLocaleString('id-ID') }} KM</span>
-                                        <i class="fa-solid fa-pen-to-square text-[10px] text-sky-400"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Progress Bar Routine Service -->
-                            <div v-if="!car.isUnderService" class="space-y-1 pt-1">
-                                <div class="flex justify-between text-[11px] sm:text-xs font-semibold">
-                                    <span class="text-slate-400 truncate">Servis Rutin ({{ getServiceIntervalKm(car).toLocaleString('id-ID') }} KM / 6 Bln)</span>
-                                    <span :class="getRoutineStatus(car).type === 'danger' ? 'text-rose-400' : (getRoutineStatus(car).type === 'warning' ? 'text-amber-400' : 'text-emerald-400')" class="font-mono text-right shrink-0">
-                                        {{ getRoutineStatus(car).label }}
-                                    </span>
-                                </div>
-                                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div :class="getRoutineStatus(car).type === 'danger' ? 'bg-rose-500' : (getRoutineStatus(car).type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500')" 
-                                         class="h-full transition-all duration-500 rounded-full" 
-                                         :style="{ width: Math.min(getRoutineStatus(car).percent, 100) + '%' }"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap sm:flex-nowrap" @click.stop>
-                            <button @click.stop="openVehicleDrawer(car)" class="flex-1 py-2 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 min-w-[100px]">
-                                <i class="fa-solid fa-square-poll-vertical text-sky-400"></i>
-                                <span>Rincian</span>
-                            </button>
-
-                            <button v-if="!car.isUnderService" @click.stop="openInServiceModal(car)" class="py-2 px-3 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-xl text-xs font-bold transition flex items-center gap-1" title="Ajukan Servis Armada">
-                                <i class="fa-solid fa-paper-plane text-sky-400"></i>
-                                <span>Ajukan</span>
-                            </button>
-
-                            <button v-if="isAdmin" @click.stop="toggleHideVehicle(car)" :class="car.isHidden ? 'bg-purple-950 border-purple-800 text-purple-300' : 'bg-slate-950 border-slate-800 text-slate-400'" class="py-2 px-2.5 border rounded-xl text-xs font-bold transition" title="Sembunyikan/Tampilkan">
-                                <i :class="car.isHidden ? 'fa-solid fa-eye text-emerald-400' : 'fa-solid fa-eye-slash text-slate-400'"></i>
-                            </button>
-
-                            <button v-if="isAdmin" @click.stop="openEditVehicleModal(car)" class="py-2 px-2.5 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-xs font-bold transition" title="Edit Data">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-
-                            <button v-if="isAdmin" @click.stop="openDeleteVehicleModal(car)" class="py-2 px-2.5 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition" title="Hapus Armada">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- EMPTY STATE -->
-                <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center space-y-3">
-                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-xl sm:text-2xl">
-                        <i class="fa-solid fa-car-side"></i>
-                    </div>
-                    <h3 class="text-sm sm:text-base font-bold text-white">Tidak Ada Data Armada Kendaraan</h3>
-                    <p class="text-xs text-slate-400 max-w-md mx-auto">Database armada kendaraan saat ini kosong atau tidak ada kendaraan yang sesuai dengan pencarian / filter.</p>
-                    <div class="flex justify-center gap-2 pt-2 flex-wrap">
-                        <button v-if="isAdmin" @click="openAddVehicleModal" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">
-                            <i class="fa-solid fa-plus mr-1"></i> Tambah Armada Baru
-                        </button>
-                        <button @click="loadSampleData" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition">
-                            <i class="fa-solid fa-database mr-1"></i> Muat Data Uji Coba
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SERVICE LOGS SECTION -->
-            <section v-if="currentTab === 'logs' && isAdmin" class="space-y-4 sm:space-y-6">
-                <div class="bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3">
-                    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold shrink-0">
-                                <i class="fa-solid fa-receipt"></i>
-                            </div>
-                            <h2 class="font-extrabold text-sm sm:text-base text-white">Riwayat Servis Armada</h2>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-2 justify-stretch sm:justify-end">
-                            <button @click="openImportModal" class="px-3 py-1.5 sm:py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
-                                <i class="fa-solid fa-file-excel"></i>
-                                <span>Import Excel</span>
-                            </button>
-                            <button @click="exportLogsToExcel" class="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-file-export text-emerald-400"></i>
-                                <span>Export</span>
-                            </button>
-                            <button @click="openNewServiceModal" class="px-3 py-1.5 sm:py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Tambah Log</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Pilih Armada</label>
-                            <select v-model="logVehicleFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white focus:border-sky-500">
-                                <option value="ALL">Semua Armada</option>
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bengkel Mitra</label>
-                            <select v-model="logWorkshopFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white focus:border-sky-500">
-                                <option value="ALL">Semua Bengkel</option>
-                                <option value="Nasmoco">Nasmoco</option>
-                                <option value="Montecarlo">Montecarlo</option>
-                                <option value="Zaini Auto">Zaini Auto</option>
-                                <option value="Rekanan">Rekanan</option>
-                                <option value="Bengkel Luar">Bengkel Luar</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bulan & Tahun</label>
-                            <div class="grid grid-cols-2 gap-1">
-                                <select v-model="logMonthFilter" class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white">
-                                    <option value="ALL">Semua Bln</option>
-                                    <option v-for="m in 12" :key="m" :value="m">{{ getMonthNameShort(m) }}</option>
-                                </select>
-                                <select v-model="logYearFilter" class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white">
-                                    <option value="ALL">Semua Thn</option>
-                                    <option :value="2024">2024</option>
-                                    <option :value="2025">2025</option>
-                                    <option :value="2026">2026</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Urutan Data</label>
-                            <select v-model="logSortOption" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-semibold">
-                                <option value="DATE_DESC">📅 Tanggal Terbaru → Terlama</option>
-                                <option value="DATE_ASC">📅 Tanggal Terlama → Terbaru</option>
-                                <option value="COST_DESC">💰 Biaya Servis Tertinggi</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TABLE LOGS -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-950 text-slate-400 uppercase font-mono border-b border-slate-800 text-[10px]">
-                                <tr>
-                                    <th class="p-3">Tanggal</th>
-                                    <th class="p-3">Armada / Plat</th>
-                                    <th class="p-3">Bengkel Mitra</th>
-                                    <th class="p-3">No. Invoice</th>
-                                    <th class="p-3">Odometer</th>
-                                    <th class="p-3">Rincian Komponen</th>
-                                    <th class="p-3 text-right">Total Biaya</th>
-                                    <th class="p-3 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody v-if="filteredServiceLogs.length > 0" class="divide-y divide-slate-800/80 font-medium">
-                                <tr v-for="log in filteredServiceLogs" :key="log.id" class="hover:bg-slate-800/40 transition">
-                                    <td class="p-3 whitespace-nowrap font-mono text-slate-200">{{ formatDateWib(log.date) }}</td>
-                                    <td class="p-3 whitespace-nowrap">
-                                        <div class="font-bold font-mono text-sky-400">{{ getVehiclePlate(log.vehicleId) }}</div>
-                                        <div class="text-[10px] text-slate-400">{{ getVehicleModel(log.vehicleId) }}</div>
-                                    </td>
-                                    <td class="p-3 whitespace-nowrap font-semibold text-slate-200">{{ log.workshop }}</td>
-                                    <td class="p-3 whitespace-nowrap font-mono text-slate-300">{{ log.invoiceNo || '-' }}</td>
-                                    <td class="p-3 whitespace-nowrap font-mono text-sky-400 font-bold">{{ log.km ? Number(log.km).toLocaleString('id-ID') : 0 }} KM</td>
-                                    <td class="p-3 max-w-xs text-slate-300">
-                                        <div class="flex flex-wrap gap-1 items-center">
-                                            <span v-for="(it, idx) in log.items" :key="idx" class="inline-flex items-center gap-1 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[10px]">
-                                                <span>{{ it.name }}</span>
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 whitespace-nowrap font-bold text-emerald-400 font-mono text-right">
-                                        {{ maskMoney(log.totalCost) }}
-                                    </td>
-                                    <td class="p-3 whitespace-nowrap text-center">
-                                        <div class="flex items-center justify-center gap-1.5">
-                                            <button @click="openInvoiceModal(log)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-lg font-bold text-[10px]" title="Faktur Digital">
-                                                <i class="fa-solid fa-file-invoice"></i>
-                                            </button>
-                                            <button @click="openEditServiceModal(log)" class="px-2 py-1 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-lg font-bold text-[10px]" title="Edit Log">
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </button>
-                                            <button @click="openDeleteServiceModal(log.id)" class="px-2 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg font-bold text-[10px]" title="Hapus Log">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tbody v-else>
-                                <tr>
-                                    <td colspan="8" class="p-8 text-center text-slate-500 font-medium">
-                                        Tidak ada catatan riwayat servis yang ditemukan.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ANNUAL & MONTHLY RECAP SECTION -->
-            <section v-if="currentTab === 'recap' && isAdmin" class="space-y-4 sm:space-y-6">
-                <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg">
-                    <div>
-                        <h2 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-days text-sky-400"></i>
-                            <span>Rekapitulasi Pemeliharaan Bulanan & Tahunan</span>
-                        </h2>
-                        <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Laporan akumulasi biaya pemeliharaan armada UNS</p>
-                    </div>
-
-                    <select v-model="recapYear" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:border-sky-500 focus:outline-none">
-                        <option :value="2024">Tahun 2024</option>
-                        <option :value="2025">Tahun 2025</option>
-                        <option :value="2026">Tahun 2026</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3 shadow-md">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-emerald-500/20 shrink-0">
-                            <i class="fa-solid fa-wallet"></i>
-                        </div>
-                        <div>
-                            <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Total Biaya ({{ recapYear }})</p>
-                            <p class="text-lg sm:text-xl font-black text-emerald-400 font-mono">{{ maskMoney(annualRecapStats.totalCost, true) }}</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3 shadow-md">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-sky-500/20 shrink-0">
-                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                        </div>
-                        <div>
-                            <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Total Transaksi</p>
-                            <p class="text-lg sm:text-xl font-black text-white font-mono">{{ annualRecapStats.totalCount }} <span class="text-xs text-slate-500 font-sans font-normal">Transaksi</span></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800 flex items-center gap-3 shadow-md">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-lg sm:text-xl border border-indigo-500/20 shrink-0">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                        <div>
-                            <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Rata-Rata / Bulan</p>
-                            <p class="text-lg sm:text-xl font-black text-indigo-300 font-mono">{{ maskMoney(annualRecapStats.averageMonthly, true) }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                    <div v-for="m in 12" :key="m" @click="openMonthDetailModal(m)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-xl sm:rounded-2xl p-4 space-y-3 cursor-pointer transition shadow-lg group">
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <span class="font-extrabold text-sm text-white group-hover:text-sky-400 transition">{{ getMonthName(m) }} {{ recapYear }}</span>
-                            <span class="text-[10px] font-mono font-bold bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full">
-                                {{ getServicedVehiclesForMonth(m, recapYear).logs.length }} Transaksi
-                            </span>
-                        </div>
-
-                        <div class="space-y-1">
-                            <p class="text-[11px] text-slate-400 font-medium">Total Pengeluaran Servis:</p>
-                            <p class="text-base sm:text-lg font-black text-emerald-400 font-mono">
-                                {{ maskMoney(getServicedVehiclesForMonth(m, recapYear).totalCost, true) }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- MODAL: ADD / EDIT SERVICE LOG -->
-            <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-file-signature text-sky-400 text-lg"></i>
-                            <h3 class="font-extrabold text-sm sm:text-base text-white">{{ editingLogId ? 'Edit Catatan Servis' : 'Tambah Nota / Transaksi Servis' }}</h3>
-                        </div>
-                        <button @click="activeNewServiceModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-
-                    <form @submit.prevent="saveServiceLog" class="space-y-4 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
-                                <select v-model="serviceForm.vehicleId" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase focus:border-sky-500 focus:outline-none">
-                                    <option value="" disabled>-- Pilih Plat Armada --</option>
-                                    <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-300 mb-1">Bengkel Mitra *</label>
-                                <select v-model="serviceForm.workshop" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold focus:border-sky-500 focus:outline-none">
-                                    <option value="Nasmoco">Nasmoco</option>
-                                    <option value="Montecarlo">Montecarlo</option>
-                                    <option value="Zaini Auto">Zaini Auto</option>
-                                    <option value="Rekanan">Rekanan</option>
-                                    <option value="Bengkel Luar">Bengkel Luar</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-300 mb-1">Tanggal Servis *</label>
-                                <input type="date" v-model="serviceForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono focus:border-sky-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-300 mb-1">Odometer (KM) *</label>
-                                <input type="number" v-model.number="serviceForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-sky-400 focus:border-sky-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-300 mb-1">No. Invoice / Faktur</label>
-                                <input type="text" v-model="serviceForm.invoiceNo" placeholder="Contoh: INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono focus:border-sky-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-300 mb-1">Kategori Jenis Servis *</label>
-                                <select v-model="serviceForm.isRoutine" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold focus:border-sky-500 focus:outline-none">
-                                    <option :value="true">🟢 Servis Berkala Rutin (Reset Status)</option>
-                                    <option :value="false">🔵 Perbaikan Non-Rutin (Insidental)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <label class="font-bold text-slate-300">Rincian Komponen & Biaya Servis *</label>
-                                <button type="button" @click="addServiceItem" class="px-2 py-1 bg-sky-950 text-sky-300 border border-sky-800 rounded-lg font-bold text-[11px]">+ Tambah Item</button>
-                            </div>
-
-                            <div v-for="(it, idx) in serviceForm.items" :key="idx" class="flex items-center gap-2">
-                                <input type="text" v-model="it.name" required placeholder="Nama part / jasa..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-white focus:border-sky-500 focus:outline-none">
-                                <input type="number" v-model.number="it.cost" required min="0" placeholder="Biaya (Rp)..." class="w-32 bg-slate-950 border border-slate-800 rounded-xl p-2 text-emerald-400 font-mono font-bold text-right focus:border-sky-500 focus:outline-none">
-                                <button type="button" @click="removeServiceItem(idx)" class="p-2 text-rose-400 hover:text-rose-300"><i class="fa-solid fa-xmark"></i></button>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-                            <span class="font-extrabold text-slate-300">Total Biaya Faktur:</span>
-                            <span class="text-base font-mono font-black text-emerald-400">{{ maskMoney(calcServiceFormTotal(), true) }}</span>
-                        </div>
-
-                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                            <button type="button" @click="activeNewServiceModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow flex items-center gap-1.5"><i class="fa-solid fa-floppy-disk"></i><span>Simpan Transaksi</span></button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- MODAL: ADD / EDIT VEHICLE -->
-            <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-car text-sky-400"></i>
-                            <h3 class="font-extrabold text-sm sm:text-base text-white">{{ vehicleForm.id ? 'Edit Data Armada' : 'Tambah Armada Baru' }}</h3>
-                        </div>
-                        <button @click="activeVehicleModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-
-                    <form @submit.prevent="saveVehicle" class="space-y-3 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Plat Nomor *</label>
-                            <input type="text" v-model="vehicleForm.plate" required placeholder="Contoh: AD 1001 ZA" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white uppercase font-mono font-bold focus:border-sky-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Tipe / Model Kendaraan *</label>
-                            <input type="text" v-model="vehicleForm.model" required placeholder="Contoh: Toyota Innova Zenix" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Pengemudi / Sopir UNS</label>
-                            <input type="text" v-model="vehicleForm.driver" placeholder="Nama sopir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Kategori Armada *</label>
-                            <select v-model="vehicleForm.category" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none">
-                                <option value="Pimpinan">Pimpinan</option>
-                                <option value="Operasional">Operasional</option>
-                                <option value="Fakultas">Fakultas</option>
-                                <option value="Unit">Unit</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Odometer Terkini (KM) *</label>
-                            <input type="number" v-model.number="vehicleForm.currentKm" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold focus:border-sky-500 focus:outline-none">
-                        </div>
-                        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                            <button type="button" @click="activeVehicleModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow">Simpan Data</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- MODAL: DIGITAL INVOICE PREVIEW -->
-            <div v-if="activeInvoiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-white text-slate-900 border border-slate-300 w-full max-w-xl rounded-2xl p-6 shadow-2xl space-y-4 my-auto font-sans">
-                    <div class="flex items-center justify-between border-b pb-3 no-print">
-                        <span class="font-bold text-xs uppercase text-slate-500">Faktur Digital Perawatan Armada</span>
-                        <div class="flex items-center gap-2">
-                            <button @click="printInvoice" class="px-3 py-1 bg-sky-600 text-white font-bold rounded-lg text-xs"><i class="fa-solid fa-print mr-1"></i> Cetak / PDF</button>
-                            <button @click="activeInvoiceModal = false" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                    </div>
-
-                    <div v-if="selectedLog" class="space-y-4">
-                        <div class="flex items-center justify-between border-b pb-4">
-                            <div>
-                                <h2 class="text-lg font-black text-sky-900 tracking-tight">UNIVERSITAS SEBELAS MARET</h2>
-                                <p class="text-xs text-slate-600">Sistem Informasi Pengelolaan & Pemeliharaan Armada</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="font-mono font-extrabold text-sm text-slate-800 block">{{ selectedLog.invoiceNo || 'INV-UNS-' + selectedLog.id }}</span>
-                                <span class="text-xs text-slate-500">{{ formatDateWib(selectedLog.date) }}</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
-                            <div>
-                                <span class="text-slate-500 block font-semibold">Kendaraan / Plat:</span>
-                                <span class="font-extrabold font-mono text-slate-800 text-sm">{{ getVehiclePlate(selectedLog.vehicleId) }}</span>
-                                <p class="text-slate-600">{{ getVehicleModel(selectedLog.vehicleId) }}</p>
-                            </div>
-                            <div>
-                                <span class="text-slate-500 block font-semibold">Bengkel Pelaksana:</span>
-                                <span class="font-extrabold text-slate-800 text-sm">{{ selectedLog.workshop }}</span>
-                                <p class="text-slate-600 font-mono">Odometer: {{ (Number(selectedLog.km) || 0).toLocaleString('id-ID') }} KM</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-100 border-b border-slate-300 font-bold text-slate-700 uppercase">
-                                        <th class="p-2">Uraian Komponen / Pekerjaan</th>
-                                        <th class="p-2 text-right">Biaya (Rp)</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y border-b">
-                                    <tr v-for="(it, idx) in selectedLog.items" :key="idx">
-                                        <td class="p-2 font-medium text-slate-800">{{ it.name }}</td>
-                                        <td class="p-2 text-right font-mono font-bold text-slate-900">{{ maskMoney(it.cost, true) }}</td>
-                                    </tr>
-                                </tbody>
-                                <tfoot>
-                                    <tr class="font-black text-sm text-slate-900">
-                                        <td class="p-2 text-right">Total Tagihan:</td>
-                                        <td class="p-2 text-right font-mono text-emerald-700">{{ maskMoney(selectedLog.totalCost, true) }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL: UPDATE ODOMETER -->
-            <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold shrink-0"><i class="fa-solid fa-gauge-high"></i></div>
-                            <div>
-                                <h3 class="font-extrabold text-sm text-white">Update Odometer Armada</h3>
-                                <p class="text-[11px] text-slate-400">Perbarui kilometer terkini kendaraan</p>
-                            </div>
-                        </div>
-                        <button @click="activeUpdateKmModal = false" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <form @submit.prevent="saveUpdateKm" class="space-y-4 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
-                            <select v-model="updateKmForm.vehicleId" @change="onUpdateKmVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase focus:border-sky-500 focus:outline-none">
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Odometer Terkini Baru (KM) *</label>
-                            <input type="number" v-model.number="updateKmForm.newKm" required min="0" placeholder="Kilometer terbaca..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-base text-sky-400 focus:border-sky-500 focus:outline-none">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Tambah Jarak Cepat:</label>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <button type="button" @click="addKmToForm(100)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded-lg font-mono font-bold text-[11px]">+100 KM</button>
-                                <button type="button" @click="addKmToForm(500)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded-lg font-mono font-bold text-[11px]">+500 KM</button>
-                                <button type="button" @click="addKmToForm(1000)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded-lg font-mono font-bold text-[11px]">+1.000 KM</button>
-                            </div>
-                        </div>
-                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                            <button type="button" @click="activeUpdateKmModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-floppy-disk"></i><span>Simpan Odometer</span></button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- MODAL: SERVICE REQUEST -->
-            <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div>
-                            <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2"><i class="fa-solid fa-paper-plane text-sky-400"></i><span>Pengajuan Servis Armada</span></h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Form pengajuan perbaikan oleh Pengemudi / Unit</p>
-                        </div>
-                        <button @click="activeInServiceModal = false" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-
-                    <form @submit.prevent="saveInService" class="space-y-3 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
-                            <select v-model="inServiceForm.vehicleId" @change="onInServiceVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase focus:border-sky-500 focus:outline-none">
-                                <option value="" disabled>-- Pilih Plat Armada --</option>
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Bengkel Tujuan *</label>
-                            <select v-model="inServiceForm.workshop" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold focus:border-sky-500 focus:outline-none">
-                                <option value="Nasmoco">Nasmoco</option>
-                                <option value="Montecarlo">Montecarlo</option>
-                                <option value="Zaini Auto">Zaini Auto</option>
-                                <option value="Rekanan">Rekanan</option>
-                                <option value="Bengkel Luar">Bengkel Luar</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Odometer Saat Ini (KM) *</label>
-                            <input type="number" v-model.number="inServiceForm.km" required min="0" placeholder="KM odometer..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono font-bold text-sky-400 focus:border-sky-500 focus:outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Catatan Keluhan / Pengerjaan *</label>
-                            <textarea v-model="inServiceForm.notes" required rows="3" placeholder="Contoh: Ganti oli mesin, cek rem depan..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-xs"></textarea>
-                        </div>
-
-                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                            <button type="button" @click="activeInServiceModal = false" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold transition">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
-                                <i class="fa-solid fa-paper-plane"></i><span>Kirim Pengajuan</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- MODAL: ADMIN LOGIN -->
-            <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
-                    <div class="text-center space-y-1">
-                        <div class="w-11 h-11 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-lg border border-sky-500/20">
-                            <i class="fa-solid fa-user-shield"></i>
-                        </div>
-                        <h3 class="text-base font-extrabold text-white">Login Admin Server</h3>
-                        <p class="text-xs text-slate-400">Masukkan Username / Email & Password Admin</p>
-                    </div>
-
-                    <form @submit.prevent="loginAdmin" class="space-y-3 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Username / Email *</label>
-                            <input type="text" v-model="loginForm.identifier" placeholder="admin" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Password Admin *</label>
-                            <input type="password" v-model="loginForm.password" placeholder="Password..." required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none">
-                        </div>
-
-                        <div class="flex justify-end gap-2 pt-2">
-                            <button type="button" @click="activeAdminModal = false" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                            <button type="submit" class="flex-1 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow">Login Admin</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- TOAST NOTIFICATION -->
-            <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white px-3.5 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-bounce max-w-[90vw]">
-                <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'"></i>
-                <span class="truncate">{{ toast.message }}</span>
-            </div>
-
-        </main>
-    </div>
-
-    <script type="module">
-        import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
-
-        // Hilangkan loader fallback setelah Vue terinisialisasi
-        const hideFallbackLoader = () => {
-            const loader = document.getElementById('loading-fallback');
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 500);
-            }
-        };
-
-        function safeGetStorage(key, fallback = null) {
+        function safeGetStorage(key, fallback) {
             try {
-                const item = localStorage.getItem(key);
+                var item = localStorage.getItem(key);
                 if (item === null) return fallback;
                 return JSON.parse(item);
             } catch (e) {
@@ -2301,11 +1000,37 @@
             }
         }
 
+        // Firebase Config with Fallback Isolation
+        var firebaseConfig = {
+            apiKey: "AIzaSyDKnUCUnDoPnhX9sW4QPJ6v4nQ2ZyMYo1k",
+            authDomain: "uns-fleet-management.firebaseapp.com",
+            databaseURL: "https://uns-fleet-management-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "uns-fleet-management",
+            storageBucket: "uns-fleet-management.firebasestorage.app",
+            messagingSenderId: "962442933742",
+            appId: "1:962442933742:web:b71d585ad4b13d8fb7caff"
+        };
+
+        var db = null;
+        var auth = null;
+
+        try {
+            if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                auth = firebase.auth();
+            }
+        } catch (e) {
+            console.warn("Firebase initialize warning:", e);
+        }
+
+        const { createApp } = Vue;
+
         const vueApp = createApp({
             data() {
                 return {
                     currentTab: 'dashboard',
-                    isAdmin: true, // Default aktif untuk mempermudah manajemen awal
+                    isAdmin: true, // Default aktif untuk mempermudah manajemen
 
                     loginForm: { identifier: '', password: '' },
 
@@ -2331,13 +1056,21 @@
                     activeInvoiceModal: false,
                     activeUpdateKmModal: false,
                     activeNotifModal: false,
+                    activeRulesModal: false,
 
                     selectedLog: null,
                     editingLogId: null,
 
-                    cloudStatus: 'offline',
+                    cloudStatus: db ? 'connected' : 'offline',
 
                     toast: { show: false, message: '', type: 'success' },
+
+                    waNumber: safeGetStorage('uns_wa_number', '6282294949474'),
+                    telegramBotToken: safeGetStorage('uns_telegram_token', ''),
+                    telegramChatId: safeGetStorage('uns_telegram_chat_id', ''),
+                    geminiApiKey: safeGetStorage('uns_gemini_api_key', ''),
+
+                    rulesJsonText: '{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}',
 
                     updateKmForm: { vehicleId: '', currentKm: 0, newKm: 0 },
                     inServiceForm: { vehicleId: '', workshop: 'Nasmoco', date: new Date().toISOString().substring(0, 10), km: '', notes: '' },
@@ -2361,10 +1094,11 @@
                 if (!this.vehicles || !this.vehicles.length) {
                     this.loadSampleData();
                 }
+                this.initFirebaseListeners();
             },
 
             mounted() {
-                hideFallbackLoader();
+                forceDismissLoader();
             },
 
             computed: {
@@ -2434,6 +1168,30 @@
                     this.isAdmin = false;
                     this.currentTab = 'dashboard';
                     this.showToast('Admin Logout.', 'success');
+                },
+
+                initFirebaseListeners() {
+                    if (!db) return;
+                    try {
+                        db.ref('uns_vehicles').on('value', snapshot => {
+                            const val = snapshot.val();
+                            if (val) {
+                                this.vehicles = Object.values(val);
+                                safeSetStorage('uns_vehicles', this.vehicles);
+                                this.cloudStatus = 'connected';
+                            }
+                        });
+                        db.ref('uns_logs').on('value', snapshot => {
+                            const val = snapshot.val();
+                            if (val) {
+                                this.serviceLogs = Object.values(val);
+                                safeSetStorage('uns_logs', this.serviceLogs);
+                            }
+                        });
+                    } catch (e) {
+                        console.warn('Firebase sync listener fallback:', e);
+                        this.cloudStatus = 'offline';
+                    }
                 },
 
                 getVehiclePlate(vId) { const car = this.vehicles.find(v => v.id === vId || v.plate === vId); return car ? car.plate : (vId || '-'); },
@@ -2624,7 +1382,7 @@
             vueApp.mount('#app');
         } catch (e) {
             console.error('Mounting Error:', e);
-            hideFallbackLoader();
+            forceDismissLoader();
         }
     </script>
 </body>
