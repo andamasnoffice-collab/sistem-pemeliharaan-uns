@@ -1530,7 +1530,7 @@
             sendPasswordResetEmail, 
             updatePassword 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
         import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.esm-browser.prod.js";
 
         function safeGetRawStorage(key, fallback = '') {
@@ -2001,7 +2001,8 @@
                     safeSetStorage('uns_sheets_webhook_url', settingsObj.sheetsWebhookUrl);
                     safeSetStorage('uns_auto_sync_sheets', settingsObj.autoSyncSheets);
 
-                    if (db) {
+                    // Keamanan: Hanya Admin terautentikasi yang dapat menyimpan pengaturan & API Key ke Cloud
+                    if (db && this.isAdmin) {
                         set(ref(db, `artifacts/${appId}/public/settings`), settingsObj).catch(e => {
                             console.warn('Gagal menyimpan settings ke Firebase:', e);
                         });
@@ -2130,8 +2131,22 @@
                 async syncVehicleToCloud(car) {
                     if (!db || !car || !car.id) return;
                     try {
-                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
-                    } catch(e) {}
+                        if (this.isAdmin) {
+                            // Admin memiliki akses penuh menulis seluruh objek armada
+                            await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
+                        } else {
+                            // Non-Admin (Sopir/Publik) hanya diperbolehkan mengupdate field Odometer & Pengajuan Servis
+                            await update(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), {
+                                currentKm: Number(car.currentKm) || 0,
+                                isUnderService: Boolean(car.isUnderService),
+                                targetWorkshop: car.targetWorkshop || '',
+                                inServiceDate: car.inServiceDate || '',
+                                inServiceNotes: car.inServiceNotes || ''
+                            });
+                        }
+                    } catch(e) {
+                        console.warn("Gagal menyinkronkan armada ke cloud:", e);
+                    }
                 },
 
                 async removeVehicleFromCloud(carId) {
