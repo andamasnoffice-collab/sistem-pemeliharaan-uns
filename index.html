@@ -55,9 +55,9 @@
 
     <div id="app" class="flex-1 flex flex-col min-h-screen" v-cloak>
 
-        <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 shadow-xl no-print">
+        <header class="sticky top-0 z-40 bg-slate-900/95 border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 shadow-lg no-print">
             <div class="flex items-center gap-2.5 sm:gap-3">
-                <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-800/80 p-1 flex items-center justify-center shadow-lg shadow-sky-500/20 group hover:scale-105 transition-transform duration-300">
+                <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-md group hover:scale-105 transition-transform duration-300">
                     <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="automanBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -91,7 +91,7 @@
                 <div>
                     <h1 class="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
                         <span><span class="text-sky-400 font-black">AUTOMAN</span> UNS</span>
-                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Cloud Synced</span>
+                        <span class="text-[9px] sm:text-[10px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-bold">Fast Engine</span>
                     </h1>
                     <p class="text-[10px] sm:text-[11px] text-slate-400 hidden sm:block">Sistem Terintegrasi Monitoring Perawatan dan Bengkel Kendaraan</p>
                 </div>
@@ -130,7 +130,7 @@
                     </button>
                 </div>
 
-                <button v-else @click="activeAdminModal = true" class="px-2.5 sm:px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-[11px] sm:text-xs font-bold transition shadow-lg shadow-sky-600/20 flex items-center gap-1.5">
+                <button v-else @click="activeAdminModal = true" class="px-2.5 sm:px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-[11px] sm:text-xs font-bold transition shadow-md flex items-center gap-1.5">
                     <i class="fa-solid fa-user-shield"></i>
                     <span>Login Admin</span>
                 </button>
@@ -138,17 +138,17 @@
         </header>
 
         <nav class="bg-slate-900/80 border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none no-print">
-            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-sky-600 text-white font-bold shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-chart-pie"></i>
                 <span>Dashboard Armada</span>
             </button>
 
-            <button v-if="isAdmin" @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+            <button v-if="isAdmin" @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-sky-600 text-white font-bold shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-receipt"></i>
                 <span>Riwayat Servis</span>
             </button>
 
-            <button v-if="isAdmin" @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+            <button v-if="isAdmin" @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-sky-600 text-white font-bold shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Rekap Bulanan</span>
             </button>
@@ -264,7 +264,7 @@
                             <span>Update KM</span>
                         </button>
 
-                        <button @click="openInServiceModal(null)" class="flex-1 sm:flex-none px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-sky-600/20">
+                        <button @click="openInServiceModal(null)" class="flex-1 sm:flex-none px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md">
                             <i class="fa-solid fa-paper-plane"></i>
                             <span>Ajukan Servis</span>
                         </button>
@@ -276,8 +276,9 @@
                     </div>
                 </div>
 
+                <!-- CARDS LIST OPTIMIZED -->
                 <div v-if="filteredVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                    <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" :class="car.isHidden ? 'bg-slate-900/60 border-purple-900/60 hover:border-purple-500' : 'bg-slate-900 border-slate-800 hover:border-sky-500/50'" class="border transition rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-lg">
+                    <div v-for="car in filteredVehicles" :key="car.id" @click="openVehicleDrawer(car)" :class="car.isHidden ? 'bg-slate-900/60 border-purple-900/60 hover:border-purple-500' : 'bg-slate-900 border-slate-800 hover:border-sky-500/50'" class="border transition rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 relative overflow-hidden group cursor-pointer shadow-md">
                         
                         <div class="space-y-3">
                             <div class="flex items-start justify-between gap-2">
@@ -299,15 +300,15 @@
                                 </div>
 
                                 <div class="flex flex-col items-end gap-1 shrink-0">
-                                    <span v-if="car.isUnderService" class="px-2 py-0.5 sm:py-1 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1 animate-pulse">
+                                    <span v-if="car.isUnderService" class="px-2 py-0.5 sm:py-1 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
                                         <i class="fa-solid fa-clock-rotate-left"></i>
                                         <span>PENGAJUAN</span>
                                     </span>
-                                    <span v-else-if="getRoutineStatus(car).type === 'danger'" class="px-2 py-0.5 sm:py-1 bg-rose-950 text-rose-400 border border-rose-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
+                                    <span v-else-if="car._routineStatus.type === 'danger'" class="px-2 py-0.5 sm:py-1 bg-rose-950 text-rose-400 border border-rose-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
                                         <i class="fa-solid fa-triangle-exclamation"></i>
                                         <span>JATUH TEMPO</span>
                                     </span>
-                                    <span v-else-if="getRoutineStatus(car).type === 'warning'" class="px-2 py-0.5 sm:py-1 bg-amber-950 text-amber-400 border border-amber-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
+                                    <span v-else-if="car._routineStatus.type === 'warning'" class="px-2 py-0.5 sm:py-1 bg-amber-950 text-amber-400 border border-amber-800 rounded-full text-[9px] sm:text-[10px] font-extrabold flex items-center gap-1">
                                         <i class="fa-solid fa-clock font-normal"></i>
                                         <span>SEGERA SERVIS</span>
                                     </span>
@@ -337,12 +338,12 @@
                                         <span>Servis Berikutnya</span>
                                     </span>
                                     <span class="font-mono font-extrabold text-amber-300 text-xs">
-                                        {{ getNextServiceDate(car) }}
+                                        {{ car._nextServiceDateStr }}
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1 font-mono">
                                     <span>Target Odometer:</span>
-                                    <span class="text-sky-400 font-bold">{{ getNextServiceKm(car).toLocaleString('id-ID') }} KM</span>
+                                    <span class="text-sky-400 font-bold">{{ car._nextServiceKm.toLocaleString('id-ID') }} KM</span>
                                 </div>
                                 <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1">
                                     <span class="flex items-center gap-1.5 text-slate-400">
@@ -359,7 +360,7 @@
                                         <i class="fa-solid fa-wrench text-sky-400"></i>
                                         <span>Bengkel Terakhir:</span>
                                     </span>
-                                    <span class="text-slate-200 font-bold font-mono text-[11px] truncate max-w-[120px] sm:max-w-none text-right">{{ getLastWorkshop(car) }}</span>
+                                    <span class="text-slate-200 font-bold font-mono text-[11px] truncate max-w-[120px] sm:max-w-none text-right">{{ car._lastWorkshop }}</span>
                                 </div>
                             </div>
 
@@ -393,15 +394,15 @@
 
                             <div v-else class="space-y-1 pt-1">
                                 <div class="flex justify-between text-[11px] sm:text-xs font-semibold">
-                                    <span class="text-slate-400 truncate">Servis Rutin ({{ getServiceIntervalKm(car).toLocaleString('id-ID') }} KM / 6 Bln)</span>
-                                    <span :class="getRoutineStatus(car).type === 'danger' ? 'text-rose-400' : (getRoutineStatus(car).type === 'warning' ? 'text-amber-400' : 'text-emerald-400')" class="font-mono text-right shrink-0">
-                                        {{ getRoutineStatus(car).label }}
+                                    <span class="text-slate-400 truncate">Servis Rutin ({{ car._serviceIntervalKm.toLocaleString('id-ID') }} KM / 6 Bln)</span>
+                                    <span :class="car._routineStatus.type === 'danger' ? 'text-rose-400' : (car._routineStatus.type === 'warning' ? 'text-amber-400' : 'text-emerald-400')" class="font-mono text-right shrink-0">
+                                        {{ car._routineStatus.label }}
                                     </span>
                                 </div>
                                 <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div :class="getRoutineStatus(car).type === 'danger' ? 'bg-rose-500' : (getRoutineStatus(car).type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500')" 
-                                         class="h-full transition-all duration-500 rounded-full" 
-                                         :style="{ width: Math.min(getRoutineStatus(car).percent, 100) + '%' }"></div>
+                                    <div :class="car._routineStatus.type === 'danger' ? 'bg-rose-500' : (car._routineStatus.type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500')" 
+                                         class="h-full transition-all duration-300 rounded-full" 
+                                         :style="{ width: Math.min(car._routineStatus.percent, 100) + '%' }"></div>
                                 </div>
                             </div>
                         </div>
@@ -468,7 +469,7 @@
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2 justify-stretch sm:justify-end">
-                            <button v-if="selectedLogIds.length > 0" @click="openBulkDeleteModal('selected')" class="px-3 py-1.5 sm:py-2 bg-rose-900 hover:bg-rose-800 border border-rose-700 text-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow animate-pulse">
+                            <button v-if="selectedLogIds.length > 0" @click="openBulkDeleteModal('selected')" class="px-3 py-1.5 sm:py-2 bg-rose-900 hover:bg-rose-800 border border-rose-700 text-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Hapus Terpilih ({{ selectedLogIds.length }})</span>
                             </button>
@@ -486,7 +487,7 @@
                                 <i class="fa-solid fa-file-export text-emerald-400"></i>
                                 <span>Export</span>
                             </button>
-                            <button @click="openNewServiceModal" class="px-3 py-1.5 sm:py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
+                            <button @click="openNewServiceModal" class="px-3 py-1.5 sm:py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
                                 <i class="fa-solid fa-plus"></i>
                                 <span>Tambah Log</span>
                             </button>
@@ -557,7 +558,7 @@
                     </div>
                 </div>
 
-                <div class="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-950 text-slate-400 uppercase font-mono border-b border-slate-800 text-[10px]">
@@ -687,7 +688,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                    <div v-for="m in 12" :key="m" @click="openMonthDetailModal(m)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-xl sm:rounded-2xl p-4 space-y-3 cursor-pointer transition shadow-lg">
+                    <div v-for="m in 12" :key="m" @click="openMonthDetailModal(m)" class="bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-xl sm:rounded-2xl p-4 space-y-3 cursor-pointer transition shadow-md">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                             <span class="font-extrabold text-sm text-white">{{ getMonthName(m) }} {{ recapYear }}</span>
                             <span class="text-[10px] font-mono font-bold bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full">
@@ -711,8 +712,8 @@
             </section>
 
             <!-- MODALS AND OVERLAYS -->
-            <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="text-center space-y-1">
                         <div class="w-11 h-11 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-lg border border-sky-500/20">
                             <i class="fa-solid fa-user-shield"></i>
@@ -750,8 +751,8 @@
                 </div>
             </div>
 
-            <div v-if="activePasswordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div v-if="activePasswordModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-key text-amber-400"></i>
@@ -777,8 +778,8 @@
                 </div>
             </div>
 
-            <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold shrink-0"><i class="fa-solid fa-gauge-high"></i></div>
@@ -822,8 +823,8 @@
                 </div>
             </div>
 
-            <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
+            <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div>
                             <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2"><i class="fa-solid fa-paper-plane text-sky-400"></i><span>Pengajuan Servis Armada</span></h3>
@@ -867,11 +868,11 @@
                             <label class="block font-bold text-slate-300 mb-1">Catatan Keluhan / Pengerjaan *</label>
                             <textarea v-model="inServiceForm.notes" required rows="4" placeholder="Contoh: Ganti oli mesin, cek rem depan bunyi..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-xs"></textarea>
                             
-                            <div v-if="geminiAiReasoning" class="mt-2.5 p-3 bg-sky-950/70 border border-sky-800/80 rounded-xl text-[11px] space-y-1.5 shadow-lg">
+                            <div v-if="geminiAiReasoning" class="mt-2.5 p-3 bg-sky-950/70 border border-sky-800/80 rounded-xl text-[11px] space-y-1.5 shadow-md">
                                 <div class="flex items-center justify-between font-bold text-sky-400">
                                     <span class="flex items-center gap-1.5">
                                         <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
-                                        <span>Hasil Diagnostik Gemini 3 Flash AI:</span>
+                                        <span>Hasil Diagnostik Gemini AI:</span>
                                     </span>
                                     <span class="text-[9px] px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded-full font-mono font-bold">200 OK</span>
                                 </div>
@@ -884,16 +885,16 @@
                                         + {{ chip }}
                                     </button>
                                 </div>
-                                <button type="button" @click="askGeminiForComplaintSuggestion" :disabled="isAskingGemini" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white border border-sky-400/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-lg shadow-sky-600/20">
+                                <button type="button" @click="askGeminiForComplaintSuggestion" :disabled="isAskingGemini" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white border border-sky-400/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow">
                                     <i :class="isAskingGemini ? 'fa-solid fa-spinner fa-spin text-amber-300' : 'fa-solid fa-wand-magic-sparkles text-amber-300'"></i>
-                                    <span>{{ isAskingGemini ? 'Menghubungkan Gemini 3 Flash...' : '✨ Analisis Gemini 3 Flash' }}</span>
+                                    <span>{{ isAskingGemini ? 'Menghubungkan Gemini AI...' : '✨ Analisis Gemini AI' }}</span>
                                 </button>
                             </div>
                         </div>
 
                         <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                             <button type="button" @click="activeInServiceModal = false" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold transition">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-lg shadow-sky-600/20">
+                            <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold flex items-center gap-1.5 shadow">
                                 <i class="fa-solid fa-paper-plane"></i><span>Kirim Pengajuan</span>
                             </button>
                         </div>
@@ -901,8 +902,8 @@
                 </div>
             </div>
 
-            <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
+            <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-car text-sky-400"></i>
@@ -949,8 +950,8 @@
                 </div>
             </div>
 
-            <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
+            <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-file-signature text-sky-400 text-lg"></i>
@@ -1043,8 +1044,8 @@
                 </div>
             </div>
 
-            <div v-if="activeInvoiceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-white text-slate-900 border border-slate-300 w-full max-w-xl rounded-2xl p-6 shadow-2xl space-y-4 my-auto font-sans">
+            <div v-if="activeInvoiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-white text-slate-900 border border-slate-300 w-full max-w-xl rounded-2xl p-6 shadow-xl space-y-4 my-auto font-sans">
                     <div class="flex items-center justify-between border-b pb-3 no-print">
                         <span class="font-bold text-xs uppercase text-slate-500">Faktur Digital Perawatan Armada</span>
                         <div class="flex items-center gap-2">
@@ -1115,7 +1116,7 @@
                 </div>
             </div>
 
-            <div v-if="activeVehicleDrawer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end">
+            <div v-if="activeVehicleDrawer" class="fixed inset-0 z-50 bg-slate-950/80 flex justify-end">
                 <div class="bg-slate-900 border-l border-slate-800 w-full max-w-lg h-full overflow-y-auto p-5 sm:p-6 space-y-5 shadow-2xl">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1141,7 +1142,7 @@
                             </div>
                             <div class="flex justify-between border-t border-slate-900 pt-2">
                                 <span class="text-slate-400">Interval Servis Rutin:</span>
-                                <span class="font-mono font-bold text-amber-300">{{ getServiceIntervalKm(selectedDrawerVehicle).toLocaleString('id-ID') }} KM / 6 Bln</span>
+                                <span class="font-mono font-bold text-amber-300">{{ (selectedDrawerVehicle._serviceIntervalKm || 7000).toLocaleString('id-ID') }} KM / 6 Bln</span>
                             </div>
                         </div>
 
@@ -1183,8 +1184,8 @@
                 </div>
             </div>
 
-            <div v-if="activeMasterDataModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
+            <div v-if="activeMasterDataModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-database text-indigo-400"></i>
@@ -1271,8 +1272,8 @@
                 </div>
             </div>
 
-            <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
@@ -1302,8 +1303,8 @@
                 </div>
             </div>
 
-            <div v-if="activeImportModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div v-if="activeImportModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-file-excel text-emerald-400"></i>
@@ -1319,8 +1320,8 @@
                 </div>
             </div>
 
-            <div v-if="activeNotifModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 my-auto">
+            <div v-if="activeNotifModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold shrink-0">
@@ -1439,8 +1440,8 @@
                 </div>
             </div>
 
-            <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-cloud text-amber-400"></i>
@@ -1475,8 +1476,8 @@
                 </div>
             </div>
 
-            <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 text-center">
+            <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 text-center">
                     <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
@@ -1491,8 +1492,8 @@
                 </div>
             </div>
 
-            <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto text-xs">
+            <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto text-xs">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <h3 class="font-extrabold text-sm text-white">Rincian Servis {{ getMonthName(selectedRecapMonth) }} {{ recapYear }}</h3>
                         <button @click="activeMonthDetailModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
@@ -1509,7 +1510,7 @@
                 </div>
             </div>
 
-            <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white px-3.5 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-bounce max-w-[90vw]">
+            <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold transition-all duration-300 max-w-[90vw]">
                 <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'"></i>
                 <span class="truncate">{{ toast.message }}</span>
             </div>
@@ -1532,7 +1533,6 @@
         import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
         import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.esm-browser.prod.js";
 
-        // Safe LocalStorage helpers with try/catch fallback for isolated deployment environments
         function safeGetRawStorage(key, fallback = '') {
             try {
                 const item = localStorage.getItem(key);
@@ -1712,15 +1712,150 @@
             },
 
             computed: {
-                visibleVehicles() { return (this.vehicles || []).filter(v => v && !v.isHidden); },
-                hiddenVehiclesCount() { return (this.vehicles || []).filter(v => v && v.isHidden).length; },
-                routineVehiclesCount() { return (this.vehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && this.getRoutineStatus(v).type === 'safe').length; },
-                urgentVehiclesCount() { return (this.vehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && this.getRoutineStatus(v).type === 'warning').length; },
-                expiredVehiclesCount() { return (this.vehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && this.getRoutineStatus(v).type === 'danger').length; },
-                inServiceVehiclesCount() { return (this.vehicles || []).filter(v => v && !v.isHidden && v.isUnderService).length; },
+                // OPTIMIZED: Pre-index logs by vehicle ID for O(1) instant lookup
+                logsByVehicleId() {
+                    const map = {};
+                    const logs = this.serviceLogs || [];
+                    for (let i = 0; i < logs.length; i++) {
+                        const l = logs[i];
+                        if (!l) continue;
+                        const vId = l.vehicleId;
+                        if (vId) {
+                            if (!map[vId]) map[vId] = [];
+                            map[vId].push(l);
+                        }
+                    }
+                    // Sort logs once per vehicle
+                    for (const vId in map) {
+                        map[vId].sort((a, b) => {
+                            const dA = a._pDate || (a._pDate = this.parseLocalDate(a.date));
+                            const dB = b._pDate || (b._pDate = this.parseLocalDate(b.date));
+                            return (dB || 0) - (dA || 0);
+                        });
+                    }
+                    return map;
+                },
+
+                // OPTIMIZED: Process vehicles ONCE reactively, eliminating loop computation in template
+                processedVehicles() {
+                    const logsMap = this.logsByVehicleId;
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+
+                    return (this.vehicles || []).map(car => {
+                        if (!car) return null;
+
+                        const vLogs = logsMap[car.id] || logsMap[car.plate] || [];
+                        const routineLogs = vLogs.filter(l => l && (l.isRoutine === true || l.isRoutine === 'true') && Number(l.km) > 0);
+
+                        let lastServiceKm = 0;
+                        let lastServiceDateStr = null;
+
+                        if (routineLogs.length > 0) {
+                            lastServiceKm = Number(routineLogs[0].km) || 0;
+                            lastServiceDateStr = routineLogs[0].date;
+                        } else if (car.lastServiceKm !== undefined && car.lastServiceKm !== null && Number(car.lastServiceKm) > 0) {
+                            lastServiceKm = Number(car.lastServiceKm);
+                            lastServiceDateStr = car.lastServiceDate || null;
+                        } else {
+                            lastServiceKm = Number(car.currentKm) || 0;
+                            lastServiceDateStr = car.lastServiceDate || null;
+                        }
+
+                        const lastWorkshop = vLogs.length > 0 ? (vLogs[0].workshop || 'Belum Ada') : 'Belum Ada';
+
+                        let intervalKm = 7000;
+                        if ((lastWorkshop || '').toLowerCase().includes('nasmoco')) {
+                            intervalKm = 10000;
+                        }
+
+                        const currentKm = Number(car.currentKm) || 0;
+                        const diffKm = Math.max(0, currentKm - lastServiceKm);
+                        const kmPercent = Math.min(100, Math.round((diffKm / intervalKm) * 100));
+
+                        let isDateDanger = false, isDateWarning = false, daysRemaining = null, datePercent = 0;
+                        let nextServiceDateStr = '-';
+
+                        if (lastServiceDateStr) {
+                            const lastD = this.parseLocalDate(lastServiceDateStr);
+                            if (lastD) {
+                                const nextD = new Date(lastD.getFullYear(), lastD.getMonth() + 6, lastD.getDate());
+                                nextD.setHours(0,0,0,0);
+                                nextServiceDateStr = `${String(nextD.getDate()).padStart(2, '0')}-${String(nextD.getMonth() + 1).padStart(2, '0')}-${nextD.getFullYear()}`;
+                                
+                                daysRemaining = Math.ceil((nextD.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                if (daysRemaining <= 0) {
+                                    isDateDanger = true;
+                                    datePercent = 100;
+                                } else if (daysRemaining <= 30) {
+                                    isDateWarning = true;
+                                    datePercent = Math.min(100, Math.round(((180 - daysRemaining) / 180) * 100));
+                                } else {
+                                    datePercent = Math.min(100, Math.round(((180 - daysRemaining) / 180) * 100));
+                                }
+                            }
+                        }
+
+                        let routineStatus = { label: `Sisa ${(intervalKm - diffKm).toLocaleString('id-ID')} KM`, type: 'safe', percent: Math.max(kmPercent, datePercent) };
+
+                        if (diffKm >= intervalKm || isDateDanger) {
+                            let labelText = '';
+                            if (diffKm >= intervalKm && daysRemaining !== null && daysRemaining < 0) {
+                                labelText = `Lewat ${(diffKm - intervalKm).toLocaleString('id-ID')} KM / ${Math.abs(daysRemaining)} Hari`;
+                            } else if (diffKm >= intervalKm) {
+                                labelText = `Lewat ${(diffKm - intervalKm).toLocaleString('id-ID')} KM`;
+                            } else if (daysRemaining !== null && daysRemaining < 0) {
+                                labelText = `Lewat ${Math.abs(daysRemaining)} Hari`;
+                            } else {
+                                labelText = 'Jatuh Tempo Waktu';
+                            }
+                            routineStatus = { label: labelText, type: 'danger', percent: 100 };
+                        } else if (diffKm >= (intervalKm - 1500) || isDateWarning) {
+                            let labelText = `Sisa ${(intervalKm - diffKm).toLocaleString('id-ID')} KM`;
+                            if (daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 30) {
+                                labelText = `Sisa ${daysRemaining} Hari`;
+                            }
+                            routineStatus = { label: labelText, type: 'warning', percent: Math.max(kmPercent, datePercent) };
+                        }
+
+                        let urgencyScore = -9999;
+                        if (!car.isUnderService) {
+                            const kmRatio = diffKm / intervalKm;
+                            let timeRatio = 0;
+                            if (lastServiceDateStr) {
+                                const lastD = this.parseLocalDate(lastServiceDateStr);
+                                if (lastD) {
+                                    const daysElapsed = Math.max(0, Math.ceil((today.getTime() - lastD.getTime()) / (1000 * 60 * 60 * 24)));
+                                    timeRatio = daysElapsed / 180;
+                                }
+                            }
+                            urgencyScore = Math.max(kmRatio, timeRatio);
+                        }
+
+                        return {
+                            ...car,
+                            _logs: vLogs,
+                            _lastServiceKm: lastServiceKm,
+                            _lastServiceDateStr: lastServiceDateStr,
+                            _lastWorkshop: lastWorkshop,
+                            _serviceIntervalKm: intervalKm,
+                            _routineStatus: routineStatus,
+                            _urgencyScore: urgencyScore,
+                            _nextServiceKm: lastServiceKm + intervalKm,
+                            _nextServiceDateStr: nextServiceDateStr
+                        };
+                    }).filter(Boolean);
+                },
+
+                visibleVehicles() { return (this.processedVehicles || []).filter(v => v && !v.isHidden); },
+                hiddenVehiclesCount() { return (this.processedVehicles || []).filter(v => v && v.isHidden).length; },
+                routineVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'safe').length; },
+                urgentVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'warning').length; },
+                expiredVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'danger').length; },
+                inServiceVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && v.isUnderService).length; },
                 
                 filteredVehicles() {
-                    let list = (this.vehicles || []).filter(car => {
+                    let list = (this.processedVehicles || []).filter(car => {
                         if (!car) return false;
                         if (this.statusFilter === 'HIDDEN') {
                             if (!car.isHidden) return false;
@@ -1734,17 +1869,15 @@
                         const matchesCategory = this.categoryFilter === 'ALL' || car.category === this.categoryFilter;
                         let matchesStatus = true;
                         if (this.statusFilter === 'IN_SERVICE') matchesStatus = car.isUnderService;
-                        else if (this.statusFilter === 'JATUH_TEMPO') matchesStatus = !car.isUnderService && this.getRoutineStatus(car).type === 'danger';
-                        else if (this.statusFilter === 'SEGERA') matchesStatus = !car.isUnderService && this.getRoutineStatus(car).type === 'warning';
-                        else if (this.statusFilter === 'AMAN') matchesStatus = !car.isUnderService && this.getRoutineStatus(car).type === 'safe';
+                        else if (this.statusFilter === 'JATUH_TEMPO') matchesStatus = !car.isUnderService && car._routineStatus.type === 'danger';
+                        else if (this.statusFilter === 'SEGERA') matchesStatus = !car.isUnderService && car._routineStatus.type === 'warning';
+                        else if (this.statusFilter === 'AMAN') matchesStatus = !car.isUnderService && car._routineStatus.type === 'safe';
                         return matchesSearch && matchesCategory && matchesStatus;
                     });
 
                     list.sort((a, b) => {
                         if (this.vehicleSortOption === 'URGENT_FIRST' || this.vehicleSortOption === 'URGENT_LAST') {
-                            const scoreA = this.getVehicleUrgencyScore(a);
-                            const scoreB = this.getVehicleUrgencyScore(b);
-                            return this.vehicleSortOption === 'URGENT_FIRST' ? (scoreB - scoreA) : (scoreA - scoreB);
+                            return this.vehicleSortOption === 'URGENT_FIRST' ? (b._urgencyScore - a._urgencyScore) : (a._urgencyScore - b._urgencyScore);
                         } else if (this.vehicleSortOption === 'PLATE_ASC') {
                             return (a.plate || '').localeCompare(b.plate || '');
                         } else if (this.vehicleSortOption === 'KM_DESC') {
@@ -1760,17 +1893,19 @@
                     if (this.logVehicleFilter !== 'ALL') logs = logs.filter(l => l && (l.vehicleId === this.logVehicleFilter || l.vehicleId === this.getVehiclePlate(this.logVehicleFilter)));
                     if (this.logWorkshopFilter !== 'ALL') logs = logs.filter(l => l && l.workshop === this.logWorkshopFilter);
                     if (this.logMonthFilter !== 'ALL') {
+                        const targetM = Number(this.logMonthFilter);
                         logs = logs.filter(l => {
                             if (!l || !l.date) return false;
                             const d = this.parseLocalDate(l.date);
-                            return d && (d.getMonth() + 1) === Number(this.logMonthFilter);
+                            return d && (d.getMonth() + 1) === targetM;
                         });
                     }
                     if (this.logYearFilter !== 'ALL') {
+                        const targetY = Number(this.logYearFilter);
                         logs = logs.filter(l => {
                             if (!l || !l.date) return false;
                             const d = this.parseLocalDate(l.date);
-                            return d && d.getFullYear() === Number(this.logYearFilter);
+                            return d && d.getFullYear() === targetY;
                         });
                     }
                     if (this.logSortOption === 'DATE_DESC') logs.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
@@ -1840,15 +1975,6 @@
 
                 openCloudSetupModal() {
                     this.activeCloudModal = true;
-                },
-
-                getServiceIntervalKm(car) {
-                    if (!car) return 7000;
-                    const ws = (this.getLastWorkshop(car) || '').toLowerCase();
-                    if (ws.includes('nasmoco')) {
-                        return 10000;
-                    }
-                    return 7000;
                 },
 
                 saveSettingsToCloud() {
@@ -2111,75 +2237,6 @@
                     this.showToast('Data uji coba dimuat!', 'success');
                 },
 
-                getRoutineStatus(car) {
-                    if (!car) return { label: 'Aman', type: 'safe', percent: 0 };
-                    const current = Number(car.currentKm) || 0;
-                    const lastKm = this.getVehicleLastServiceKm(car);
-                    const diffKm = Math.max(0, current - lastKm);
-                    const limitKm = this.getServiceIntervalKm(car);
-                    const kmPercent = Math.min(100, Math.round((diffKm / limitKm) * 100));
-
-                    let isDateDanger = false, isDateWarning = false, daysRemaining = null, datePercent = 0;
-                    const refDateStr = this.getVehicleLastServiceDate(car);
-                    if (refDateStr) {
-                        const lastD = this.parseLocalDate(refDateStr);
-                        if (lastD) {
-                            const nextD = new Date(lastD.getFullYear(), lastD.getMonth() + 6, lastD.getDate());
-                            const today = new Date(); today.setHours(0,0,0,0); nextD.setHours(0,0,0,0);
-                            daysRemaining = Math.ceil((nextD.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                            if (daysRemaining <= 0) { isDateDanger = true; datePercent = 100; }
-                            else if (daysRemaining <= 30) { isDateWarning = true; datePercent = Math.min(100, Math.round(((180 - daysRemaining) / 180) * 100)); }
-                            else { datePercent = Math.min(100, Math.round(((180 - daysRemaining) / 180) * 100)); }
-                        }
-                    }
-
-                    if (diffKm >= limitKm || isDateDanger) {
-                        let labelText = '';
-                        if (diffKm >= limitKm && daysRemaining !== null && daysRemaining < 0) {
-                            labelText = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM / ${Math.abs(daysRemaining)} Hari`;
-                        } else if (diffKm >= limitKm) {
-                            labelText = `Lewat ${(diffKm - limitKm).toLocaleString('id-ID')} KM`;
-                        } else if (daysRemaining !== null && daysRemaining < 0) {
-                            labelText = `Lewat ${Math.abs(daysRemaining)} Hari`;
-                        } else {
-                            labelText = 'Jatuh Tempo Waktu';
-                        }
-                        return { label: labelText, type: 'danger', percent: 100 };
-                    }
-                    if (diffKm >= (limitKm - 1500) || isDateWarning) {
-                        let labelText = `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`;
-                        if (daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 30) {
-                            labelText = `Sisa ${daysRemaining} Hari`;
-                        }
-                        return { label: labelText, type: 'warning', percent: Math.max(kmPercent, datePercent) };
-                    }
-                    return { label: `Sisa ${(limitKm - diffKm).toLocaleString('id-ID')} KM`, type: 'safe', percent: Math.max(kmPercent, datePercent) };
-                },
-
-                getVehicleUrgencyScore(car) {
-                    if (!car) return -9999;
-                    if (car.isUnderService) return -9999;
-                    
-                    const current = Number(car.currentKm) || 0;
-                    const lastKm = this.getVehicleLastServiceKm(car);
-                    const diffKm = Math.max(0, current - lastKm);
-                    const interval = this.getServiceIntervalKm(car);
-                    const kmRatio = diffKm / interval;
-                    
-                    let timeRatio = 0;
-                    const refDateStr = this.getVehicleLastServiceDate(car);
-                    if (refDateStr) {
-                        const lastD = this.parseLocalDate(refDateStr);
-                        if (lastD) {
-                            const today = new Date(); today.setHours(0,0,0,0);
-                            const daysElapsed = Math.max(0, Math.ceil((today.getTime() - lastD.getTime()) / (1000 * 60 * 60 * 24)));
-                            timeRatio = daysElapsed / 180;
-                        }
-                    }
-                    
-                    return Math.max(kmRatio, timeRatio);
-                },
-
                 getComponentWear(car, compKey) {
                     if (!car) return { text: 'Aman', percent: 0, lastRecord: '' };
                     
@@ -2195,7 +2252,7 @@
                     };
 
                     const spec = vitalSpecs[compKey] || { km: 20000, months: 12 };
-                    const vLogs = this.getVehicleLogs(car.id);
+                    const vLogs = car._logs || this.getVehicleLogs(car.id);
                     let lastLog = null;
 
                     if (vLogs && vLogs.length > 0) {
@@ -2217,17 +2274,16 @@
                             return hasCheck || hasKw;
                         });
                         if (matches.length > 0) {
-                            matches.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
                             lastLog = matches[0];
                         }
                     }
 
-                    const lastKm = lastLog ? (Number(lastLog.km) || 0) : this.getVehicleLastServiceKm(car);
+                    const lastKm = lastLog ? (Number(lastLog.km) || 0) : (car._lastServiceKm || Number(car.currentKm) || 0);
                     const currentKm = Number(car.currentKm) || 0;
                     const usedKm = Math.max(0, currentKm - lastKm);
                     const kmPercent = Math.round((usedKm / spec.km) * 100);
 
-                    let refDate = lastLog ? this.parseLocalDate(lastLog.date) : (this.getVehicleLastServiceDate(car) ? this.parseLocalDate(this.getVehicleLastServiceDate(car)) : new Date());
+                    let refDate = lastLog ? this.parseLocalDate(lastLog.date) : (car._lastServiceDateStr ? this.parseLocalDate(car._lastServiceDateStr) : new Date());
                     if (!refDate) refDate = new Date();
                     const now = new Date();
                     const diffMonths = Math.max(0, (now.getFullYear() - refDate.getFullYear()) * 12 + (now.getMonth() - refDate.getMonth()));
@@ -2249,32 +2305,7 @@
                 },
 
                 getVehicleLogs(vId) {
-                    const car = (this.vehicles || []).find(v => v && (v.id === vId || v.plate === vId));
-                    const plate = car ? car.plate : vId;
-                    return (this.serviceLogs || []).filter(l => l && (l.vehicleId === vId || l.vehicleId === plate)).sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
-                },
-
-                getLastWorkshop(car) {
-                    if (!car) return '-';
-                    const logs = this.getVehicleLogs(car.id);
-                    return logs.length > 0 ? logs[0].workshop : 'Belum Ada';
-                },
-
-                getNextServiceKm(car) {
-                    if (!car) return 0;
-                    const lastKm = this.getVehicleLastServiceKm(car);
-                    const interval = this.getServiceIntervalKm(car);
-                    return lastKm + interval;
-                },
-
-                getNextServiceDate(car) {
-                    if (!car) return '-';
-                    const refDateStr = this.getVehicleLastServiceDate(car);
-                    if (!refDateStr) return '-';
-                    const d = this.parseLocalDate(refDateStr);
-                    if (!d) return '-';
-                    const nextD = new Date(d.getFullYear(), d.getMonth() + 6, d.getDate());
-                    return `${String(nextD.getDate()).padStart(2, '0')}-${String(nextD.getMonth() + 1).padStart(2, '0')}-${nextD.getFullYear()}`;
+                    return this.logsByVehicleId[vId] || [];
                 },
 
                 formatDateWib(dateStr) {
@@ -2283,17 +2314,17 @@
                     return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
                 },
 
+                // OPTIMIZED: Fast date string parser avoiding slow RegEx matching
                 parseLocalDate(dateStr) {
                     if (!dateStr) return null;
                     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
-                    let s = String(dateStr).trim();
-                    if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        const p = s.split('-');
-                        return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+                    const s = String(dateStr).trim();
+                    if (!s) return null;
+                    if (s.length === 10 && s[4] === '-' && s[7] === '-') {
+                        return new Date(Number(s.substring(0, 4)), Number(s.substring(5, 7)) - 1, Number(s.substring(8, 10)));
                     }
-                    if (s.match(/^\d{2}-\d{2}-\d{4}$/)) {
-                        const p = s.split('-');
-                        return new Date(Number(p[2]), Number(p[1]) - 1, Number(p[0]));
+                    if (s.length === 10 && s[2] === '-' && s[5] === '-') {
+                        return new Date(Number(s.substring(6, 10)), Number(s.substring(3, 5)) - 1, Number(s.substring(0, 2)));
                     }
                     const d = new Date(s);
                     return isNaN(d.getTime()) ? null : d;
@@ -2302,27 +2333,13 @@
                 getVehicleLastServiceKm(carOrId) {
                     const car = typeof carOrId === 'object' && carOrId !== null ? carOrId : (this.vehicles || []).find(v => v && (v.id === carOrId || v.plate === carOrId));
                     if (!car) return 0;
-                    const vLogs = this.getVehicleLogs(car.id);
-                    const routineLogs = vLogs.filter(l => l && this.isRoutineItem(l) && Number(l.km) > 0);
-                    if (routineLogs.length > 0) {
-                        return Number(routineLogs[0].km);
-                    }
-                    if (car.lastServiceKm !== undefined && car.lastServiceKm !== null && Number(car.lastServiceKm) > 0) {
-                        return Number(car.lastServiceKm);
-                    }
-                    return Number(car.currentKm) || 0;
+                    return car._lastServiceKm || Number(car.lastServiceKm) || Number(car.currentKm) || 0;
                 },
 
                 getVehicleLastServiceDate(carOrId) {
                     const car = typeof carOrId === 'object' && carOrId !== null ? carOrId : (this.vehicles || []).find(v => v && (v.id === carOrId || v.plate === carOrId));
                     if (!car) return null;
-                    const vLogs = this.getVehicleLogs(car.id);
-                    const routineLogs = vLogs.filter(l => l && this.isRoutineItem(l) && l.date);
-                    if (routineLogs.length > 0) {
-                        return routineLogs[0].date;
-                    }
-                    if (car.lastServiceDate) return car.lastServiceDate;
-                    return null;
+                    return car._lastServiceDateStr || car.lastServiceDate || null;
                 },
 
                 recalculateVehicleLastService(car) {
@@ -2330,7 +2347,6 @@
                     const vLogs = this.getVehicleLogs(car.id);
                     const routineLogs = vLogs.filter(l => l && this.isRoutineItem(l) && Number(l.km) > 0);
                     if (routineLogs.length > 0) {
-                        routineLogs.sort((a, b) => (this.parseLocalDate(b.date) || 0) - (this.parseLocalDate(a.date) || 0));
                         car.lastServiceKm = Number(routineLogs[0].km);
                         car.lastServiceDate = routineLogs[0].date;
                     }
@@ -2995,7 +3011,7 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
 
                     this.isAskingGemini = true;
                     this.geminiAiReasoning = '';
-                    this.showToast('🚀 Menghubungkan ke Gemini 3 Flash AI API...', 'success');
+                    this.showToast('🚀 Menghubungkan ke Gemini AI API...', 'success');
 
                     try {
                         const apiKey = (this.geminiApiKey || '').trim();
@@ -3048,7 +3064,7 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                             const cleanedText = text.trim();
                             this.inServiceForm.notes = cleanedText;
                             this.geminiAiReasoning = cleanedText;
-                            this.showToast('✨ Diagnostik AI Gemini 3 Flash Berhasil!', 'success');
+                            this.showToast('✨ Diagnostik AI Gemini Berhasil!', 'success');
                         } else {
                             throw new Error('Respons dari Gemini API kosong');
                         }
