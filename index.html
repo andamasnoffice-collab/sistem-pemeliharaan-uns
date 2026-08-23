@@ -392,12 +392,19 @@
                                 </div>
                             </div>
 
-                            <div v-else class="space-y-1 pt-1">
-                                <div class="flex justify-between text-[11px] sm:text-xs font-semibold">
+                            <!-- Single Row Service Status Header with Side-By-Side KM & Days -->
+                            <div v-else class="space-y-1.5 pt-1">
+                                <div class="flex items-center justify-between text-[11px] sm:text-xs font-semibold gap-2">
                                     <span class="text-slate-400 truncate">Servis Rutin ({{ car._serviceIntervalKm.toLocaleString('id-ID') }} KM / 6 Bln)</span>
-                                    <span :class="car._routineStatus.type === 'danger' ? 'text-rose-400' : (car._routineStatus.type === 'warning' ? 'text-amber-400' : 'text-emerald-400')" class="font-mono text-right shrink-0">
-                                        {{ car._routineStatus.label }}
-                                    </span>
+                                    <div class="flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] shrink-0">
+                                        <span :class="car._remainingKm <= 0 ? 'text-rose-400 font-bold' : (car._remainingKm <= 1500 ? 'text-amber-400 font-bold' : 'text-emerald-400')">
+                                            <i class="fa-solid fa-road mr-1 text-[9px]"></i>{{ car._remainingKmStr }}
+                                        </span>
+                                        <span class="text-slate-600">•</span>
+                                        <span :class="car._daysRemaining !== null && car._daysRemaining <= 0 ? 'text-rose-400 font-bold' : (car._daysRemaining <= 30 ? 'text-amber-400 font-bold' : 'text-emerald-400')">
+                                            <i class="fa-solid fa-clock mr-1 text-[9px]"></i>{{ car._daysRemainingStr }}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
                                     <div :class="car._routineStatus.type === 'danger' ? 'bg-rose-500' : (car._routineStatus.type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500')" 
@@ -1712,31 +1719,66 @@
             },
 
             computed: {
-                // OPTIMIZED: Pre-index logs by vehicle ID for O(1) instant lookup
+                // EXPLICIT LOG SORTING ALGORITHM:
+                // Maps and sorts logs strictly by:
+                // 1. Date timestamp descending (most recent transaction date first)
+                // 2. Odometer KM descending (highest odometer first if dates match)
+                // 3. Unique ID string descending (fallback tie-breaker)
                 logsByVehicleId() {
                     const map = {};
                     const logs = this.serviceLogs || [];
+                    const vehicles = this.vehicles || [];
+
+                    const parseTime = (dateStr) => {
+                        const d = this.parseLocalDate(dateStr);
+                        return d ? d.getTime() : 0;
+                    };
+
+                    vehicles.forEach(v => {
+                        if (v) {
+                            if (v.id) map[v.id] = [];
+                            if (v.plate && !map[v.plate]) map[v.plate] = [];
+                        }
+                    });
+
                     for (let i = 0; i < logs.length; i++) {
                         const l = logs[i];
-                        if (!l) continue;
-                        const vId = l.vehicleId;
-                        if (vId) {
-                            if (!map[vId]) map[vId] = [];
-                            map[vId].push(l);
+                        if (!l || !l.vehicleId) continue;
+                        
+                        const car = vehicles.find(v => v && (v.id === l.vehicleId || v.plate === l.vehicleId));
+                        if (car) {
+                            if (car.id) {
+                                if (!map[car.id]) map[car.id] = [];
+                                if (!map[car.id].includes(l)) map[car.id].push(l);
+                            }
+                            if (car.plate) {
+                                if (!map[car.plate]) map[car.plate] = [];
+                                if (!map[car.plate].includes(l)) map[car.plate].push(l);
+                            }
+                        } else {
+                            if (!map[l.vehicleId]) map[l.vehicleId] = [];
+                            if (!map[l.vehicleId].includes(l)) map[l.vehicleId].push(l);
                         }
                     }
-                    // Sort logs once per vehicle
-                    for (const vId in map) {
-                        map[vId].sort((a, b) => {
-                            const dA = a._pDate || (a._pDate = this.parseLocalDate(a.date));
-                            const dB = b._pDate || (b._pDate = this.parseLocalDate(b.date));
-                            return (dB || 0) - (dA || 0);
+
+                    // Sort each vehicle's logs strictly by date descending, then KM descending
+                    for (const key in map) {
+                        map[key].sort((a, b) => {
+                            const tA = parseTime(a.date);
+                            const tB = parseTime(b.date);
+                            if (tB !== tA) return tB - tA;
+
+                            const kmA = Number(a.km) || 0;
+                            const kmB = Number(b.km) || 0;
+                            if (kmB !== kmA) return kmB - kmA;
+
+                            return String(b.id || '').localeCompare(String(a.id || ''));
                         });
                     }
                     return map;
                 },
 
-                // OPTIMIZED: Process vehicles ONCE reactively, eliminating loop computation in template
+                // GUARANTEED: Consistently picks the most recent routine service log (routineLogs[0])
                 processedVehicles() {
                     const logsMap = this.logsByVehicleId;
                     const today = new Date();
@@ -1746,11 +1788,15 @@
                         if (!car) return null;
 
                         const vLogs = logsMap[car.id] || logsMap[car.plate] || [];
-                        const routineLogs = vLogs.filter(l => l && (l.isRoutine === true || l.isRoutine === 'true') && Number(l.km) > 0);
+                        
+                        // Strict routine log filter using isRoutineItem helper
+                        const routineLogs = vLogs.filter(l => l && this.isRoutineItem(l) && Number(l.km) > 0);
 
                         let lastServiceKm = 0;
                         let lastServiceDateStr = null;
 
+                        // Since vLogs is strictly sorted by [Date desc, KM desc],
+                        // routineLogs[0] is guaranteed to be the single most recent routine service log!
                         if (routineLogs.length > 0) {
                             lastServiceKm = Number(routineLogs[0].km) || 0;
                             lastServiceDateStr = routineLogs[0].date;
@@ -1771,6 +1817,7 @@
 
                         const currentKm = Number(car.currentKm) || 0;
                         const diffKm = Math.max(0, currentKm - lastServiceKm);
+                        const remainingKm = intervalKm - (currentKm - lastServiceKm);
                         const kmPercent = Math.min(100, Math.round((diffKm / intervalKm) * 100));
 
                         let isDateDanger = false, isDateWarning = false, daysRemaining = null, datePercent = 0;
@@ -1795,6 +1842,17 @@
                                 }
                             }
                         }
+
+                        let remainingKmStr = '';
+                        if (remainingKm > 0) remainingKmStr = `Sisa ${remainingKm.toLocaleString('id-ID')} KM`;
+                        else if (remainingKm === 0) remainingKmStr = '0 KM';
+                        else remainingKmStr = `Lewat ${Math.abs(remainingKm).toLocaleString('id-ID')} KM`;
+
+                        let daysRemainingStr = '';
+                        if (daysRemaining === null) daysRemainingStr = '-';
+                        else if (daysRemaining > 0) daysRemainingStr = `Sisa ${daysRemaining} Hari`;
+                        else if (daysRemaining === 0) daysRemainingStr = 'Jatuh Tempo Hari Ini';
+                        else daysRemainingStr = `Lewat ${Math.abs(daysRemaining)} Hari`;
 
                         let routineStatus = { label: `Sisa ${(intervalKm - diffKm).toLocaleString('id-ID')} KM`, type: 'safe', percent: Math.max(kmPercent, datePercent) };
 
@@ -1840,6 +1898,10 @@
                             _lastWorkshop: lastWorkshop,
                             _serviceIntervalKm: intervalKm,
                             _routineStatus: routineStatus,
+                            _remainingKm: remainingKm,
+                            _remainingKmStr: remainingKmStr,
+                            _daysRemaining: daysRemaining,
+                            _daysRemainingStr: daysRemainingStr,
                             _urgencyScore: urgencyScore,
                             _nextServiceKm: lastServiceKm + intervalKm,
                             _nextServiceDateStr: nextServiceDateStr
@@ -2001,7 +2063,6 @@
                     safeSetStorage('uns_sheets_webhook_url', settingsObj.sheetsWebhookUrl);
                     safeSetStorage('uns_auto_sync_sheets', settingsObj.autoSyncSheets);
 
-                    // Keamanan: Hanya Admin terautentikasi yang dapat menyimpan pengaturan & API Key ke Cloud
                     if (db && this.isAdmin) {
                         set(ref(db, `artifacts/${appId}/public/settings`), settingsObj).catch(e => {
                             console.warn('Gagal menyimpan settings ke Firebase:', e);
@@ -2132,10 +2193,8 @@
                     if (!db || !car || !car.id) return;
                     try {
                         if (this.isAdmin) {
-                            // Admin memiliki akses penuh menulis seluruh objek armada
                             await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
                         } else {
-                            // Non-Admin (Sopir/Publik) hanya diperbolehkan mengupdate field Odometer & Pengajuan Servis
                             await update(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), {
                                 currentKm: Number(car.currentKm) || 0,
                                 isUnderService: Boolean(car.isUnderService),
@@ -2194,7 +2253,17 @@
 
                 getVehiclePlate(vId) { const car = (this.vehicles || []).find(v => v && (v.id === vId || v.plate === vId)); return car ? car.plate : (vId || '-'); },
                 getVehicleModel(vId) { const car = (this.vehicles || []).find(v => v && (v.id === vId || v.plate === vId)); return car ? car.model : '-'; },
-                isRoutineItem(log) { return log && (log.isRoutine === true || log.isRoutine === 'true'); },
+                
+                // Flexible check for routine service log entries across different types/formats
+                isRoutineItem(log) { 
+                    if (!log) return false;
+                    if (log.isRoutine === true || log.isRoutine === 'true') return true;
+                    if (typeof log.isRoutine === 'string') {
+                        const val = log.isRoutine.trim().toLowerCase();
+                        return val === 'ya' || val === 'yes' || val === 'rutin' || val === 'true';
+                    }
+                    return false;
+                },
 
                 maskMoney(amount, forceShow = false) {
                     const num = Number(amount) || 0;
@@ -2329,7 +2398,6 @@
                     return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
                 },
 
-                // OPTIMIZED: Fast date string parser avoiding slow RegEx matching
                 parseLocalDate(dateStr) {
                     if (!dateStr) return null;
                     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
@@ -2357,6 +2425,7 @@
                     return car._lastServiceDateStr || car.lastServiceDate || null;
                 },
 
+                // Recalculates vehicle's last service info based on the latest sorted routine log entry
                 recalculateVehicleLastService(car) {
                     if (!car) return;
                     const vLogs = this.getVehicleLogs(car.id);
