@@ -48,6 +48,16 @@
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             body { background: white !important; color: black !important; }
+            .modal-print-container {
+                position: static !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -293,7 +303,7 @@
                                     </div>
                                     <h3 class="font-extrabold text-sm sm:text-base text-white group-hover:text-sky-400 transition leading-snug truncate">{{ car.model }}</h3>
                                     <p class="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 pt-0.5 truncate">
-                                        <span class="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-sky-400 rounded text-[10px] font-bold shrink-0">{{ car.category || 'Operasional' }}</span>
+                                        <span class="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-sky-400 rounded-text-[10px] font-bold shrink-0">{{ car.category || 'Operasional' }}</span>
                                         <span class="truncate"><i class="fa-solid fa-user-gear text-slate-500 mr-1"></i>{{ car.driver || 'Sopir UNS' }}</span>
                                     </p>
                                 </div>
@@ -361,6 +371,17 @@
                                     </span>
                                     <span class="text-slate-200 font-bold font-mono text-[11px] truncate max-w-[120px] sm:max-w-none text-right">{{ car._lastWorkshop }}</span>
                                 </div>
+                                <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-900 pt-1">
+                                    <span class="flex items-center gap-1.5 text-slate-400">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                                        <span>Catatan Kerusakan:</span>
+                                    </span>
+                                    <button @click.stop="openDamageNotesModal(car)" :class="getActiveDamageNotes(car).length > 0 ? 'bg-amber-950/80 border-amber-700 text-amber-300 hover:bg-amber-900' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-2 py-0.5 border rounded-lg font-bold text-[10px] flex items-center gap-1 transition shadow-sm" title="Buka Catatan Kerusakan & Keluhan Driver">
+                                        <span v-if="getActiveDamageNotes(car).length > 0" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                        <span>{{ getActiveDamageNotes(car).length }} Keluhan</span>
+                                        <i class="fa-solid fa-plus-circle text-sky-400"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div v-if="car.isUnderService" @click.stop class="bg-sky-950/60 border border-sky-800 p-2.5 rounded-xl text-xs space-y-1.5">
@@ -417,6 +438,12 @@
                             <button @click.stop="openVehicleDrawer(car)" class="flex-1 py-2 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 min-w-[120px]">
                                 <i class="fa-solid fa-square-poll-vertical text-sky-400"></i>
                                 <span>Rincian</span>
+                            </button>
+
+                            <button @click.stop="openDamageNotesModal(car)" class="py-2 px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-amber-300 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow" title="Catat Kerusakan Kendaraan (Driver)">
+                                <i class="fa-solid fa-clipboard-list text-amber-400"></i>
+                                <span class="hidden sm:inline">Keluhan</span>
+                                <span v-if="getActiveDamageNotes(car).length > 0" class="px-1.5 py-0.2 bg-amber-600 text-white rounded-full text-[9px] font-mono">{{ getActiveDamageNotes(car).length }}</span>
                             </button>
 
                             <button v-if="!car.isUnderService" @click.stop="openInServiceModal(car)" class="py-2 px-3 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-xl text-xs font-bold transition flex items-center gap-1" title="Ajukan Servis Armada">
@@ -564,7 +591,7 @@
                     </div>
                 </div>
 
-                <!-- MOBILE VIEW: SERVICE LOGS CARDS (Fix for Mobile Screens) -->
+                <!-- MOBILE VIEW: SERVICE LOGS CARDS -->
                 <div class="block md:hidden space-y-3">
                     <div v-if="filteredServiceLogs.length > 0" class="space-y-3">
                         <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
@@ -801,7 +828,7 @@
             </section>
 
             <!-- MODALS AND OVERLAYS -->
-            <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <div v-if="activeAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="text-center space-y-1">
                         <div class="w-11 h-11 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-lg border border-sky-500/20">
@@ -840,7 +867,7 @@
                 </div>
             </div>
 
-            <div v-if="activePasswordModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <div v-if="activePasswordModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -867,7 +894,7 @@
                 </div>
             </div>
 
-            <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <div v-if="activeUpdateKmModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -912,7 +939,7 @@
                 </div>
             </div>
 
-            <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div v-if="activeInServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div>
@@ -953,6 +980,33 @@
                             <input type="date" v-model="inServiceForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none">
                         </div>
 
+                        <!-- BOX CATATAN KERUSAKAN DRIVER AKTIF -->
+                        <div v-if="getInServiceActiveNotes().length > 0" class="bg-amber-950/40 border border-amber-800/80 p-3 rounded-xl space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                                    <span>Catatan Kerusakan dari Driver ({{ getInServiceActiveNotes().length }} aktif):</span>
+                                </span>
+                                <button type="button" @click="insertAllDamageNotesIntoForm" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold transition shadow flex items-center gap-1">
+                                    <i class="fa-solid fa-plus-circle"></i>
+                                    <span>Salin Semua ke Keluhan</span>
+                                </button>
+                            </div>
+                            <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                <div v-for="item in getInServiceActiveNotes()" :key="item.id" class="p-2 bg-slate-950/90 border border-amber-900/60 rounded-lg text-[11px] flex items-start justify-between gap-2">
+                                    <div class="space-y-0.5">
+                                        <p class="text-slate-200 font-semibold leading-snug">{{ item.text }}</p>
+                                        <p class="text-[10px] text-slate-400 font-mono">
+                                            <i class="fa-regular fa-user mr-1 text-slate-500"></i>{{ item.reporter || 'Driver' }} • {{ formatDateWib(item.date) }}
+                                        </p>
+                                    </div>
+                                    <button type="button" @click="insertSingleDamageNote(item.text)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded text-[10px] font-bold shrink-0 transition" title="Tambahkan keluhan ini ke catatan">
+                                        + Masukkan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">Catatan Keluhan / Pengerjaan *</label>
                             <textarea v-model="inServiceForm.notes" required rows="4" placeholder="Contoh: Ganti oli mesin, cek rem depan bunyi..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-xs"></textarea>
@@ -991,7 +1045,7 @@
                 </div>
             </div>
 
-            <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div v-if="activeVehicleModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1039,7 +1093,7 @@
                 </div>
             </div>
 
-            <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div v-if="activeNewServiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1133,8 +1187,9 @@
                 </div>
             </div>
 
+            <!-- INVOICE DIGITAL MODAL -->
             <div v-if="activeInvoiceModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                <div class="bg-white text-slate-900 border border-slate-300 w-full max-w-xl rounded-2xl p-6 shadow-xl space-y-4 my-auto font-sans">
+                <div class="modal-print-container bg-white text-slate-900 border border-slate-300 w-full max-w-xl rounded-2xl p-6 shadow-xl space-y-4 my-auto font-sans">
                     <div class="flex items-center justify-between border-b pb-3 no-print">
                         <span class="font-bold text-xs uppercase text-slate-500">Faktur Digital Perawatan Armada</span>
                         <div class="flex items-center gap-2">
@@ -1205,7 +1260,8 @@
                 </div>
             </div>
 
-            <div v-if="activeVehicleDrawer" class="fixed inset-0 z-50 bg-slate-950/80 flex justify-end">
+            <!-- VEHICLE DRAWER -->
+            <div v-if="activeVehicleDrawer" class="fixed inset-0 z-50 bg-slate-950/80 flex justify-end no-print">
                 <div class="bg-slate-900 border-l border-slate-800 w-full max-w-lg h-full overflow-y-auto p-5 sm:p-6 space-y-5 shadow-2xl">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1254,6 +1310,31 @@
                         </div>
 
                         <div class="space-y-2 pt-2 border-t border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-extrabold text-white text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clipboard-list text-amber-400"></i>
+                                    <span>Catatan Kerusakan Driver ({{ (selectedDrawerVehicle.damageNotes || []).length }})</span>
+                                </h4>
+                                <button @click="openDamageNotesModal(selectedDrawerVehicle)" class="px-2 py-0.5 bg-amber-950 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Input Catatan</span>
+                                </button>
+                            </div>
+                            <div v-if="(selectedDrawerVehicle.damageNotes || []).length > 0" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                <div v-for="note in selectedDrawerVehicle.damageNotes" :key="note.id" :class="note.isResolved ? 'bg-slate-950/50 border-slate-800 opacity-60' : 'bg-slate-950 border-amber-900/60'" class="p-2.5 rounded-xl border space-y-1">
+                                    <div class="flex items-center justify-between text-[10px]">
+                                        <span class="font-mono text-slate-400">{{ formatDateWib(note.date) }} • {{ note.reporter || 'Driver' }}</span>
+                                        <span :class="note.isResolved ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800'" class="px-1.5 py-0.5 border rounded text-[9px] font-bold">
+                                            {{ note.isResolved ? 'Selesai' : 'Belum Servis' }}
+                                        </span>
+                                    </div>
+                                    <p class="text-slate-200 text-xs font-semibold">{{ note.text }}</p>
+                                </div>
+                            </div>
+                            <p v-else class="text-slate-500 text-xs text-center py-2">Belum ada catatan keluhan kerusakan dari pengemudi.</p>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-slate-800">
                             <h4 class="font-extrabold text-white text-xs uppercase tracking-wider">Riwayat Servis Armada</h4>
                             <div v-if="getVehicleLogs(selectedDrawerVehicle.id).length > 0" class="space-y-2">
                                 <div v-for="log in getVehicleLogs(selectedDrawerVehicle.id)" :key="log.id" class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
@@ -1273,7 +1354,8 @@
                 </div>
             </div>
 
-            <div v-if="activeMasterDataModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <!-- MASTER DATA MODAL -->
+            <div v-if="activeMasterDataModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1361,7 +1443,8 @@
                 </div>
             </div>
 
-            <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <!-- SHEETS MODAL -->
+            <div v-if="activeSheetsModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1392,7 +1475,8 @@
                 </div>
             </div>
 
-            <div v-if="activeImportModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <!-- IMPORT EXCEL MODAL -->
+            <div v-if="activeImportModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1409,7 +1493,8 @@
                 </div>
             </div>
 
-            <div v-if="activeNotifModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <!-- NOTIF & AI MODAL -->
+            <div v-if="activeNotifModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-xl space-y-4 my-auto">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1529,7 +1614,8 @@
                 </div>
             </div>
 
-            <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <!-- CLOUD SETUP MODAL -->
+            <div v-if="activeCloudModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -1565,7 +1651,8 @@
                 </div>
             </div>
 
-            <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4">
+            <!-- DELETE MODAL -->
+            <div v-if="activeDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 text-center">
                     <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl border border-rose-500/20">
                         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -1581,7 +1668,104 @@
                 </div>
             </div>
 
-            <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <!-- MODAL CATATAN KERUSAKAN & KELUHAN DRIVER -->
+            <div v-if="activeDamageNotesModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+                <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold shrink-0">
+                                <i class="fa-solid fa-wrench"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                                    <span>Catatan Kerusakan Kendaraan</span>
+                                    <span v-if="selectedDamageVehicle" class="px-2 py-0.5 bg-slate-950 text-sky-400 border border-slate-800 rounded font-mono text-xs">
+                                        {{ selectedDamageVehicle.plate }}
+                                    </span>
+                                </h3>
+                                <p class="text-[11px] text-slate-400">Driver & Petugas dapat mencatat kendala/kerusakan armada</p>
+                            </div>
+                        </div>
+                        <button @click="activeDamageNotesModal = false" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+
+                    <!-- FORM TAMBAH CATATAN KERUSAKAN -->
+                    <form @submit.prevent="addDamageNote" class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2.5 text-xs">
+                        <span class="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle text-amber-400"></i>
+                            <span>Tambah Catatan Kendala / Kerusakan Baru</span>
+                        </span>
+                        <div>
+                            <textarea v-model="damageNoteInput" required rows="2" placeholder="Uraikan kerusakan, suara aneh, getaran, kebocoran, dll..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"></textarea>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                            <input type="text" v-model="damageReporterInput" placeholder="Nama Driver / Pelapor (opsional)" class="bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-amber-500 flex-1">
+                            <button type="submit" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold transition flex items-center justify-center gap-1 shadow">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Simpan Catatan</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- DAFTAR CATATAN KENDALA ARMADA INI -->
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-300 uppercase text-[10px] tracking-wider">Daftar Keluhan Tercatat:</span>
+                            <span class="text-[10px] text-slate-500 font-mono">{{ (selectedDamageVehicle?.damageNotes || []).length }} Total</span>
+                        </div>
+
+                        <div v-if="(selectedDamageVehicle?.damageNotes || []).length > 0" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            <div v-for="item in selectedDamageVehicle.damageNotes" :key="item.id" :class="item.isResolved ? 'bg-slate-950/60 border-slate-800/80 opacity-60' : 'bg-slate-950 border-amber-900/60 shadow-sm'" class="p-3 rounded-xl border flex flex-col justify-between space-y-2">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="space-y-1">
+                                        <p :class="item.isResolved ? 'line-through text-slate-400' : 'text-slate-100 font-bold'" class="text-xs leading-relaxed">
+                                            {{ item.text }}
+                                        </p>
+                                        <p class="text-[10px] text-slate-400 font-mono">
+                                            <i class="fa-regular fa-user mr-1 text-slate-500"></i>{{ item.reporter || 'Driver' }} • <i class="fa-regular fa-clock mr-1 text-slate-500"></i>{{ formatDateWib(item.date) }}
+                                        </p>
+                                    </div>
+                                    <span :class="item.isResolved ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800'" class="px-2 py-0.5 border rounded-full text-[9px] font-bold shrink-0">
+                                        {{ item.isResolved ? 'Selesai' : 'Aktif' }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px]">
+                                    <span v-if="item.isResolved" class="text-emerald-400 flex items-center gap-1 font-mono">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Terselesaikan otomatis via servis ({{ item.resolvedInvoice || 'Invoice Servis' }})</span>
+                                    </span>
+                                    <span v-else class="text-slate-500 flex items-center gap-1">
+                                        <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                                        <span>Otomatis selesai saat input invoice servis</span>
+                                    </span>
+
+                                    <button type="button" @click="deleteDamageNote(item.id)" class="px-2 py-1 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow" title="Hapus catatan">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                        <span>Hapus</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="p-6 bg-slate-950 rounded-xl border border-slate-800/80 text-center text-slate-500 text-xs">
+                            <i class="fa-solid fa-circle-check text-emerald-500 text-base mb-1 block"></i>
+                            Tidak ada catatan kerusakan/kendala aktif untuk armada ini.
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                        <button type="button" @click="openInServiceModal(selectedDamageVehicle); activeDamageNotesModal = false;" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Lanjut Ajukan Servis</span>
+                        </button>
+                        <button type="button" @click="activeDamageNotesModal = false" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">Tutup</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONTH DETAIL MODAL -->
+            <div v-if="activeMonthDetailModal" class="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
                 <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 my-auto text-xs">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <h3 class="font-extrabold text-sm text-white">Rincian Servis {{ getMonthName(selectedRecapMonth) }} {{ recapYear }}</h3>
@@ -1599,7 +1783,8 @@
                 </div>
             </div>
 
-            <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold transition-all duration-300 max-w-[90vw]">
+            <!-- TOAST NOTIFICATION -->
+            <div v-if="toast && toast.show" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold transition-all duration-300 max-w-[90vw] no-print">
                 <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'"></i>
                 <span class="truncate">{{ toast.message }}</span>
             </div>
@@ -1724,6 +1909,10 @@
                     activeUpdateKmModal: false,
                     activeSheetsModal: false,
                     activeNotifModal: false,
+                    activeDamageNotesModal: false,
+                    selectedDamageVehicle: null,
+                    damageNoteInput: '',
+                    damageReporterInput: '',
 
                     geminiApiKey: safeGetRawStorage('uns_gemini_api_key', ''),
                     waNumber: safeGetRawStorage('uns_wa_number', '6282294949474'),
@@ -1784,8 +1973,8 @@
                         { name: 'Spooring 4 Roda & Balancing Roda', cost: 250000 }
                     ],
 
-                    vehicles: safeGetStorage('uns_vehicles', []),
-                    serviceLogs: safeGetStorage('uns_logs', [])
+                    vehicles: (safeGetStorage('uns_vehicles', []) || []).filter(Boolean),
+                    serviceLogs: (safeGetStorage('uns_logs', []) || []).filter(Boolean)
                 };
             },
 
@@ -1794,6 +1983,7 @@
                     if (!Array.isArray(this.vehicles) || !this.vehicles.length) {
                         this.loadSampleData();
                     }
+                    this.normalizeDamageNotesAll();
                     this.initFirebase();
                 } catch (e) {
                     console.warn("Error inside created hook:", e);
@@ -1803,8 +1993,8 @@
             computed: {
                 logsByVehicleId() {
                     const map = {};
-                    const logs = this.serviceLogs || [];
-                    const vehicles = this.vehicles || [];
+                    const logs = (this.serviceLogs || []).filter(Boolean);
+                    const vehicles = (this.vehicles || []).filter(Boolean);
 
                     const parseTime = (dateStr) => {
                         const d = this.parseLocalDate(dateStr);
@@ -1859,7 +2049,7 @@
                     const today = new Date();
                     today.setHours(0,0,0,0);
 
-                    return (this.vehicles || []).map(car => {
+                    return (this.vehicles || []).filter(Boolean).map(car => {
                         if (!car) return null;
 
                         const vLogs = logsMap[car.id] || logsMap[car.plate] || [];
@@ -2022,7 +2212,7 @@
                 },
 
                 filteredServiceLogs() {
-                    let logs = [...(this.serviceLogs || [])];
+                    let logs = [...(this.serviceLogs || []).filter(Boolean)];
                     if (this.logVehicleFilter !== 'ALL') logs = logs.filter(l => l && (l.vehicleId === this.logVehicleFilter || l.vehicleId === this.getVehiclePlate(this.logVehicleFilter)));
                     if (this.logWorkshopFilter !== 'ALL') logs = logs.filter(l => l && l.workshop === this.logWorkshopFilter);
                     if (this.logMonthFilter !== 'ALL') {
@@ -2243,7 +2433,15 @@
                             this.cloudStatus = 'connected';
                             const data = snap.val();
                             if (data) {
-                                this.vehicles = Array.isArray(data) ? data : Object.values(data);
+                                const list = Array.isArray(data) ? data : Object.values(data);
+                                this.vehicles = list.filter(Boolean).map(v => {
+                                    if (v.damageNotes && !Array.isArray(v.damageNotes)) {
+                                        v.damageNotes = Object.values(v.damageNotes).filter(Boolean);
+                                    } else if (!v.damageNotes) {
+                                        v.damageNotes = [];
+                                    }
+                                    return v;
+                                });
                                 safeSetStorage('uns_vehicles', this.vehicles);
                             }
                         }, (err) => console.warn("RTDB vehicles listener warning:", err));
@@ -2251,7 +2449,8 @@
                         onValue(ref(db, `artifacts/${appId}/public/data/logs`), snap => {
                             const data = snap.val();
                             if (data) {
-                                this.serviceLogs = Array.isArray(data) ? data : Object.values(data);
+                                const list = Array.isArray(data) ? data : Object.values(data);
+                                this.serviceLogs = list.filter(Boolean);
                                 safeSetStorage('uns_logs', this.serviceLogs);
                             }
                         }, (err) => console.warn("RTDB logs listener warning:", err));
@@ -2260,18 +2459,24 @@
                     }
                 },
 
+                cleanFirebaseKey(str) {
+                    return String(str || '').trim().replace(/[\/\.\#\$\[\]]/g, '_');
+                },
+
                 async syncVehicleToCloud(car) {
                     if (!db || !car || !car.id) return;
                     try {
+                        const targetKey = this.cleanFirebaseKey(car.id);
                         if (this.isAdmin) {
-                            await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
+                            await set(ref(db, `artifacts/${appId}/public/data/vehicles/${targetKey}`), car);
                         } else {
-                            await update(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), {
+                            await update(ref(db, `artifacts/${appId}/public/data/vehicles/${targetKey}`), {
                                 currentKm: Number(car.currentKm) || 0,
                                 isUnderService: Boolean(car.isUnderService),
                                 targetWorkshop: car.targetWorkshop || '',
                                 inServiceDate: car.inServiceDate || '',
-                                inServiceNotes: car.inServiceNotes || ''
+                                inServiceNotes: car.inServiceNotes || '',
+                                damageNotes: Array.isArray(car.damageNotes) ? car.damageNotes : []
                             });
                         }
                     } catch(e) {
@@ -2282,21 +2487,24 @@
                 async removeVehicleFromCloud(carId) {
                     if (!db || !carId) return;
                     try {
-                        await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${carId}`));
+                        const targetKey = this.cleanFirebaseKey(carId);
+                        await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${targetKey}`));
                     } catch(e) {}
                 },
 
                 async syncLogToCloud(log) {
                     if (!db || !log || !log.id) return;
                     try {
-                        await set(ref(db, `artifacts/${appId}/public/data/logs/${log.id}`), log);
+                        const targetKey = this.cleanFirebaseKey(log.id);
+                        await set(ref(db, `artifacts/${appId}/public/data/logs/${targetKey}`), log);
                     } catch(e) {}
                 },
 
                 async removeLogFromCloud(logId) {
                     if (!db || !logId) return;
                     try {
-                        await remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
+                        const targetKey = this.cleanFirebaseKey(logId);
+                        await remove(ref(db, `artifacts/${appId}/public/data/logs/${targetKey}`));
                     } catch(e) {}
                 },
 
@@ -2306,8 +2514,8 @@
                         this.isSheetsSyncing = true;
                         const payload = {
                             action: 'syncAll',
-                            vehicles: this.vehicles,
-                            logs: this.serviceLogs
+                            vehicles: (this.vehicles || []).filter(Boolean),
+                            logs: (this.serviceLogs || []).filter(Boolean)
                         };
                         await fetch(this.sheetsWebhookUrl, {
                             method: 'POST',
@@ -2502,6 +2710,10 @@
                     if (routineLogs.length > 0) {
                         car.lastServiceKm = Number(routineLogs[0].km);
                         car.lastServiceDate = routineLogs[0].date;
+                    } else {
+                        // Reset fallback jika log rutin dihapus
+                        car.lastServiceKm = 0;
+                        car.lastServiceDate = '';
                     }
                 },
 
@@ -2510,15 +2722,139 @@
                     if (targetCar) {
                         const carLogs = this.getVehicleLogs(targetCar.id);
                         const defaultWs = (carLogs && carLogs.length > 0 && carLogs[0].workshop) ? carLogs[0].workshop : 'Nasmoco';
+                        
+                        let initialNotes = '';
+                        const activeNotes = this.getActiveDamageNotes(targetCar);
+                        if (activeNotes.length > 0) {
+                            initialNotes = 'Catatan Keluhan Driver:\n' + activeNotes.map((n, i) => `${i + 1}. ${n.text}`).join('\n');
+                        }
+
                         this.inServiceForm = {
                             vehicleId: targetCar.id,
                             workshop: defaultWs,
                             date: new Date().toISOString().substring(0, 10),
                             km: Number(targetCar.currentKm) || 0,
-                            notes: ''
+                            notes: initialNotes
                         };
                     }
                     this.activeInServiceModal = true;
+                },
+
+                onInServiceVehicleChange() {
+                    const car = (this.vehicles || []).find(v => v && (v.id === this.inServiceForm.vehicleId || v.plate === this.inServiceForm.vehicleId));
+                    if (car) {
+                        this.inServiceForm.km = Number(car.currentKm) || 0;
+                        const carLogs = this.getVehicleLogs(car.id);
+                        if (carLogs && carLogs.length > 0 && carLogs[0].workshop) {
+                            this.inServiceForm.workshop = carLogs[0].workshop;
+                        }
+
+                        const activeNotes = this.getActiveDamageNotes(car);
+                        if (activeNotes.length > 0 && !this.inServiceForm.notes) {
+                            this.inServiceForm.notes = 'Catatan Keluhan Driver:\n' + activeNotes.map((n, i) => `${i + 1}. ${n.text}`).join('\n');
+                        }
+                    }
+                },
+
+                getActiveDamageNotes(car) {
+                    if (!car) return [];
+                    const notes = Array.isArray(car.damageNotes) ? car.damageNotes : (car.damageNotes ? Object.values(car.damageNotes).filter(Boolean) : []);
+                    return notes.filter(n => n && !n.isResolved);
+                },
+
+                normalizeDamageNotesAll() {
+                    if (!Array.isArray(this.vehicles)) return;
+                    this.vehicles.forEach(car => {
+                        if (car && car.damageNotes && !Array.isArray(car.damageNotes)) {
+                            car.damageNotes = Object.values(car.damageNotes).filter(Boolean);
+                        }
+                    });
+                },
+
+                getInServiceActiveNotes() {
+                    if (!this.inServiceForm.vehicleId) return [];
+                    const car = (this.vehicles || []).find(v => v && (v.id === this.inServiceForm.vehicleId || v.plate === this.inServiceForm.vehicleId));
+                    return this.getActiveDamageNotes(car);
+                },
+
+                insertSingleDamageNote(text) {
+                    if (!text) return;
+                    if (this.inServiceForm.notes) {
+                        this.inServiceForm.notes += `\n• ${text}`;
+                    } else {
+                        this.inServiceForm.notes = `• ${text}`;
+                    }
+                    this.showToast('Keluhan ditambahkan ke catatan', 'success');
+                },
+
+                insertAllDamageNotesIntoForm() {
+                    const notes = this.getInServiceActiveNotes();
+                    if (!notes.length) return;
+                    const combined = notes.map((n, i) => `${i + 1}. ${n.text}`).join('\n');
+                    if (this.inServiceForm.notes) {
+                        this.inServiceForm.notes += `\n\nCatatan Driver:\n${combined}`;
+                    } else {
+                        this.inServiceForm.notes = `Catatan Driver:\n${combined}`;
+                    }
+                    this.showToast('Semua keluhan driver disalin ke form', 'success');
+                },
+
+                openDamageNotesModal(car) {
+                    this.selectedDamageVehicle = car;
+                    this.damageNoteInput = '';
+                    this.damageReporterInput = (car && car.driver) ? car.driver : '';
+                    this.activeDamageNotesModal = true;
+                },
+
+                addDamageNote() {
+                    if (!this.selectedDamageVehicle || !this.damageNoteInput.trim()) {
+                        this.showToast('Isi uraian kendala kerusakan terlebih dahulu!', 'error');
+                        return;
+                    }
+
+                    if (!Array.isArray(this.selectedDamageVehicle.damageNotes)) {
+                        this.selectedDamageVehicle.damageNotes = this.selectedDamageVehicle.damageNotes ? Object.values(this.selectedDamageVehicle.damageNotes).filter(Boolean) : [];
+                    }
+
+                    const noteObj = {
+                        id: 'DMG-' + Date.now(),
+                        text: this.damageNoteInput.trim(),
+                        reporter: (this.damageReporterInput || '').trim() || (this.selectedDamageVehicle.driver || 'Driver UNS'),
+                        date: new Date().toISOString().substring(0, 10),
+                        isResolved: false
+                    };
+
+                    this.selectedDamageVehicle.damageNotes.unshift(noteObj);
+                    safeSetStorage('uns_vehicles', this.vehicles);
+                    this.syncVehicleToCloud(this.selectedDamageVehicle);
+                    this.syncToGoogleSheetsAuto();
+
+                    const notifDetails = `🚘 *Plat*: ${this.selectedDamageVehicle.plate} (${this.selectedDamageVehicle.model})\n👤 *Pelapor*: ${noteObj.reporter}\n⚠️ *Kerusakan*: ${noteObj.text}`;
+                    this.dispatchSystemNotification('CATATAN KERUSAKAN BARU DARI DRIVER', notifDetails);
+
+                    this.damageNoteInput = '';
+                    this.showToast('Catatan kerusakan berhasil disimpan ke Cloud!', 'success');
+                },
+
+                toggleResolveDamageNote(noteId) {
+                    if (!this.selectedDamageVehicle || !Array.isArray(this.selectedDamageVehicle.damageNotes)) return;
+                    const note = this.selectedDamageVehicle.damageNotes.find(n => n && n.id === noteId);
+                    if (note) {
+                        note.isResolved = !note.isResolved;
+                        safeSetStorage('uns_vehicles', this.vehicles);
+                        this.syncVehicleToCloud(this.selectedDamageVehicle);
+                        this.syncToGoogleSheetsAuto();
+                        this.showToast(`Status catatan diperbarui menjadi: ${note.isResolved ? 'Selesai' : 'Aktif'}`, 'success');
+                    }
+                },
+
+                deleteDamageNote(noteId) {
+                    if (!this.selectedDamageVehicle || !Array.isArray(this.selectedDamageVehicle.damageNotes)) return;
+                    this.selectedDamageVehicle.damageNotes = this.selectedDamageVehicle.damageNotes.filter(n => n && n.id !== noteId);
+                    safeSetStorage('uns_vehicles', this.vehicles);
+                    this.syncVehicleToCloud(this.selectedDamageVehicle);
+                    this.syncToGoogleSheetsAuto();
+                    this.showToast('Catatan kerusakan dihapus', 'success');
                 },
 
                 openUpdateKmModal(car) {
@@ -2726,17 +3062,19 @@
                         return;
                     }
                     let carToSync = null;
+                    const cleanPlate = this.vehicleForm.plate.toUpperCase().trim();
+
                     if (this.vehicleForm.id) {
                         const idx = this.vehicles.findIndex(v => v && v.id === this.vehicleForm.id);
                         if (idx !== -1) {
-                            this.vehicles[idx] = { ...this.vehicleForm };
+                            this.vehicles[idx] = { ...this.vehicleForm, plate: cleanPlate };
                             carToSync = this.vehicles[idx];
                         }
                     } else {
                         const newCar = {
                             ...this.vehicleForm,
-                            id: this.vehicleForm.plate.toUpperCase().trim(),
-                            plate: this.vehicleForm.plate.toUpperCase().trim(),
+                            id: cleanPlate,
+                            plate: cleanPlate,
                             lastServiceKm: 0,
                             lastServiceDate: ''
                         };
@@ -2764,11 +3102,12 @@
 
                 openNewServiceModal() {
                     this.editingLogId = null;
+                    const firstCar = this.vehicles.length ? this.vehicles[0] : null;
                     this.serviceForm = {
-                        vehicleId: this.vehicles.length ? this.vehicles[0].id : '',
+                        vehicleId: firstCar ? firstCar.id : '',
                         workshop: 'Nasmoco',
                         date: new Date().toISOString().substring(0, 10),
-                        km: this.vehicles.length ? (Number(this.vehicles[0].currentKm) || 0) : 0,
+                        km: firstCar ? (Number(firstCar.currentKm) || 0) : 0,
                         invoiceNo: 'INV-' + Math.floor(1000 + Math.random() * 9000),
                         isRoutine: true,
                         items: [{ name: 'Servis Berkala & Maintenance', cost: 0 }],
@@ -2849,6 +3188,17 @@
                         }
                         car.isUnderService = false;
                         
+                        // OTOMATIS SELESAIKAN SEMUA KELUHAN DRIVER SAAT INVOICE / NOTA SERVIS DITERBITKAN
+                        if (Array.isArray(car.damageNotes) && car.damageNotes.length > 0) {
+                            car.damageNotes.forEach(note => {
+                                if (note && !note.isResolved) {
+                                    note.isResolved = true;
+                                    note.resolvedDate = f.date;
+                                    note.resolvedInvoice = f.invoiceNo ? `Inv #${f.invoiceNo}` : 'Nota Servis';
+                                }
+                            });
+                        }
+
                         this.recalculateVehicleLastService(car);
 
                         safeSetStorage('uns_vehicles', this.vehicles);
@@ -3027,8 +3377,8 @@
                     try {
                         safeSetStorage('uns_vehicles', this.vehicles);
                         safeSetStorage('uns_logs', this.serviceLogs);
-                        this.vehicles.forEach(v => this.syncVehicleToCloud(v));
-                        this.serviceLogs.forEach(l => this.syncLogToCloud(l));
+                        this.vehicles.filter(Boolean).forEach(v => this.syncVehicleToCloud(v));
+                        this.serviceLogs.filter(Boolean).forEach(l => this.syncLogToCloud(l));
                         this.saveSettingsToCloud();
                         this.syncToGoogleSheetsAuto();
                         this.showToast('Semua data tersimpan di Local Storage & Cloud!', 'success');
@@ -3041,8 +3391,8 @@
                     try {
                         const localV = safeGetStorage('uns_vehicles', null);
                         const localL = safeGetStorage('uns_logs', null);
-                        if (localV) this.vehicles = localV;
-                        if (localL) this.serviceLogs = localL;
+                        if (localV) this.vehicles = localV.filter(Boolean);
+                        if (localL) this.serviceLogs = localL.filter(Boolean);
                         this.showToast('Data berhasil dimuat dari Local Storage browser!', 'success');
                     } catch (e) {
                         this.showToast('Gagal memuat data dari Local Storage.', 'error');
@@ -3091,12 +3441,12 @@
                                 throw new Error('Format file backup JSON tidak valid!');
                             }
                             if (Array.isArray(backup.vehicles)) {
-                                this.vehicles = backup.vehicles;
+                                this.vehicles = backup.vehicles.filter(Boolean);
                                 safeSetStorage('uns_vehicles', this.vehicles);
                                 this.vehicles.forEach(v => this.syncVehicleToCloud(v));
                             }
                             if (Array.isArray(backup.serviceLogs)) {
-                                this.serviceLogs = backup.serviceLogs;
+                                this.serviceLogs = backup.serviceLogs.filter(Boolean);
                                 safeSetStorage('uns_logs', this.serviceLogs);
                                 this.serviceLogs.forEach(l => this.syncLogToCloud(l));
                             }
