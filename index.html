@@ -1533,11 +1533,11 @@
                                     <i class="fa-brands fa-telegram text-sky-400 text-xl"></i>
                                     <div>
                                         <span class="font-bold text-slate-200 block">Telegram Bot Notification</span>
-                                        <span class="text-[10px] text-slate-400">Kirim notifikasi otomatis ke Grup / Chat Telegram Admin</span>
+                                        <span class="text-[10px] text-slate-400">Konfigurasi dapat dibaca semua perangkat; penyimpanan hanya Admin.</span>
                                     </div>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" v-model="enableTelegramNotification" class="sr-only peer">
+                                    <input type="checkbox" v-model="enableTelegramNotification" :disabled="!isAdmin" class="sr-only peer">
                                     <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
                                 </label>
                             </div>
@@ -1545,15 +1545,15 @@
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bot Token API</label>
                                     <div class="relative">
-                                        <input :type="showTgToken ? 'text' : 'password'" v-model="telegramBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 pr-10 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
-                                        <button type="button" @click="showTgToken = !showTgToken" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                                        <input :type="showTgToken ? 'text' : 'password'" v-model="telegramBotToken" :disabled="!isAdmin" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 pr-10 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
+                                        <button type="button" :disabled="!isAdmin" @click="showTgToken = !showTgToken" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
                                             <i :class="showTgToken ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
                                         </button>
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Chat ID / Group ID</label>
-                                    <input type="text" v-model="telegramChatId" placeholder="Contoh: -100123456789 atau 12345678" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
+                                    <input type="text" v-model="telegramChatId" :disabled="!isAdmin" placeholder="Contoh: -100123456789 atau 12345678" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:border-sky-500 focus:outline-none">
                                 </div>
                                 <div class="pt-1 flex justify-end">
                                     <button type="button" @click="testTelegramNotif" class="px-3 py-1.5 bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-800 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
@@ -1562,6 +1562,10 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                        <div class="px-3.5 pb-3 text-[10px] text-slate-500">
+                            <span v-if="isAdmin">Mode Admin: Anda dapat mengubah dan menyimpan Bot Token/Chat ID.</span>
+                            <span v-else>Mode perangkat: konfigurasi Telegram hanya dibaca dari Cloud dan tidak dapat disimpan.</span>
                         </div>
 
                         <!-- WHATSAPP CONFIG -->
@@ -1605,7 +1609,7 @@
 
                         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
                             <button type="button" @click="activeNotifModal = false" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                            <button type="button" @click="saveNotifSettings" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow flex items-center gap-1.5">
+                            <button v-if="isAdmin" type="button" @click="saveNotifSettings" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow flex items-center gap-1.5">
                                 <i class="fa-solid fa-cloud"></i>
                                 <span>Simpan ke Cloud</span>
                             </button>
@@ -1640,6 +1644,10 @@
                             <div class="flex justify-between">
                                 <span class="text-slate-400">User UID:</span>
                                 <span class="font-mono text-slate-300">{{ firebaseUserId || 'Anonim' }}</span>
+                            </div>
+                            <div v-if="firebaseAuthErrorCode || cloudErrorMessage" class="mt-2 pt-2 border-t border-slate-800">
+                                <div class="text-rose-400 font-bold text-[11px]">Diagnostik: {{ firebaseAuthErrorCode || 'RTDB' }}</div>
+                                <div class="text-slate-400 text-[10px] mt-1 break-words">{{ cloudErrorMessage || firebaseAuthErrorMessage }}</div>
                             </div>
                         </div>
                         <p class="text-[11px] text-slate-400">Data kendaraan, log servis, serta pengaturan Telegram Bot & WhatsApp secara otomatis tersinkronisasi di Firebase Cloud ke semua perangkat pengelola.</p>
@@ -1796,7 +1804,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
-            getAuth, 
+            getAuth,
+            initializeAuth,
+            inMemoryPersistence,
             signInWithEmailAndPassword, 
             signInAnonymously,
             signOut, 
@@ -1804,7 +1814,7 @@
             sendPasswordResetEmail, 
             updatePassword 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, set, remove, onValue, onChildAdded, onChildChanged, onChildRemoved, update } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
         import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.esm-browser.prod.js";
 
         function safeGetRawStorage(key, fallback = '') {
@@ -1834,33 +1844,28 @@
             }
         }
 
-        const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'uns-fleet-service';
-        const appId = String(rawAppId).replace(/[\/\.\#\$\[\]]/g, '_');
+        // Konfigurasi DIKUNCI ke project fleet baru.
+        // Jangan mengambil __app_id / __firebase_config dari launcher atau host lain,
+        // karena file HTML hasil download harus selalu menunjuk ke uns-fleet-service.
+        const appId = 'uns-fleet-service';
+    const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycby_yqy5-1xKhExGRx2tkMu2xQRg0FY21EPupZtn753otG02XIntdsf7xTf4-Qr73IC17Q/exec';
 
-        let rawFirebaseConfig = {
-            apiKey: "AIzaSyDKnUCUnDoPnhX9sW4QPJ6v4nQ2ZyMYo1k",
-            authDomain: "uns-fleet-management.firebaseapp.com",
-            databaseURL: "https://uns-fleet-management-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "uns-fleet-management",
-            storageBucket: "uns-fleet-management.firebasestorage.app",
-            messagingSenderId: "962442933742",
-            appId: "1:962442933742:web:b71d585ad4b13d8fb7caff",
-            measurementId: "G-YDT2FCDM9M"
+        const rawFirebaseConfig = {
+            apiKey: "AIzaSyAi0Ucng_tl7jSC9gZtr0JItCBUtkt-vvU",
+            authDomain: "uns-fleet-service.firebaseapp.com",
+            databaseURL: "https://uns-fleet-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "uns-fleet-service",
+            storageBucket: "uns-fleet-service.firebasestorage.app",
+            messagingSenderId: "881806830475",
+            appId: "1:881806830475:web:8dcf991ec95ae93b625d8e",
+            measurementId: "G-REWR64QLNH"
         };
-
-        if (typeof __firebase_config !== 'undefined') {
-            try {
-                rawFirebaseConfig = typeof __firebase_config === 'string' ? (__firebase_config.trim() ? JSON.parse(__firebase_config) : rawFirebaseConfig) : __firebase_config;
-            } catch(e) {
-                console.warn("Gagal parse __firebase_config, memakai fallback.");
-            }
-        }
 
         let app, db, auth;
         try {
             app = initializeApp(rawFirebaseConfig);
             db = getDatabase(app);
-            auth = getAuth(app);
+            auth = initializeAuth(app, { persistence: inMemoryPersistence });
         } catch (e) {
             console.error("Firebase setup error:", e);
         }
@@ -1940,9 +1945,16 @@
 
                     cloudStatus: 'loading',
                     cloudErrorMessage: '',
+                    firebaseAuthResolved: false,
+                    firebaseAuthTimer: null,
                     firebaseAppId: appId,
                     firebaseUserId: '',
+                    firebaseAuthProvider: '',
+                    firebaseAuthErrorCode: '',
+                    firebaseAuthErrorMessage: '',
                     currentUser: null,
+                    _realtimeListenersAttached: false,
+                    _settingsUnsub: null,
 
                     toast: { show: false, message: '', type: 'success' },
 
@@ -1974,15 +1986,14 @@
                     ],
 
                     vehicles: (safeGetStorage('uns_vehicles', []) || []).filter(Boolean),
+                    drivers: [],
                     serviceLogs: (safeGetStorage('uns_logs', []) || []).filter(Boolean)
                 };
             },
 
             created() {
                 try {
-                    if (!Array.isArray(this.vehicles) || !this.vehicles.length) {
-                        this.loadSampleData();
-                    }
+                    // Firebase adalah source-of-truth. LocalStorage hanya cache/offline fallback.
                     this.normalizeDamageNotesAll();
                     this.initFirebase();
                 } catch (e) {
@@ -2261,34 +2272,112 @@
 
             methods: {
                 initFirebase() {
-                    if (!auth || !db) { this.cloudStatus = 'error'; return; }
+                    if (!auth || !db) {
+                        this.cloudStatus = 'error';
+                        this.cloudErrorMessage = 'Firebase tidak dapat diinisialisasi.';
+                        return;
+                    }
                     try {
+                        // Tunggu Auth selesai sebelum memasang listener RTDB. Ini penting
+                        // untuk file HTML yang dibuka langsung dari Download, karena listener
+                        // yang dipasang sebelum anonymous sign-in dapat lebih dulu menerima
+                        // permission-denied lalu terlihat seperti aplikasi offline.
+                        if (this.firebaseAuthTimer) clearTimeout(this.firebaseAuthTimer);
+                        this.firebaseAuthResolved = false;
+                        this.firebaseAuthErrorCode = '';
+                        this.firebaseAuthErrorMessage = '';
+                        this._realtimeListenersAttached = false;
+                        this.firebaseAuthTimer = setTimeout(() => {
+                            if (!this.firebaseAuthResolved) {
+                                this.cloudStatus = 'error';
+                                this.firebaseAuthErrorCode = 'auth/timeout';
+                                this.firebaseAuthErrorMessage = 'onAuthStateChanged tidak menyelesaikan autentikasi dalam 15 detik.';
+                                this.cloudErrorMessage = 'Firebase Auth timeout. Periksa internet, Anonymous Authentication, dan akses browser untuk file HTML ini.';
+                            }
+                        }, 15000);
+
                         onAuthStateChanged(auth, (user) => {
+                            this.firebaseAuthResolved = true;
+                            if (this.firebaseAuthTimer) {
+                                clearTimeout(this.firebaseAuthTimer);
+                                this.firebaseAuthTimer = null;
+                            }
+
                             if (user) {
                                 this.currentUser = user;
                                 this.firebaseUserId = user.uid;
+                                this.firebaseAuthProvider = user.isAnonymous ? 'anonymous' : (user.providerData?.[0]?.providerId || 'password');
+                                this.firebaseAuthErrorCode = '';
+                                this.firebaseAuthErrorMessage = '';
                                 this.isAdmin = !user.isAnonymous;
                                 this.cloudStatus = 'connected';
-                            } else {
-                                signInAnonymously(auth).then((cred) => {
-                                    this.currentUser = cred.user;
-                                    this.firebaseUserId = cred.user.uid;
-                                    this.isAdmin = false;
-                                    this.cloudStatus = 'connected';
-                                }).catch((err) => {
-                                    console.warn("Anonymous Auth fallback error:", err);
-                                    this.currentUser = null;
-                                    this.firebaseUserId = 'Public';
-                                    this.isAdmin = false;
-                                    this.cloudStatus = 'connected';
-                                });
+                                this.cloudErrorMessage = '';
+                                this.setupRealtimeListeners();
+                                if (this.isAdmin && typeof this._attachAdminSettingsListener === 'function') {
+                                    this._attachAdminSettingsListener();
+                                }
+                                return;
                             }
+
+                            signInAnonymously(auth).then((cred) => {
+                                this.currentUser = cred.user;
+                                this.firebaseUserId = cred.user.uid;
+                                this.firebaseAuthProvider = 'anonymous';
+                                this.firebaseAuthErrorCode = '';
+                                this.firebaseAuthErrorMessage = '';
+                                this.isAdmin = false;
+                                this.cloudStatus = 'connected';
+                                this.cloudErrorMessage = '';
+                                this.setupRealtimeListeners();
+                            }).catch((err) => {
+                                console.warn('Anonymous Auth fallback error:', err);
+                                this.currentUser = null;
+                                this.firebaseUserId = '';
+                                this.firebaseAuthProvider = '';
+                                this.firebaseAuthErrorCode = String(err?.code || 'unknown');
+                                this.firebaseAuthErrorMessage = String(err?.message || '');
+                                this.isAdmin = false;
+                                this.cloudStatus = 'error';
+                                this.cloudErrorMessage = this.explainFirebaseError(err, 'Login anonim Firebase gagal.');
+                            });
+                        }, (err) => {
+                            console.warn('Firebase Auth state error:', err);
+                            this.firebaseAuthResolved = true;
+                            if (this.firebaseAuthTimer) {
+                                clearTimeout(this.firebaseAuthTimer);
+                                this.firebaseAuthTimer = null;
+                            }
+                            this.cloudStatus = 'error';
+                            this.firebaseAuthErrorCode = String(err?.code || 'unknown');
+                            this.firebaseAuthErrorMessage = String(err?.message || '');
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Firebase Auth gagal.');
                         });
-                        this.setupRealtimeListeners();
                     } catch (e) {
-                        console.warn("Firebase initialization error:", e);
+                        console.warn('Firebase initialization error:', e);
                         this.cloudStatus = 'error';
+                        this.cloudErrorMessage = this.explainFirebaseError(e, 'Firebase gagal diinisialisasi.');
                     }
+                },
+
+                explainFirebaseError(err, fallback = 'Koneksi Firebase gagal.') {
+                    const code = String(err?.code || '');
+                    const msg = String(err?.message || '');
+                    if (code.includes('permission-denied') || /permission[_ -]?denied/i.test(msg)) {
+                        return 'Akses Firebase ditolak oleh Rules. Data publik belum diizinkan untuk aplikasi AutomAn.';
+                    }
+                    if (code.includes('auth/operation-not-allowed')) {
+                        return 'Anonymous Authentication belum diaktifkan di Firebase Authentication.';
+                    }
+                    if (code.includes('auth/unauthorized-domain')) {
+                        return 'Domain/asal halaman ini ditolak Firebase Authentication. Untuk file Download, browser dapat membatasi konteks lokal. Cek Authorized domains atau gunakan file ini dari browser yang mengizinkan Firebase Auth.';
+                    }
+                    if (code.includes('auth/configuration-not-found')) {
+                        return 'Konfigurasi Firebase Authentication untuk project uns-fleet-service belum tersedia.';
+                    }
+                    if (code.includes('auth/network-request-failed')) {
+                        return 'Jaringan gagal menghubungi Firebase Authentication.';
+                    }
+                    return fallback + (msg ? ` (${msg})` : '');
                 },
 
                 showToast(message, type = 'success') {
@@ -2325,8 +2414,16 @@
                     safeSetStorage('uns_auto_sync_sheets', settingsObj.autoSyncSheets);
 
                     if (db && this.isAdmin) {
-                        set(ref(db, `artifacts/${appId}/public/settings`), settingsObj).catch(e => {
-                            console.warn('Gagal menyimpan settings ke Firebase:', e);
+                        Promise.all([
+                            update(ref(db, `artifacts/${appId}/public/data_v2/settings`), settingsObj),
+                            update(ref(db, `artifacts/${appId}/public/data_v2/telegramConfig`), {
+                                botToken: settingsObj.telegramBotToken,
+                                chatId: settingsObj.telegramChatId,
+                                enabled: settingsObj.enableTelegramNotification,
+                                updatedAt: new Date().toISOString()
+                            })
+                        ]).catch(e => {
+                            console.warn('Gagal menyimpan settings Telegram/Firebase:', e);
                         });
                     }
                 },
@@ -2361,6 +2458,10 @@
 
                 async logoutAdmin() {
                     try {
+                        if (typeof this._settingsUnsub === 'function') {
+                            try { this._settingsUnsub(); } catch (e) {}
+                            this._settingsUnsub = null;
+                        }
                         await signOut(auth);
                         this.isAdmin = false;
                         this.currentTab = 'dashboard';
@@ -2411,12 +2512,176 @@
                 },
 
                 setupRealtimeListeners() {
-                    if (!db) return;
+                    if (!db || !this.currentUser) return;
+                    if (this._realtimeListenersAttached) return;
+                    this._realtimeListenersAttached = true;
 
                     try {
-                        onValue(ref(db, `artifacts/${appId}/public/settings`), snap => {
-                            const cloudSettings = snap.val();
-                            if (cloudSettings) {
+                        const vehiclesRef = ref(db, `artifacts/${appId}/public/data_v2/vehicles`);
+                        const logsRef = ref(db, `artifacts/${appId}/public/data_v2/logs`);
+                        const settingsRef = ref(db, `artifacts/${appId}/public/data_v2/settings`);
+                        const driversRef = ref(db, `artifacts/${appId}/public/data_v2/drivers`);
+                        const telegramConfigRef = ref(db, `artifacts/${appId}/public/data_v2/telegramConfig`);
+                        const connectedRef = ref(db, '.info/connected');
+
+                        // Pantau koneksi saja. Jangan menghapus cache lokal hanya karena
+                        // .info/connected=true: status online tidak berarti Rules mengizinkan
+                        // pembacaan /vehicles dan /logs. Cache dibersihkan setelah listener
+                        // berhasil menerima data Firebase.
+                        let vehicleCloudSynced = false;
+                        let logCloudSynced = false;
+                        onValue(connectedRef, snap => {
+                            if (snap.val() === true && this.cloudStatus !== 'error') {
+                                this.cloudStatus = 'connected';
+                                this.cloudErrorMessage = '';
+                            }
+                        }, err => {
+                            console.warn('RTDB connection monitor warning:', err);
+                        });
+
+                        // Armada: incremental child listeners agar perubahan 1 kendaraan
+                        // tidak mengunduh ulang seluruh koleksi.
+                        const upsertDriver = (key, val) => {
+                            if (!val || typeof val !== 'object') return;
+                            const normalized = { ...val, id: val.id || key, _fbKey: key };
+                            const idx = (this.drivers || []).findIndex(d => d && (d.id === normalized.id || d._fbKey === key));
+                            if (idx >= 0) this.drivers.splice(idx, 1, normalized);
+                            else this.drivers.push(normalized);
+                            this.drivers.sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''), 'id'));
+                        };
+                        onChildAdded(driversRef, snap => upsertDriver(snap.key, snap.val()));
+                        onChildChanged(driversRef, snap => upsertDriver(snap.key, snap.val()));
+                        onChildRemoved(driversRef, snap => { this.drivers = (this.drivers || []).filter(d => d && d._fbKey !== snap.key && d.id !== snap.key); });
+
+                        const upsertVehicle = (key, val) => {
+                            if (!val || typeof val !== 'object') return;
+                            const normalized = {
+                                ...val,
+                                id: val.id || key,
+                                _fbKey: key,
+                                damageNotes: Array.isArray(val.damageNotes)
+                                    ? val.damageNotes
+                                    : (val.damageNotes ? Object.values(val.damageNotes).filter(Boolean) : [])
+                            };
+                            const idx = (this.vehicles || []).findIndex(v =>
+                                v && (v.id === normalized.id || v._fbKey === key)
+                            );
+                            if (idx >= 0) this.vehicles.splice(idx, 1, normalized);
+                            else this.vehicles.push(normalized);
+                            safeSetStorage('uns_vehicles', this.vehicles);
+                        };
+
+                        const removeVehicle = (key) => {
+                            this.vehicles = (this.vehicles || []).filter(v =>
+                                v && v._fbKey !== key && v.id !== key
+                            );
+                            safeSetStorage('uns_vehicles', this.vehicles);
+                        };
+
+                        onChildAdded(vehiclesRef, snap => {
+                            if (!vehicleCloudSynced) {
+                                vehicleCloudSynced = true;
+                                this.vehicles = [];
+                            }
+                            this.cloudStatus = 'connected';
+                            this.cloudErrorMessage = '';
+                            upsertVehicle(snap.key, snap.val());
+                        }, err => {
+                            console.warn('RTDB vehicles listener warning:', err);
+                            this.cloudStatus = 'error';
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal membaca data armada dari Firebase.');
+                        });
+
+                        onChildChanged(vehiclesRef, snap => {
+                            this.cloudStatus = 'connected';
+                            this.cloudErrorMessage = '';
+                            upsertVehicle(snap.key, snap.val());
+                        }, err => {
+                            console.warn('RTDB vehicles change warning:', err);
+                            this.cloudStatus = 'error';
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau perubahan armada.');
+                        });
+
+                        onChildRemoved(vehiclesRef, snap => {
+                            this.cloudStatus = 'connected';
+                            this.cloudErrorMessage = '';
+                            removeVehicle(snap.key);
+                        }, err => {
+                            console.warn('RTDB vehicles remove warning:', err);
+                            this.cloudStatus = 'error';
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau penghapusan armada.');
+                        });
+
+                        // Log servis: incremental juga.
+                        const upsertLog = (key, val) => {
+                            if (!val || typeof val !== 'object') return;
+                            const normalized = { ...val, id: val.id || key, _fbKey: key };
+                            const idx = (this.serviceLogs || []).findIndex(l =>
+                                l && (l.id === normalized.id || l._fbKey === key)
+                            );
+                            if (idx >= 0) this.serviceLogs.splice(idx, 1, normalized);
+                            else this.serviceLogs.push(normalized);
+                            safeSetStorage('uns_logs', this.serviceLogs);
+                        };
+
+                        const removeLog = (key) => {
+                            this.serviceLogs = (this.serviceLogs || []).filter(l =>
+                                l && l._fbKey !== key && l.id !== key
+                            );
+                            safeSetStorage('uns_logs', this.serviceLogs);
+                        };
+
+                        onChildAdded(logsRef, snap => {
+                            if (!logCloudSynced) {
+                                logCloudSynced = true;
+                                this.serviceLogs = [];
+                            }
+                            this.cloudStatus = 'connected';
+                            this.cloudErrorMessage = '';
+                            upsertLog(snap.key, snap.val());
+                        }, err => {
+                            console.warn('RTDB logs listener warning:', err);
+                            this.cloudStatus = 'error';
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal membaca log servis dari Firebase.');
+                        });
+
+                        onChildChanged(logsRef, snap => {
+                            this.cloudStatus = 'connected';
+                            this.cloudErrorMessage = '';
+                            upsertLog(snap.key, snap.val());
+                        }, err => {
+                            console.warn('RTDB logs change warning:', err);
+                            this.cloudStatus = 'error';
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau perubahan log servis.');
+                        });
+
+                        onChildRemoved(logsRef, snap => {
+                            this.cloudStatus = 'connected';
+                            this.cloudErrorMessage = '';
+                            removeLog(snap.key);
+                        }, err => {
+                            console.warn('RTDB logs remove warning:', err);
+                            this.cloudStatus = 'error';
+                            this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau penghapusan log servis.');
+                        });
+
+                        // Konfigurasi Telegram sengaja dibaca semua perangkat internal.
+                        // Tombol simpan tetap dibatasi Admin. Ini memudahkan semua perangkat
+                        // mengirim notifikasi tanpa harus login Admin.
+                        onValue(telegramConfigRef, snap => {
+                            const cfg = snap.val();
+                            if (!cfg) return;
+                            if (cfg.botToken !== undefined) this.telegramBotToken = String(cfg.botToken || '');
+                            if (cfg.chatId !== undefined) this.telegramChatId = String(cfg.chatId || '');
+                            if (cfg.enabled !== undefined) this.enableTelegramNotification = Boolean(cfg.enabled);
+                        }, err => console.warn("RTDB public Telegram config warning:", err));
+
+                        const attachAdminSettingsListener = () => {
+                            if (!this.isAdmin) return;
+                            if (typeof this._settingsUnsub === 'function') return;
+                            this._settingsUnsub = onValue(settingsRef, snap => {
+                                const cloudSettings = snap.val();
+                                if (!cloudSettings) return;
                                 if (cloudSettings.geminiApiKey !== undefined) this.geminiApiKey = cloudSettings.geminiApiKey;
                                 if (cloudSettings.waNumber !== undefined) this.waNumber = cloudSettings.waNumber;
                                 if (cloudSettings.waGatewayUrl !== undefined) this.waGatewayUrl = cloudSettings.waGatewayUrl;
@@ -2426,34 +2691,15 @@
                                 if (cloudSettings.enableTelegramNotification !== undefined) this.enableTelegramNotification = cloudSettings.enableTelegramNotification;
                                 if (cloudSettings.sheetsWebhookUrl !== undefined) this.sheetsWebhookUrl = cloudSettings.sheetsWebhookUrl;
                                 if (cloudSettings.autoSyncSheets !== undefined) this.autoSyncSheets = cloudSettings.autoSyncSheets;
-                            }
-                        }, (err) => console.warn("RTDB settings listener warning:", err));
+                            }, err => console.warn("RTDB admin settings warning:", err));
+                        };
 
-                        onValue(ref(db, `artifacts/${appId}/public/data/vehicles`), snap => {
-                            this.cloudStatus = 'connected';
-                            const data = snap.val();
-                            if (data) {
-                                const list = Array.isArray(data) ? data : Object.values(data);
-                                this.vehicles = list.filter(Boolean).map(v => {
-                                    if (v.damageNotes && !Array.isArray(v.damageNotes)) {
-                                        v.damageNotes = Object.values(v.damageNotes).filter(Boolean);
-                                    } else if (!v.damageNotes) {
-                                        v.damageNotes = [];
-                                    }
-                                    return v;
-                                });
-                                safeSetStorage('uns_vehicles', this.vehicles);
-                            }
-                        }, (err) => console.warn("RTDB vehicles listener warning:", err));
+                        // Jalankan setelah auth state sudah tersedia.
+                        if (this.isAdmin) attachAdminSettingsListener();
 
-                        onValue(ref(db, `artifacts/${appId}/public/data/logs`), snap => {
-                            const data = snap.val();
-                            if (data) {
-                                const list = Array.isArray(data) ? data : Object.values(data);
-                                this.serviceLogs = list.filter(Boolean);
-                                safeSetStorage('uns_logs', this.serviceLogs);
-                            }
-                        }, (err) => console.warn("RTDB logs listener warning:", err));
+                        // Simpan helper agar auth callback dapat memasang listener
+                        // setelah admin login tanpa membuat listener kendaraan/log baru.
+                        this._attachAdminSettingsListener = attachAdminSettingsListener;
                     } catch (e) {
                         console.warn("Setup realtime listeners error:", e);
                     }
@@ -2464,13 +2710,13 @@
                 },
 
                 async syncVehicleToCloud(car) {
-                    if (!db || !car || !car.id) return;
+                    if (!db || !car || !car.id) return false;
                     try {
                         const targetKey = this.cleanFirebaseKey(car.id);
                         if (this.isAdmin) {
-                            await set(ref(db, `artifacts/${appId}/public/data/vehicles/${targetKey}`), car);
+                            await set(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`), car);
                         } else {
-                            await update(ref(db, `artifacts/${appId}/public/data/vehicles/${targetKey}`), {
+                            await update(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`), {
                                 currentKm: Number(car.currentKm) || 0,
                                 isUnderService: Boolean(car.isUnderService),
                                 targetWorkshop: car.targetWorkshop || '',
@@ -2479,8 +2725,10 @@
                                 damageNotes: Array.isArray(car.damageNotes) ? car.damageNotes : []
                             });
                         }
+                        return true;
                     } catch(e) {
                         console.warn("Gagal menyinkronkan armada ke cloud:", e);
+                        return false;
                     }
                 },
 
@@ -2488,23 +2736,27 @@
                     if (!db || !carId) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(carId);
-                        await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${targetKey}`));
+                        await remove(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`));
                     } catch(e) {}
                 },
 
                 async syncLogToCloud(log) {
-                    if (!db || !log || !log.id) return;
+                    if (!db || !log || !log.id) return false;
                     try {
                         const targetKey = this.cleanFirebaseKey(log.id);
-                        await set(ref(db, `artifacts/${appId}/public/data/logs/${targetKey}`), log);
-                    } catch(e) {}
+                        await set(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`), log);
+                        return true;
+                    } catch(e) {
+                        console.warn('Gagal menyinkronkan log ke cloud:', e);
+                        return false;
+                    }
                 },
 
                 async removeLogFromCloud(logId) {
                     if (!db || !logId) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(logId);
-                        await remove(ref(db, `artifacts/${appId}/public/data/logs/${targetKey}`));
+                        await remove(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`));
                     } catch(e) {}
                 },
 
@@ -2596,7 +2848,7 @@
                     safeSetStorage('uns_logs', this.serviceLogs);
                     this.vehicles.forEach(v => this.syncVehicleToCloud(v));
                     this.serviceLogs.forEach(l => this.syncLogToCloud(l));
-                    this.showToast('Data uji coba dimuat!', 'success');
+                    this.showToast('Data uji coba dimuat secara manual. Data ini tidak lagi dimuat otomatis saat aplikasi dibuka.', 'success');
                 },
 
                 getComponentWear(car, compKey) {
@@ -2806,7 +3058,7 @@
                     this.activeDamageNotesModal = true;
                 },
 
-                addDamageNote() {
+                async addDamageNote() {
                     if (!this.selectedDamageVehicle || !this.damageNoteInput.trim()) {
                         this.showToast('Isi uraian kendala kerusakan terlebih dahulu!', 'error');
                         return;
@@ -2826,11 +3078,15 @@
 
                     this.selectedDamageVehicle.damageNotes.unshift(noteObj);
                     safeSetStorage('uns_vehicles', this.vehicles);
-                    this.syncVehicleToCloud(this.selectedDamageVehicle);
+                    const cloudSaved = await this.syncVehicleToCloud(this.selectedDamageVehicle);
                     this.syncToGoogleSheetsAuto();
 
                     const notifDetails = `🚘 *Plat*: ${this.selectedDamageVehicle.plate} (${this.selectedDamageVehicle.model})\n👤 *Pelapor*: ${noteObj.reporter}\n⚠️ *Kerusakan*: ${noteObj.text}`;
-                    this.dispatchSystemNotification('CATATAN KERUSAKAN BARU DARI DRIVER', notifDetails);
+                    if (cloudSaved) {
+                        await this.dispatchSystemNotification('CATATAN KERUSAKAN BARU DARI DRIVER', notifDetails);
+                    } else {
+                        this.showToast('Keluhan tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+                    }
 
                     this.damageNoteInput = '';
                     this.showToast('Catatan kerusakan berhasil disimpan ke Cloud!', 'success');
@@ -2879,7 +3135,7 @@
                     this.updateKmForm.newKm = (Number(this.updateKmForm.newKm) || 0) + amount;
                 },
 
-                saveUpdateKm() {
+                async saveUpdateKm() {
                     if (!this.updateKmForm.vehicleId) {
                         this.showToast('Pilih armada terlebih dahulu!', 'error');
                         return;
@@ -2894,27 +3150,20 @@
                         const oldKmVal = Number(car.currentKm) || 0;
                         car.currentKm = newKmVal;
                         safeSetStorage('uns_vehicles', this.vehicles);
-                        this.syncVehicleToCloud(car);
+                        const cloudSaved = await this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
 
                         const notifDetails = `🚘 *Plat*: ${car.plate} (${car.model})\n👤 *Sopir*: ${car.driver || 'Sopir UNS'}\n📍 *Odometer Lama*: ${oldKmVal.toLocaleString('id-ID')} KM\n📈 *Odometer Baru*: ${newKmVal.toLocaleString('id-ID')} KM`;
-                        this.dispatchSystemNotification('UPDATE ODOMETER KENDARAAN', notifDetails);
+                        if (cloudSaved) {
+                            await this.dispatchSystemNotification('UPDATE ODOMETER KENDARAAN', notifDetails);
+                        } else {
+                            this.showToast('Odometer tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+                        }
 
                         this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
                         this.activeUpdateKmModal = false;
                     } else {
                         this.showToast('Data armada tidak ditemukan!', 'error');
-                    }
-                },
-
-                onInServiceVehicleChange() {
-                    const car = (this.vehicles || []).find(v => v && (v.id === this.inServiceForm.vehicleId || v.plate === this.inServiceForm.vehicleId));
-                    if (car) {
-                        this.inServiceForm.km = Number(car.currentKm) || 0;
-                        const carLogs = this.getVehicleLogs(car.id);
-                        if (carLogs && carLogs.length > 0 && carLogs[0].workshop) {
-                            this.inServiceForm.workshop = carLogs[0].workshop;
-                        }
                     }
                 },
 
@@ -2932,11 +3181,15 @@
                         car.inServiceNotes = f.notes;
                         if (Number(f.km) > (Number(car.currentKm) || 0)) car.currentKm = Number(f.km);
                         safeSetStorage('uns_vehicles', this.vehicles);
-                        this.syncVehicleToCloud(car);
+                        const cloudSaved = await this.syncVehicleToCloud(car);
                         this.syncToGoogleSheetsAuto();
 
                         const notifDetails = `🚘 *Plat*: ${car.plate} (${car.model})\n👤 *Sopir*: ${car.driver || 'Sopir UNS'}\n🏬 *Bengkel*: ${f.workshop}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM\n📝 *Keluhan*: ${f.notes}`;
-                        this.dispatchSystemNotification('PENGAJUAN SERVIS BARU', notifDetails);
+                        if (cloudSaved) {
+                            await this.dispatchSystemNotification('PENGAJUAN SERVIS BARU', notifDetails);
+                        } else {
+                            this.showToast('Pengajuan tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+                        }
 
                         this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
                         this.activeInServiceModal = false;
@@ -2946,8 +3199,8 @@
                 async dispatchSystemNotification(eventTitle, detailText) {
                     const fullText = `🚗 *AUTOMAN UNS NOTIFICATION*\n\n📌 *${eventTitle}*\n${detailText}\n\n⏱️ _${new Date().toLocaleString('id-ID')}_`;
 
-                    if (this.enableTelegramNotification && this.telegramBotToken && this.telegramChatId) {
-                        this.sendTelegramMessage(fullText);
+                    if (this.enableTelegramNotification) {
+                        await this.sendTelegramMessage(fullText);
                     }
 
                     if (this.enableWaNotification && (this.waGatewayUrl || this.waNumber)) {
@@ -2956,21 +3209,54 @@
                 },
 
                 async sendTelegramMessage(text) {
-                    if (!this.telegramBotToken || !this.telegramChatId) return false;
+                    const botToken = String(this.telegramBotToken || '').trim();
+                    const chatId = String(this.telegramChatId || '').trim();
+                    const message = String(text || '').trim();
+                    if (!botToken || !chatId) {
+                        this.showToast('Telegram belum dikonfigurasi. Simpan Bot Token & Chat ID dari Admin.', 'error');
+                        return false;
+                    }
+                    if (!message) return false;
+
                     try {
-                        const url = `https://api.telegram.org/bot${this.telegramBotToken.trim()}/sendMessage`;
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: this.telegramChatId.trim(),
-                                text: text,
-                                parse_mode: 'Markdown'
-                            })
-                        });
-                        return res.ok;
+                        // Pengiriman langsung memakai HTML form POST.
+                        // Cara ini tidak membutuhkan CORS dan tetap bekerja saat
+                        // Automan dibuka sebagai file HTML lokal (content:// / file://).
+                        const frameName = 'telegram_send_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+                        const iframe = document.createElement('iframe');
+                        iframe.name = frameName;
+                        iframe.style.display = 'none';
+                        document.body.appendChild(iframe);
+
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = 'https://api.telegram.org/bot' + encodeURIComponent(botToken) + '/sendMessage';
+                        form.target = frameName;
+                        form.style.display = 'none';
+
+                        const addField = (name, value) => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name;
+                            input.value = value;
+                            form.appendChild(input);
+                        };
+                        addField('chat_id', chatId);
+                        addField('text', message.replace(/\*/g, ''));
+                        addField('disable_web_page_preview', 'true');
+
+                        document.body.appendChild(form);
+                        form.submit();
+
+                        setTimeout(() => {
+                            try { form.remove(); } catch (_) {}
+                            try { iframe.remove(); } catch (_) {}
+                        }, 8000);
+
+                        return true;
                     } catch (e) {
-                        console.warn('Gagal mengirim Telegram notif:', e);
+                        console.warn('Gagal mengirim Telegram langsung:', e);
+                        this.showToast('Telegram gagal dikirim: ' + (e.message || 'Network error'), 'error');
                         return false;
                     }
                 },
@@ -2996,8 +3282,8 @@
                 },
 
                 async testTelegramNotif() {
-                    if (!this.telegramBotToken || !this.telegramChatId) {
-                        this.showToast('Token Bot & Chat ID Telegram wajib diisi!', 'error');
+                    if (!this.enableTelegramNotification) {
+                        this.showToast('Notifikasi Telegram sedang OFF.', 'error');
                         return;
                     }
                     this.showToast('Mengirim tes pesan Telegram...', 'success');
@@ -3153,7 +3439,7 @@
                     return (this.serviceForm.items || []).reduce((sum, i) => sum + (Number(i.cost) || 0), 0);
                 },
 
-                saveServiceLog() {
+                async saveServiceLog() {
                     const f = this.serviceForm;
                     if (!f.vehicleId || !f.workshop || !f.date) {
                         this.showToast('Lengkapi data kendaraan, bengkel, dan tanggal!', 'error');
@@ -3188,32 +3474,29 @@
                         }
                         car.isUnderService = false;
                         
-                        // OTOMATIS SELESAIKAN SEMUA KELUHAN DRIVER SAAT INVOICE / NOTA SERVIS DITERBITKAN
-                        if (Array.isArray(car.damageNotes) && car.damageNotes.length > 0) {
-                            car.damageNotes.forEach(note => {
-                                if (note && !note.isResolved) {
-                                    note.isResolved = true;
-                                    note.resolvedDate = f.date;
-                                    note.resolvedInvoice = f.invoiceNo ? `Inv #${f.invoiceNo}` : 'Nota Servis';
-                                }
-                            });
-                        }
+                        // Keluhan driver tidak otomatis ditandai selesai hanya karena nota servis dibuat.
+                        // Admin/driver harus menandai keluhan yang benar-benar sudah diperbaiki.
 
                         this.recalculateVehicleLastService(car);
 
                         safeSetStorage('uns_vehicles', this.vehicles);
-                        this.syncVehicleToCloud(car);
                     }
 
+                    let vehicleSaved = !car;
+                    if (car) vehicleSaved = await this.syncVehicleToCloud(car);
+
                     safeSetStorage('uns_logs', this.serviceLogs);
+                    let logSaved = true;
                     if (savedLogObj) {
-                        this.syncLogToCloud(savedLogObj);
+                        logSaved = await this.syncLogToCloud(savedLogObj);
                     }
                     this.syncToGoogleSheetsAuto();
 
-                    if (car) {
+                    if (car && savedLogObj && vehicleSaved && logSaved) {
                         const notifText = `🚘 *Plat*: ${car.plate}\n🏢 *Bengkel*: ${f.workshop}\n🧾 *No Invoice*: ${f.invoiceNo || '-'}\n💰 *Total Biaya*: Rp ${totalCost.toLocaleString('id-ID')}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM`;
-                        this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
+                        await this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
+                    } else if (savedLogObj && (!vehicleSaved || !logSaved)) {
+                        this.showToast('Nota tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
                     }
 
                     this.activeNewServiceModal = false;
