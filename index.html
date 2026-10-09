@@ -995,7 +995,7 @@
                             <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                                 <div v-for="item in getInServiceActiveNotes()" :key="item.id" class="p-2 bg-slate-950/90 border border-amber-900/60 rounded-lg text-[11px] flex items-start justify-between gap-2">
                                     <div class="space-y-0.5">
-                                        <p class="text-slate-200 font-semibold leading-snug">{{ item.text }}</p>
+                                        <p class="text-slate-200 font-semibold leading-snug">{{ getDamageNoteText(item) }}</p>
                                         <p class="text-[10px] text-slate-400 font-mono">
                                             <i class="fa-regular fa-user mr-1 text-slate-500"></i>{{ item.reporter || 'Driver' }} • {{ formatDateWib(item.date) }}
                                         </p>
@@ -1297,12 +1297,12 @@
                                 <div v-for="cKey in ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac', 'kampasRem', 'busi']" :key="cKey" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 space-y-1">
                                     <div class="flex justify-between text-[11px] font-semibold">
                                         <span class="text-slate-300">{{ getComponentNameLabelShort(cKey) }}</span>
-                                        <span :class="getComponentWear(selectedDrawerVehicle, cKey).percent >= 80 ? 'text-rose-400' : 'text-emerald-400'" class="font-mono font-bold">
-                                            {{ getComponentWear(selectedDrawerVehicle, cKey).percent }}%
+                                        <span :class="getComponentWear(selectedDrawerVehicle, cKey).percent === null ? 'text-slate-500' : (getComponentWear(selectedDrawerVehicle, cKey).percent >= 80 ? 'text-rose-400' : (getComponentWear(selectedDrawerVehicle, cKey).percent >= 60 ? 'text-amber-300' : 'text-emerald-400'))" class="font-mono font-bold">
+                                            {{ getComponentWear(selectedDrawerVehicle, cKey).percent === null ? '—' : getComponentWear(selectedDrawerVehicle, cKey).percent + '%' }}
                                         </span>
                                     </div>
                                     <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                                        <div :class="getComponentWear(selectedDrawerVehicle, cKey).percent >= 80 ? 'bg-rose-500' : 'bg-emerald-500'" class="h-full rounded-full" :style="{ width: getComponentWear(selectedDrawerVehicle, cKey).percent + '%' }"></div>
+                                        <div :class="getComponentWear(selectedDrawerVehicle, cKey).percent === null ? 'bg-slate-700' : (getComponentWear(selectedDrawerVehicle, cKey).percent >= 80 ? 'bg-rose-500' : (getComponentWear(selectedDrawerVehicle, cKey).percent >= 60 ? 'bg-amber-400' : 'bg-emerald-500'))" class="h-full rounded-full" :style="{ width: (getComponentWear(selectedDrawerVehicle, cKey).percent === null ? 0 : getComponentWear(selectedDrawerVehicle, cKey).percent) + '%' }"></div>
                                     </div>
                                     <span class="text-[9px] text-slate-500 block truncate">{{ getComponentWear(selectedDrawerVehicle, cKey).lastRecord }}</span>
                                 </div>
@@ -1727,7 +1727,7 @@
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="space-y-1">
                                         <p :class="item.isResolved ? 'line-through text-slate-400' : 'text-slate-100 font-bold'" class="text-xs leading-relaxed">
-                                            {{ item.text }}
+                                            {{ getDamageNoteText(item) }}
                                         </p>
                                         <p class="text-[10px] text-slate-400 font-mono">
                                             <i class="fa-regular fa-user mr-1 text-slate-500"></i>{{ item.reporter || 'Driver' }} • <i class="fa-regular fa-clock mr-1 text-slate-500"></i>{{ formatDateWib(item.date) }}
@@ -1848,7 +1848,6 @@
         // Jangan mengambil __app_id / __firebase_config dari launcher atau host lain,
         // karena file HTML hasil download harus selalu menunjuk ke uns-fleet-service.
         const appId = 'uns-fleet-service';
-    const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycby_yqy5-1xKhExGRx2tkMu2xQRg0FY21EPupZtn753otG02XIntdsf7xTf4-Qr73IC17Q/exec';
 
         const rawFirebaseConfig = {
             apiKey: "AIzaSyAi0Ucng_tl7jSC9gZtr0JItCBUtkt-vvU",
@@ -1986,7 +1985,6 @@
                     ],
 
                     vehicles: (safeGetStorage('uns_vehicles', []) || []).filter(Boolean),
-                    drivers: [],
                     serviceLogs: (safeGetStorage('uns_logs', []) || []).filter(Boolean)
                 };
             },
@@ -2080,12 +2078,19 @@
                             lastServiceDateStr = car.lastServiceDate || null;
                         }
 
-                        const lastWorkshop = vLogs.length > 0 ? (vLogs[0].workshop || 'Belum Ada') : 'Belum Ada';
+                        // Bengkel penentu interval HARUS mengikuti servis rutin terakhir,
+                        // bukan transaksi terakhir secara umum. Perbaikan non-rutin tidak
+                        // boleh mengubah interval servis berkala.
+                        const lastRoutineLog = routineLogs.length > 0 ? routineLogs[0] : null;
+                        const lastWorkshop = (lastRoutineLog && lastRoutineLog.workshop)
+                            ? String(lastRoutineLog.workshop).trim()
+                            : String(car.targetWorkshop || 'Belum Ada').trim();
 
-                        let intervalKm = 7000;
-                        if ((lastWorkshop || '').toLowerCase().includes('nasmoco')) {
-                            intervalKm = 10000;
-                        }
+                        // ATURAN SERVIS RESMI AUT0MAN:
+                        // - Nasmoco = 10.000 KM
+                        // - Selain Nasmoco = 7.000 KM
+                        const isNasmoco = lastWorkshop.toLowerCase().includes('nasmoco');
+                        const intervalKm = isNasmoco ? 10000 : 7000;
 
                         const currentKm = Number(car.currentKm) || 0;
                         const diffKm = Math.max(0, currentKm - lastServiceKm);
@@ -2169,6 +2174,7 @@
                             _lastServiceDateStr: lastServiceDateStr,
                             _lastWorkshop: lastWorkshop,
                             _serviceIntervalKm: intervalKm,
+                            _serviceIntervalRule: isNasmoco ? 'Nasmoco = 10.000 KM' : 'Selain Nasmoco = 7.000 KM',
                             _routineStatus: routineStatus,
                             _remainingKm: remainingKm,
                             _remainingKmStr: remainingKmStr,
@@ -2520,7 +2526,6 @@
                         const vehiclesRef = ref(db, `artifacts/${appId}/public/data_v2/vehicles`);
                         const logsRef = ref(db, `artifacts/${appId}/public/data_v2/logs`);
                         const settingsRef = ref(db, `artifacts/${appId}/public/data_v2/settings`);
-                        const driversRef = ref(db, `artifacts/${appId}/public/data_v2/drivers`);
                         const telegramConfigRef = ref(db, `artifacts/${appId}/public/data_v2/telegramConfig`);
                         const connectedRef = ref(db, '.info/connected');
 
@@ -2541,27 +2546,13 @@
 
                         // Armada: incremental child listeners agar perubahan 1 kendaraan
                         // tidak mengunduh ulang seluruh koleksi.
-                        const upsertDriver = (key, val) => {
-                            if (!val || typeof val !== 'object') return;
-                            const normalized = { ...val, id: val.id || key, _fbKey: key };
-                            const idx = (this.drivers || []).findIndex(d => d && (d.id === normalized.id || d._fbKey === key));
-                            if (idx >= 0) this.drivers.splice(idx, 1, normalized);
-                            else this.drivers.push(normalized);
-                            this.drivers.sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''), 'id'));
-                        };
-                        onChildAdded(driversRef, snap => upsertDriver(snap.key, snap.val()));
-                        onChildChanged(driversRef, snap => upsertDriver(snap.key, snap.val()));
-                        onChildRemoved(driversRef, snap => { this.drivers = (this.drivers || []).filter(d => d && d._fbKey !== snap.key && d.id !== snap.key); });
-
                         const upsertVehicle = (key, val) => {
                             if (!val || typeof val !== 'object') return;
                             const normalized = {
                                 ...val,
                                 id: val.id || key,
                                 _fbKey: key,
-                                damageNotes: Array.isArray(val.damageNotes)
-                                    ? val.damageNotes
-                                    : (val.damageNotes ? Object.values(val.damageNotes).filter(Boolean) : [])
+                                damageNotes: this.normalizeDamageNotes(val.damageNotes)
                             };
                             const idx = (this.vehicles || []).findIndex(v =>
                                 v && (v.id === normalized.id || v._fbKey === key)
@@ -2741,15 +2732,11 @@
                 },
 
                 async syncLogToCloud(log) {
-                    if (!db || !log || !log.id) return false;
+                    if (!db || !log || !log.id) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(log.id);
                         await set(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`), log);
-                        return true;
-                    } catch(e) {
-                        console.warn('Gagal menyinkronkan log ke cloud:', e);
-                        return false;
-                    }
+                    } catch(e) {}
                 },
 
                 async removeLogFromCloud(logId) {
@@ -2852,8 +2839,11 @@
                 },
 
                 getComponentWear(car, compKey) {
-                    if (!car) return { text: 'Aman', percent: 0, lastRecord: '' };
-                    
+                    if (!car) return { text: 'Belum tercatat', percent: null, lastRecord: 'Belum tercatat' };
+
+                    // Interval komponen tetap sebagai acuan keausan setelah komponen
+                    // benar-benar ditemukan di riwayat servis. Matriks TIDAK memakai
+                    // servis terakhir kendaraan sebagai pengganti histori komponen.
                     const vitalSpecs = {
                         filterOli: { km: 10000, months: 12 },
                         aki: { km: 50000, months: 30 },
@@ -2865,46 +2855,145 @@
                         busi: { km: 40000, months: 30 }
                     };
 
-                    const spec = vitalSpecs[compKey] || { km: 20000, months: 12 };
-                    const vLogs = car._logs || this.getVehicleLogs(car.id);
-                    let lastLog = null;
+                    const keywordMap = {
+                        filterOli: [
+                            'filter oli', 'oil filter', 'oil-filter', 'saringan oli',
+                            'filter engine oil', 'filter mesin'
+                        ],
+                        aki: [
+                            'aki', 'accu', 'aki 12v',
+                            'aki kering', 'aki basah', 'aki mf',
+                            // Beberapa merek aki umum yang dapat muncul di uraian servis.
+                            // 'battery' dan 'baterai' sengaja TIDAK dimasukkan agar tidak
+                            // mengklasifikasikan istilah umum tersebut sebagai Aki 12V.
+                            'gs astra', 'gs battery', 'gs aki', 'yuasa', 'incoe',
+                            'bosch', 'amaron', 'ns battery', 'furukawa', 'delkor'
+                        ],
+                        oliMatic: [
+                            'oli matic', 'oli transmisi', 'transmisi', 'atf', 'cv t', 'cvt',
+                            'gear oil automatic', 'automatic transmission fluid', 'flush transmisi'
+                        ],
+                        ban: [
+                            'ban', 'tire', 'tires', 'tyre', 'roda', 'velg ban',
+                            'ban depan', 'ban belakang', 'ban luar', 'ban dalam'
+                        ],
+                        oliGardan: [
+                            'oli gardan', 'gardan', 'differential', 'differential oil',
+                            'final gear', 'gear oil gardan'
+                        ],
+                        ac: [
+                            'ac', 'a/c', 'air conditioner', 'air conditioning', 'evaporator',
+                            'kondensor', 'condenser', 'freon', 'refrigerant', 'kompresor ac',
+                            'compressor ac', 'blower ac'
+                        ],
+                        kampasRem: [
+                            'kampas rem', 'brake pad', 'brake pads', 'brake shoe', 'brake shoes',
+                            'kampas brake', 'pad rem', 'sepatu rem', 'cakram rem', 'disc brake',
+                            'rem depan', 'rem belakang'
+                        ],
+                        busi: [
+                            'busi', 'spark plug', 'spark plugs', 'plug busi', 'busi iridium',
+                            'busi platinum', 'busi mesin'
+                        ]
+                    };
 
-                    if (vLogs && vLogs.length > 0) {
-                        const kwMap = {
-                            filterOli: ['filter oli'],
-                            aki: ['aki', 'accu'],
-                            oliMatic: ['oli matic', 'oli transmisi', 'atf', 'cvt'],
-                            ban: ['ban', 'tires', 'tyre'],
-                            oliGardan: ['oli gardan', 'differential'],
-                            ac: ['ac', 'evaporator', 'freon'],
-                            kampasRem: ['kampas rem', 'brake pad', 'cakram'],
-                            busi: ['busi', 'spark plug']
-                        };
-                        const kws = kwMap[compKey] || [];
-                        const matches = vLogs.filter(l => {
-                            if (!l) return false;
-                            const hasCheck = l.replacedComponents && l.replacedComponents.includes(compKey);
-                            const hasKw = l.items && l.items.some(it => kws.some(kw => (it && it.name || '').toLowerCase().includes(kw)));
-                            return hasCheck || hasKw;
-                        });
-                        if (matches.length > 0) {
-                            lastLog = matches[0];
+                    const spec = vitalSpecs[compKey] || { km: 20000, months: 12 };
+                    const kws = keywordMap[compKey] || [];
+                    const rawLogs = Array.isArray(car._logs) && car._logs.length
+                        ? car._logs
+                        : this.getVehicleLogs(car.id);
+                    const vLogs = Array.isArray(rawLogs) ? rawLogs.filter(Boolean) : [];
+
+                    // Ambil log TERBARU yang benar-benar menyebut/mengindikasikan
+                    // komponen tersebut. Sumber deteksi: replacedComponents + seluruh
+                    // teks item/uraian log servis.
+                    const normalize = value => String(value ?? '')
+                        .toLowerCase()
+                        .normalize('NFKD')
+                        .replace(/[\u0300-\u036f]/g, '');
+
+                    const logText = log => {
+                        const parts = [];
+                        if (log && Array.isArray(log.replacedComponents)) parts.push(log.replacedComponents.join(' '));
+                        if (log && typeof log.replacedComponents === 'string') parts.push(log.replacedComponents);
+                        if (log && Array.isArray(log.items)) {
+                            log.items.forEach(it => {
+                                if (it) parts.push(it.name, it.description, it.note, it.notes, it.detail);
+                            });
+                        } else if (log && typeof log.items === 'string') {
+                            parts.push(log.items);
                         }
+                        if (log) {
+                            parts.push(
+                                log.description, log.notes, log.note, log.detail, log.keterangan,
+                                log.serviceDescription, log.workDescription, log.uraian,
+                                log.complaint, log.problem, log.damage
+                            );
+                        }
+                        return normalize(parts.filter(v => v !== undefined && v !== null).join(' '));
+                    };
+
+                    const matches = vLogs.filter(log => {
+                        const explicit = Array.isArray(log.replacedComponents)
+                            ? log.replacedComponents.some(x => normalize(x) === normalize(compKey))
+                            : normalize(log.replacedComponents).split(/[;,|]/).some(x => normalize(x).trim() === normalize(compKey));
+                        const text = logText(log);
+                        const keywordHit = kws.some(kw => {
+                            const needle = normalize(kw);
+                            if (!needle) return false;
+                            // Untuk "ac", gunakan batas kata agar kata seperti "macet"
+                            // tidak salah dianggap sebagai servis AC.
+                            if (needle === 'ac') return /(^|[^a-z0-9])ac([^a-z0-9]|$)/.test(text);
+                            return text.includes(needle);
+                        });
+                        return explicit || keywordHit;
+                    });
+
+                    matches.sort((a, b) => {
+                        const da = this.parseLocalDate(a.date)?.getTime() || 0;
+                        const db = this.parseLocalDate(b.date)?.getTime() || 0;
+                        if (db !== da) return db - da;
+                        return (Number(b.km) || 0) - (Number(a.km) || 0);
+                    });
+
+                    const lastLog = matches[0] || null;
+
+                    // Belum pernah ada histori komponen -> jangan mengarang persentase
+                    // berdasarkan servis umum kendaraan.
+                    if (!lastLog) {
+                        return {
+                            text: 'Belum tercatat',
+                            percent: null,
+                            lastRecord: 'Belum tercatat'
+                        };
                     }
 
-                    const lastKm = lastLog ? (Number(lastLog.km) || 0) : (car._lastServiceKm || Number(car.currentKm) || 0);
                     const currentKm = Number(car.currentKm) || 0;
+                    const lastKm = Number(lastLog.km) || 0;
                     const usedKm = Math.max(0, currentKm - lastKm);
                     const kmPercent = Math.round((usedKm / spec.km) * 100);
 
-                    let refDate = lastLog ? this.parseLocalDate(lastLog.date) : (car._lastServiceDateStr ? this.parseLocalDate(car._lastServiceDateStr) : new Date());
+                    let refDate = this.parseLocalDate(lastLog.date);
                     if (!refDate) refDate = new Date();
                     const now = new Date();
-                    const diffMonths = Math.max(0, (now.getFullYear() - refDate.getFullYear()) * 12 + (now.getMonth() - refDate.getMonth()));
+                    const diffMonths = Math.max(0,
+                        (now.getFullYear() - refDate.getFullYear()) * 12 +
+                        (now.getMonth() - refDate.getMonth())
+                    );
                     const monthPercent = Math.round((diffMonths / spec.months) * 100);
-
                     const finalPercent = Math.max(kmPercent, monthPercent);
-                    const lastRecordStr = lastLog ? `${this.formatDateWib(lastLog.date)} (${Number(lastLog.km).toLocaleString('id-ID')} KM)` : 'Belum tercatat';
+                    // Tampilkan juga bengkel dari log service terakhir yang mendeteksi komponen.
+                    // Mendukung beberapa nama field agar kompatibel dengan log lama/baru.
+                    const workshopName = String(
+                        lastLog.workshop ||
+                        lastLog.workshopName ||
+                        lastLog.bengkel ||
+                        lastLog.vendor ||
+                        lastLog.serviceWorkshop ||
+                        lastLog.targetWorkshop ||
+                        ''
+                    ).trim();
+                    const lastRecordStr = `${this.formatDateWib(lastLog.date)} (${lastKm.toLocaleString('id-ID')} KM)${workshopName ? ` (${workshopName})` : ''}`;
 
                     return {
                         text: `${usedKm.toLocaleString('id-ID')} KM / ${diffMonths} Bln`,
@@ -2978,7 +3067,7 @@
                         let initialNotes = '';
                         const activeNotes = this.getActiveDamageNotes(targetCar);
                         if (activeNotes.length > 0) {
-                            initialNotes = 'Catatan Keluhan Driver:\n' + activeNotes.map((n, i) => `${i + 1}. ${n.text}`).join('\n');
+                            initialNotes = 'Catatan Keluhan Driver:\n' + activeNotes.map((n, i) => `${i + 1}. ${this.getDamageNoteText(n)}`).join('\n');
                         }
 
                         this.inServiceForm = {
@@ -3003,9 +3092,34 @@
 
                         const activeNotes = this.getActiveDamageNotes(car);
                         if (activeNotes.length > 0 && !this.inServiceForm.notes) {
-                            this.inServiceForm.notes = 'Catatan Keluhan Driver:\n' + activeNotes.map((n, i) => `${i + 1}. ${n.text}`).join('\n');
+                            this.inServiceForm.notes = 'Catatan Keluhan Driver:\n' + activeNotes.map((n, i) => `${i + 1}. ${this.getDamageNoteText(n)}`).join('\n');
                         }
                     }
+                },
+
+                normalizeDamageNotes(rawNotes) {
+                    const notes = Array.isArray(rawNotes)
+                        ? rawNotes
+                        : (rawNotes && typeof rawNotes === 'object' ? Object.values(rawNotes).filter(Boolean) : []);
+                    return notes.filter(Boolean).map(n => ({
+                        ...n,
+                        text: String(
+                            n.text ?? n.description ?? n.complaint ?? n.issue ?? n.problem ??
+                            n.note ?? n.notes ?? n.damage ?? n.keluhan ?? n.uraian ?? n.detail ?? ''
+                        ).trim(),
+                        reporter: String(n.reporter ?? n.reportedBy ?? n.driver ?? 'Driver').trim(),
+                        date: n.date || n.createdAt || n.timestamp || '',
+                        isResolved: Boolean(n.isResolved)
+                    }));
+                },
+
+                getDamageNoteText(note) {
+                    if (!note) return '⚠ Uraian belum diisi oleh pelapor.';
+                    const text = String(
+                        note.text ?? note.description ?? note.complaint ?? note.issue ?? note.problem ??
+                        note.note ?? note.notes ?? note.damage ?? note.keluhan ?? note.uraian ?? note.detail ?? ''
+                    ).trim();
+                    return text || '⚠ Uraian belum diisi oleh pelapor.';
                 },
 
                 getActiveDamageNotes(car) {
@@ -3053,6 +3167,7 @@
 
                 openDamageNotesModal(car) {
                     this.selectedDamageVehicle = car;
+                    this.selectedDamageVehicle.damageNotes = this.normalizeDamageNotes(this.selectedDamageVehicle.damageNotes);
                     this.damageNoteInput = '';
                     this.damageReporterInput = (car && car.driver) ? car.driver : '';
                     this.activeDamageNotesModal = true;
@@ -3078,15 +3193,45 @@
 
                     this.selectedDamageVehicle.damageNotes.unshift(noteObj);
                     safeSetStorage('uns_vehicles', this.vehicles);
-                    const cloudSaved = await this.syncVehicleToCloud(this.selectedDamageVehicle);
-                    this.syncToGoogleSheetsAuto();
+                    
+					const cloudSaved = await this.syncVehicleToCloud(this.selectedDamageVehicle);
+this.syncToGoogleSheetsAuto();
 
-                    const notifDetails = `🚘 *Plat*: ${this.selectedDamageVehicle.plate} (${this.selectedDamageVehicle.model})\n👤 *Pelapor*: ${noteObj.reporter}\n⚠️ *Kerusakan*: ${noteObj.text}`;
-                    if (cloudSaved) {
-                        await this.dispatchSystemNotification('CATATAN KERUSAKAN BARU DARI DRIVER', notifDetails);
-                    } else {
-                        this.showToast('Keluhan tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
-                    }
+const notifDetails =
+    `🚘 *Plat*: ${this.selectedDamageVehicle.plate} (${this.selectedDamageVehicle.model})\n` +
+    `👤 *Pelapor*: ${noteObj.reporter}\n` +
+    `⚠️ *Kerusakan*: ${noteObj.text}`;
+
+if (cloudSaved) {
+
+    // Telegram
+    await this.dispatchSystemNotification(
+        'CATATAN KERUSAKAN BARU DARI DRIVER',
+        notifDetails
+    );
+
+    // FCM Android
+    await this.sendAutomanFcmBridge(
+        'COMPLAINT',
+        'Keluhan Kendaraan Baru',
+        `${this.selectedDamageVehicle.plate} memiliki keluhan baru: ${noteObj.text}`,
+        {
+            vehicleId: String(this.selectedDamageVehicle.id || ''),
+            plate: String(this.selectedDamageVehicle.plate || ''),
+            model: String(this.selectedDamageVehicle.model || ''),
+            driver: String(this.selectedDamageVehicle.driver || ''),
+            reporter: String(noteObj.reporter || ''),
+            complaint: String(noteObj.text || ''),
+            complaintId: String(noteObj.id || '')
+        }
+    );
+
+} else {
+    this.showToast(
+        'Keluhan tersimpan lokal, tetapi Firebase gagal disimpan sehingga notifikasi tidak dikirim.',
+        'error'
+    );
+}
 
                     this.damageNoteInput = '';
                     this.showToast('Catatan kerusakan berhasil disimpan ke Cloud!', 'success');
@@ -3155,9 +3300,28 @@
 
                         const notifDetails = `🚘 *Plat*: ${car.plate} (${car.model})\n👤 *Sopir*: ${car.driver || 'Sopir UNS'}\n📍 *Odometer Lama*: ${oldKmVal.toLocaleString('id-ID')} KM\n📈 *Odometer Baru*: ${newKmVal.toLocaleString('id-ID')} KM`;
                         if (cloudSaved) {
-                            await this.dispatchSystemNotification('UPDATE ODOMETER KENDARAAN', notifDetails);
-                        } else {
-                            this.showToast('Odometer tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+    // Telegram tetap berjalan seperti sebelumnya
+    await this.dispatchSystemNotification(
+        'UPDATE ODOMETER KENDARAAN',
+        notifDetails
+    );
+
+    // FCM Android
+    await this.sendAutomanFcmBridge(
+        'ODOMETER',
+        'Odometer Kendaraan Diperbarui',
+        `${car.plate} diperbarui dari ${oldKmVal.toLocaleString('id-ID')} KM menjadi ${newKmVal.toLocaleString('id-ID')} KM.`,
+        {
+            vehicleId: String(car.id || ''),
+            plate: String(car.plate || ''),
+            model: String(car.model || ''),
+            driver: String(car.driver || ''),
+            oldKm: String(oldKmVal),
+            newKm: String(newKmVal)
+        }
+    ); 
+	} else {
+              this.showToast('Odometer tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
                         }
 
                         this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
@@ -3195,7 +3359,103 @@
                         this.activeInServiceModal = false;
                     }
                 },
+				async sendAutomanFcmBridge(type, title, body, data = {}) {
+    const FCM_BRIDGE_URL =
+        'https://script.google.com/macros/s/AKfycbzJXaz6AbvzMfW7x9YulUhKqiEeJW_UN2IZYtwlEnbKDFfdcJOjS2DE9jSXfChN9Z8rfw/exec';
 
+    try {
+        const payload = {
+            action: 'FCM_NOTIFY',
+            type: String(type || 'GENERAL'),
+            title: String(title || 'AUTOMAN UNS'),
+            body: String(body || ''),
+            data: {
+                ...data,
+                source: 'AUTOMAN',
+                timestamp: String(Date.now())
+            }
+        };
+
+        const response = await fetch(FCM_BRIDGE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await response.text();
+
+        let result = null;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            console.warn('[FCM] Response bukan JSON:', text);
+        }
+
+        console.log(
+    '[FCM] Bridge response:',
+    JSON.stringify(result || text, null, 2)
+);
+
+        return !!(
+            response.ok &&
+            result &&
+            result.status === 'success'
+        );
+
+    } catch (error) {
+        console.warn('[FCM] Bridge gagal:', error);
+        return false;
+    }
+},
+async sendAutomanFcmBridge(type, title, body, data = {}) {
+    const FCM_BRIDGE_URL =
+        'https://script.google.com/macros/s/AKfycbzJXaz6AbvzMfW7x9YulUhKqiEeJW_UN2IZYtwlEnbKDFfdcJOjS2DE9jSXfChN9Z8rfw/exec';
+
+    try {
+        const payload = {
+            action: 'FCM_NOTIFY',
+            type: String(type || 'GENERAL'),
+            title: String(title || 'AUTOMAN UNS'),
+            body: String(body || ''),
+            data: {
+                ...data,
+                source: 'AUTOMAN',
+                timestamp: String(Date.now())
+            }
+        };
+
+        const response = await fetch(FCM_BRIDGE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await response.text();
+
+        let result = null;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            console.warn('[FCM] Response bukan JSON:', text);
+        }
+
+        console.log('[FCM] BRIDGE RAW: ' + text);
+
+        return !!(
+            response.ok &&
+            result &&
+            result.status === 'success'
+        );
+
+    } catch (error) {
+        console.warn('[FCM] Bridge gagal:', error);
+        return false;
+    }
+},
                 async dispatchSystemNotification(eventTitle, detailText) {
                     const fullText = `🚗 *AUTOMAN UNS NOTIFICATION*\n\n📌 *${eventTitle}*\n${detailText}\n\n⏱️ _${new Date().toLocaleString('id-ID')}_`;
 
@@ -3209,54 +3469,59 @@
                 },
 
                 async sendTelegramMessage(text) {
-                    const botToken = String(this.telegramBotToken || '').trim();
-                    const chatId = String(this.telegramChatId || '').trim();
-                    const message = String(text || '').trim();
-                    if (!botToken || !chatId) {
-                        this.showToast('Telegram belum dikonfigurasi. Simpan Bot Token & Chat ID dari Admin.', 'error');
-                        return false;
-                    }
-                    if (!message) return false;
-
+                    // Gunakan jalur Telegram langsung yang sudah terbukti berjalan pada
+                    // aplikasi GarasiKu: POST application/x-www-form-urlencoded ke Bot API.
+                    // Semua perangkat membaca botToken/chatId dari data_v2/telegramConfig.
                     try {
-                        // Pengiriman langsung memakai HTML form POST.
-                        // Cara ini tidak membutuhkan CORS dan tetap bekerja saat
-                        // Automan dibuka sebagai file HTML lokal (content:// / file://).
-                        const frameName = 'telegram_send_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-                        const iframe = document.createElement('iframe');
-                        iframe.name = frameName;
-                        iframe.style.display = 'none';
-                        document.body.appendChild(iframe);
+                        const token = String(this.telegramBotToken || '').trim();
+                        const chatId = String(this.telegramChatId || '').trim();
+                        if (!token || !chatId || !text) {
+                            console.warn('Telegram tidak dikirim: token/chatId/pesan kosong.');
+                            return false;
+                        }
 
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = 'https://api.telegram.org/bot' + encodeURIComponent(botToken) + '/sendMessage';
-                        form.target = frameName;
-                        form.style.display = 'none';
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), 12000);
+                        try {
+                            const params = new URLSearchParams();
+                            params.set('chat_id', chatId);
+                            // Kirim sebagai plain text agar karakter Markdown dari pesan
+                            // tidak menyebabkan Telegram menolak format pesan.
+                            params.set('text', String(text).replace(/[*_`]/g, ''));
 
-                        const addField = (name, value) => {
-                            const input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = name;
-                            input.value = value;
-                            form.appendChild(input);
-                        };
-                        addField('chat_id', chatId);
-                        addField('text', message.replace(/\*/g, ''));
-                        addField('disable_web_page_preview', 'true');
+                            const res = await fetch(`https://api.telegram.org/bot${encodeURIComponent(token)}/sendMessage`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                                body: params,
+                                signal: controller.signal,
+                                cache: 'no-store'
+                            });
 
-                        document.body.appendChild(form);
-                        form.submit();
+                            let data = null;
+                            try { data = await res.json(); } catch (_) {
+                                throw new Error(`Respons Telegram bukan JSON (HTTP ${res.status}).`);
+                            }
 
-                        setTimeout(() => {
-                            try { form.remove(); } catch (_) {}
-                            try { iframe.remove(); } catch (_) {}
-                        }, 8000);
+                            if (!res.ok || !data?.ok) {
+                                throw new Error(data?.description || `Telegram HTTP ${res.status}`);
+                            }
 
-                        return true;
+                            return true;
+                        } finally {
+                            clearTimeout(timer);
+                        }
                     } catch (e) {
-                        console.warn('Gagal mengirim Telegram langsung:', e);
-                        this.showToast('Telegram gagal dikirim: ' + (e.message || 'Network error'), 'error');
+                        console.error('Telegram gagal:', e);
+                        const msg = String(e?.message || e || 'Kesalahan Telegram');
+                        if (/401|unauthorized/i.test(msg)) {
+                            this.showToast('Telegram gagal: Bot Token tidak valid.', 'error');
+                        } else if (/403|forbidden/i.test(msg)) {
+                            this.showToast('Telegram gagal: Bot tidak memiliki izin ke Chat ID tersebut.', 'error');
+                        } else if (/400|bad request/i.test(msg)) {
+                            this.showToast(`Telegram gagal: ${msg}`, 'error');
+                        } else if (e?.name === 'AbortError') {
+                            this.showToast('Telegram gagal: koneksi timeout.', 'error');
+                        }
                         return false;
                     }
                 },
@@ -3439,7 +3704,7 @@
                     return (this.serviceForm.items || []).reduce((sum, i) => sum + (Number(i.cost) || 0), 0);
                 },
 
-                async saveServiceLog() {
+                saveServiceLog() {
                     const f = this.serviceForm;
                     if (!f.vehicleId || !f.workshop || !f.date) {
                         this.showToast('Lengkapi data kendaraan, bengkel, dan tanggal!', 'error');
@@ -3480,23 +3745,18 @@
                         this.recalculateVehicleLastService(car);
 
                         safeSetStorage('uns_vehicles', this.vehicles);
+                        this.syncVehicleToCloud(car);
                     }
 
-                    let vehicleSaved = !car;
-                    if (car) vehicleSaved = await this.syncVehicleToCloud(car);
-
                     safeSetStorage('uns_logs', this.serviceLogs);
-                    let logSaved = true;
                     if (savedLogObj) {
-                        logSaved = await this.syncLogToCloud(savedLogObj);
+                        this.syncLogToCloud(savedLogObj);
                     }
                     this.syncToGoogleSheetsAuto();
 
-                    if (car && savedLogObj && vehicleSaved && logSaved) {
+                    if (car) {
                         const notifText = `🚘 *Plat*: ${car.plate}\n🏢 *Bengkel*: ${f.workshop}\n🧾 *No Invoice*: ${f.invoiceNo || '-'}\n💰 *Total Biaya*: Rp ${totalCost.toLocaleString('id-ID')}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM`;
-                        await this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
-                    } else if (savedLogObj && (!vehicleSaved || !logSaved)) {
-                        this.showToast('Nota tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+                        this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
                     }
 
                     this.activeNewServiceModal = false;
@@ -3764,7 +4024,8 @@
                     const vitalKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac', 'kampasRem', 'busi'];
                     const vitalStatus = vitalKeys.map(k => {
                         const wear = this.getComponentWear(car, k);
-                        return `- ${this.getComponentNameLabelShort(k)}: Keausan ${wear.percent}% (${wear.text}), Terakhir: ${wear.lastRecord}`;
+                        const wearPct = wear.percent === null ? 'belum tercatat' : `${wear.percent}%`;
+                        return `- ${this.getComponentNameLabelShort(k)}: Keausan ${wearPct} (${wear.text}), Terakhir: ${wear.lastRecord}`;
                     }).join('\n');
 
                     const recentLogs = vLogs.slice(0, 5).map(l => {
@@ -3915,6 +4176,210 @@ Susun dalam format poin bertingkat yang rapi, ringkas, tegas, dan mudah dibaca o
                 appEl.removeAttribute('v-cloak');
             }
         }, 1200);
+		        // ============================================================
+        // FCM TEST - AUTONMAN APK
+        // Hanya untuk APK di C:\AUTOMAN_APK
+        // Belum menyimpan token ke Firebase.
+        // ============================================================
+        async function initAutomanFCMTest() {
+            try {
+                const capacitor = window.Capacitor;
+                const PushNotifications =
+                    capacitor?.Plugins?.PushNotifications;
+
+                if (!PushNotifications) {
+                    console.log(
+                        '[FCM TEST] PushNotifications plugin belum tersedia.'
+                    );
+                    return;
+                }
+
+                console.log(
+                    '[FCM TEST] PushNotifications plugin ditemukan.'
+                );
+
+                await PushNotifications.addListener(
+                    'registration',
+                    async token => {
+					console.log(
+						'[FCM TEST] RAW TOKEN OBJECT:',
+						JSON.stringify(token)
+						);
+                        const fcmToken =
+                            String(token?.value || '').trim();
+
+                        if (!fcmToken) {
+                            console.error(
+                                '[FCM TEST] Token FCM kosong.'
+                            );
+                            return;
+                        }
+
+                        console.log(
+                            '=========================================='
+                        );
+                        console.log(
+                            '[FCM TEST] FCM TOKEN:'
+                        );
+                        console.log(fcmToken);
+                        console.log(
+                            '=========================================='
+                        );
+
+                        // Hanya menyimpan sementara di HP test.
+                        localStorage.setItem(
+                            'automan_test_fcm_token',
+                            fcmToken
+                        );
+
+                        window.__AUTOMAN_FCM_TOKEN = fcmToken;
+						try {
+  let currentUser = auth?.currentUser || null;
+
+// Tunggu Firebase Authentication selesai maksimal 15 detik.
+for (let i = 0; i < 30 && !currentUser; i++) {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  currentUser = auth?.currentUser || null;
+}
+
+if (!currentUser) {
+  console.warn(
+    '[FCM TEST] Firebase user belum tersedia setelah menunggu 15 detik. Token tidak disimpan.'
+  );
+  return;
+}
+
+console.log('[FCM TEST] Firebase user siap:', currentUser.uid);
+
+  const tokenBytes = new TextEncoder().encode(fcmToken);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', tokenBytes);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+  const tokenId = hashArray
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+    .substring(0, 32);
+
+  const tokenRef = ref(
+    db,
+    `artifacts/${appId}/public/data_v2/notificationTokens/${tokenId}`
+  );
+
+  await set(tokenRef, {
+    token: fcmToken,
+    uid: currentUser.uid,
+    app: 'automan',
+    platform: 'android',
+    deviceName: 'Google Pixel 8',
+    updatedAt: Date.now(),
+    enabled: true
+  });
+
+  console.log('[FCM TEST] Token berhasil disimpan ke Firebase.');
+} catch (firebaseError) {
+  console.error(
+    '[FCM TEST] Gagal menyimpan token ke Firebase:',
+    firebaseError
+  );
+}
+                    }
+                );
+
+                await PushNotifications.addListener(
+                    'registrationError',
+                    error => {
+                        console.error(
+                            '[FCM TEST] Registration error:',
+                            error
+                        );
+                    }
+                );
+
+                await PushNotifications.addListener(
+                    'pushNotificationReceived',
+                    notification => {
+                        console.log(
+                            '[FCM TEST] Notification received:',
+                            notification
+                        );
+                    }
+                );
+
+                await PushNotifications.addListener(
+                    'pushNotificationActionPerformed',
+                    notification => {
+                        console.log(
+                            '[FCM TEST] Notification action:',
+                            notification
+                        );
+                    }
+                );
+
+                // Notification channel Android.
+                try {
+                    await PushNotifications.createChannel({
+                        id: 'automan_default',
+                        name: 'Automan',
+                        description:
+                            'Notifikasi sistem Automan UNS',
+                        importance: 5,
+                        visibility: 1,
+                        sound: 'default'
+                    });
+
+                    console.log(
+                        '[FCM TEST] Notification channel siap.'
+                    );
+                } catch (channelError) {
+                    console.warn(
+                        '[FCM TEST] Channel warning:',
+                        channelError
+                    );
+                }
+
+                let permission =
+                    await PushNotifications.checkPermissions();
+
+                console.log(
+                    '[FCM TEST] Permission awal:',
+                    permission
+                );
+
+                if (permission.receive === 'prompt') {
+                    permission =
+                        await PushNotifications.requestPermissions();
+
+                    console.log(
+                        '[FCM TEST] Permission setelah request:',
+                        permission
+                    );
+                }
+
+                if (permission.receive !== 'granted') {
+                    console.warn(
+                        '[FCM TEST] Izin notifikasi ditolak.'
+                    );
+                    return;
+                }
+
+                await PushNotifications.register();
+
+                console.log(
+                    '[FCM TEST] Register FCM berhasil dipanggil.'
+                );
+
+            } catch (error) {
+                console.error(
+                    '[FCM TEST] Init error:',
+                    error
+                );
+            }
+        }
+
+        // Beri waktu Capacitor native bridge selesai dimuat.
+        setTimeout(() => {
+            initAutomanFCMTest();
+        }, 2000);
     </script>
 </body>
 </html>
