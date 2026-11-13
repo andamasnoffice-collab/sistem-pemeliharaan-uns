@@ -532,7 +532,7 @@
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Pilih Armada</label>
                             <select v-model="logVehicleFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white focus:border-sky-500">
                                 <option value="ALL">Semua Armada</option>
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} {{ car.isHidden ? '(Hidden)' : '' }}</option>
+                                <option v-for="car in activeOperationalVehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} {{ car.isHidden ? '(Hidden)' : '' }}</option>
                             </select>
                         </div>
 
@@ -910,7 +910,7 @@
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
                             <select v-model="updateKmForm.vehicleId" @change="onUpdateKmVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase">
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} (Sopir: {{ car.driver || '-' }}) {{ car.isHidden ? '(Hidden)' : '' }}</option>
+                                <option v-for="car in activeOperationalVehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} (Sopir: {{ car.driver || '-' }}) {{ car.isHidden ? '(Hidden)' : '' }}</option>
                             </select>
                         </div>
                         <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
@@ -954,7 +954,7 @@
                             <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
                             <select v-model="inServiceForm.vehicleId" @change="onInServiceVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase focus:border-sky-500 focus:outline-none">
                                 <option value="" disabled>-- Pilih Plat Armada --</option>
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} ({{ car.driver || 'Sopir' }}) {{ car.isHidden ? '(Hidden)' : '' }}</option>
+                                <option v-for="car in activeOperationalVehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }} ({{ car.driver || 'Sopir' }}) {{ car.isHidden ? '(Hidden)' : '' }}</option>
                             </select>
                         </div>
 
@@ -1109,7 +1109,7 @@
                                 <label class="block font-bold text-slate-300 mb-1">Pilih Armada Kendaraan *</label>
                                 <select v-model="serviceForm.vehicleId" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold uppercase">
                                     <option value="" disabled>-- Pilih Plat Armada --</option>
-                                    <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
+                                    <option v-for="car in activeVehiclesForService()" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
                                 </select>
                             </div>
                             <div>
@@ -1985,6 +1985,7 @@
                     ],
 
                     vehicles: (safeGetStorage('uns_vehicles', []) || []).filter(Boolean),
+                    drivers: [],
                     serviceLogs: (safeGetStorage('uns_logs', []) || []).filter(Boolean)
                 };
             },
@@ -2058,7 +2059,7 @@
                     const today = new Date();
                     today.setHours(0,0,0,0);
 
-                    return (this.vehicles || []).filter(Boolean).map(car => {
+                    return (this.vehicles || []).filter(car => car && this.isVehicleEligibleForService(car)).map(car => {
                         if (!car) return null;
 
                         const vLogs = logsMap[car.id] || logsMap[car.plate] || [];
@@ -2187,16 +2188,17 @@
                     }).filter(Boolean);
                 },
 
-                visibleVehicles() { return (this.processedVehicles || []).filter(v => v && !v.isHidden); },
-                hiddenVehiclesCount() { return (this.processedVehicles || []).filter(v => v && v.isHidden).length; },
-                routineVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'safe').length; },
-                urgentVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'warning').length; },
-                expiredVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'danger').length; },
-                inServiceVehiclesCount() { return (this.processedVehicles || []).filter(v => v && !v.isHidden && v.isUnderService).length; },
+                activeOperationalVehicles() { return (this.vehicles || []).filter(v => this.isVehicleOperational(v) && this.isDriverOperational(v)); },
+                visibleVehicles() { return (this.processedVehicles || []).filter(v => v && this.isVehicleOperational(v) && this.isDriverOperational(v) && !v.isHidden); },
+                hiddenVehiclesCount() { return (this.processedVehicles || []).filter(v => v && this.isVehicleOperational(v) && this.isDriverOperational(v) && v.isHidden).length; },
+                routineVehiclesCount() { return (this.processedVehicles || []).filter(v => v && this.isVehicleOperational(v) && this.isDriverOperational(v) && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'safe').length; },
+                urgentVehiclesCount() { return (this.processedVehicles || []).filter(v => v && this.isVehicleOperational(v) && this.isDriverOperational(v) && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'warning').length; },
+                expiredVehiclesCount() { return (this.processedVehicles || []).filter(v => v && this.isVehicleOperational(v) && this.isDriverOperational(v) && !v.isHidden && !v.isUnderService && v._routineStatus.type === 'danger').length; },
+                inServiceVehiclesCount() { return (this.processedVehicles || []).filter(v => v && this.isVehicleOperational(v) && this.isDriverOperational(v) && !v.isHidden && v.isUnderService).length; },
                 
                 filteredVehicles() {
                     let list = (this.processedVehicles || []).filter(car => {
-                        if (!car) return false;
+                        if (!car || !this.isVehicleOperational(car) || !this.isDriverOperational(car)) return false;
                         if (this.statusFilter === 'HIDDEN') {
                             if (!car.isHidden) return false;
                         } else if (!this.showHiddenVehicles && car.isHidden) {
@@ -2277,6 +2279,26 @@
             },
 
             methods: {
+                // Helper berparameter harus berada di methods, bukan computed Vue.
+                isVehicleOperational(car) {
+                    return !!car && car.isActive !== false && String(car.status || '').toUpperCase() !== 'OFF';
+                },
+                isDriverOperational(car) {
+                    if (!car) return false;
+                    const driverId = String(car.driverId || '').trim();
+                    const driverName = String(car.driver || '').trim().toLowerCase();
+                    const master = (this.drivers || []).find(d =>
+                        (driverId && String(d.id || d._fbKey || '') === driverId) ||
+                        (driverName && String(d.name || '').trim().toLowerCase() === driverName)
+                    );
+                    // Kendaraan tanpa penugasan driver boleh tampil. Jika ada nama/ID driver,
+                    // master wajib ditemukan dan berstatus aktif; driver yatim tidak boleh dipakai.
+                    const hasAssignment = Boolean(driverId || (driverName && driverName !== '-'));
+                    if (!hasAssignment) return true;
+                    return Boolean(master) &&
+                        String(master.status || 'AKTIF').toUpperCase() !== 'NONAKTIF' &&
+                        master.isActive !== false;
+                },
                 initFirebase() {
                     if (!auth || !db) {
                         this.cloudStatus = 'error';
@@ -2524,6 +2546,7 @@
 
                     try {
                         const vehiclesRef = ref(db, `artifacts/${appId}/public/data_v2/vehicles`);
+                        const driversRef = ref(db, `artifacts/${appId}/public/data_v2/drivers`);
                         const logsRef = ref(db, `artifacts/${appId}/public/data_v2/logs`);
                         const settingsRef = ref(db, `artifacts/${appId}/public/data_v2/settings`);
                         const telegramConfigRef = ref(db, `artifacts/${appId}/public/data_v2/telegramConfig`);
@@ -2602,6 +2625,21 @@
                             this.cloudStatus = 'error';
                             this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau penghapusan armada.');
                         });
+
+                        // Master driver: listener incremental agar perubahan ON/OFF langsung berlaku.
+                        let driverCloudSynced = false;
+                        const upsertDriver = (key, val) => {
+                            if (!val || typeof val !== 'object') return;
+                            const item = { ...val, id: val.id || key, _fbKey: key };
+                            const idx = (this.drivers || []).findIndex(d => d && (d._fbKey === key || d.id === item.id));
+                            if (idx >= 0) this.drivers.splice(idx, 1, item); else this.drivers.push(item);
+                        };
+                        onChildAdded(driversRef, snap => {
+                            if (!driverCloudSynced) { driverCloudSynced = true; this.drivers = []; }
+                            upsertDriver(snap.key, snap.val());
+                        }, err => console.warn('RTDB drivers listener warning:', err));
+                        onChildChanged(driversRef, snap => upsertDriver(snap.key, snap.val()), err => console.warn('RTDB drivers change warning:', err));
+                        onChildRemoved(driversRef, snap => { this.drivers = (this.drivers || []).filter(d => d && d._fbKey !== snap.key); }, err => console.warn('RTDB drivers remove warning:', err));
 
                         // Log servis: incremental juga.
                         const upsertLog = (key, val) => {
@@ -2696,26 +2734,45 @@
                     }
                 },
 
+                isVehicleActive(car) {
+                    return !!car && car.isActive !== false && String(car.status || '').toUpperCase() !== 'OFF';
+                },
+                isDriverActive(driver) {
+                    return !!driver && String(driver.status || 'AKTIF').toUpperCase() !== 'NONAKTIF' && driver.isActive !== false;
+                },
+                isVehicleEligibleForService(car) {
+                    if (!this.isVehicleActive(car)) return false;
+                    const driverId = String(car.driverId || '').trim();
+                    const driverName = String(car.driver || '').trim().toLowerCase();
+                    if (!driverId && (!driverName || driverName === '-')) return true;
+                    const driver = (this.drivers || []).find(d =>
+                        (driverId && (String(d.id || '') === driverId || String(d._fbKey || '') === driverId)) ||
+                        (driverName && String(d.name || '').trim().toLowerCase() === driverName)
+                    );
+                    // Jangan izinkan service baru bila assignment menunjuk driver yang tidak terdaftar.
+                    return Boolean(driver) && this.isDriverActive(driver);
+                },
+                activeVehiclesForService() {
+                    return (this.vehicles || []).filter(car => this.isVehicleEligibleForService(car));
+                },
                 cleanFirebaseKey(str) {
                     return String(str || '').trim().replace(/[\/\.\#\$\[\]]/g, '_');
                 },
 
                 async syncVehicleToCloud(car) {
-                    if (!db || !car || !car.id) return false;
+                    if (!db || !car || !(car._fbKey || car.id)) return false;
                     try {
-                        const targetKey = this.cleanFirebaseKey(car.id);
-                        if (this.isAdmin) {
-                            await set(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`), car);
-                        } else {
-                            await update(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`), {
-                                currentKm: Number(car.currentKm) || 0,
-                                isUnderService: Boolean(car.isUnderService),
-                                targetWorkshop: car.targetWorkshop || '',
-                                inServiceDate: car.inServiceDate || '',
-                                inServiceNotes: car.inServiceNotes || '',
-                                damageNotes: Array.isArray(car.damageNotes) ? car.damageNotes : []
-                            });
-                        }
+                        const targetKey = this.cleanFirebaseKey(car._fbKey || car.id);
+                        // Aplikasi operasional hanya boleh memperbarui field operasional.
+                        // Master kendaraan (plat, model, driver, kategori, ON/OFF) dikelola Admin.
+                        await update(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`), {
+                            currentKm: Number(car.currentKm) || 0,
+                            isUnderService: Boolean(car.isUnderService),
+                            targetWorkshop: car.targetWorkshop || '',
+                            inServiceDate: car.inServiceDate || '',
+                            inServiceNotes: car.inServiceNotes || '',
+                            damageNotes: Array.isArray(car.damageNotes) ? car.damageNotes : []
+                        });
                         return true;
                     } catch(e) {
                         console.warn("Gagal menyinkronkan armada ke cloud:", e);
@@ -2723,20 +2780,23 @@
                     }
                 },
 
-                async removeVehicleFromCloud(carId) {
-                    if (!db || !carId) return;
+                async removeVehicleFromCloud(carOrId) {
+                    if (!db || !carOrId) return;
                     try {
-                        const targetKey = this.cleanFirebaseKey(carId);
+                        const car = typeof carOrId === 'object'
+                            ? carOrId
+                            : (this.vehicles || []).find(v => v && (v.id === carOrId || v.plate === carOrId));
+                        const targetKey = this.cleanFirebaseKey((car && car._fbKey) || (car && car.id) || carOrId);
                         await remove(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`));
-                    } catch(e) {}
+                    } catch(e) { console.warn('Gagal menghapus armada dari cloud:', e); }
                 },
 
                 async syncLogToCloud(log) {
-                    if (!db || !log || !log.id) return;
+                    if (!db || !log || !(log._fbKey || log.id)) return;
                     try {
-                        const targetKey = this.cleanFirebaseKey(log.id);
-                        await set(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`), log);
-                    } catch(e) {}
+                        const targetKey = this.cleanFirebaseKey(log._fbKey || log.id);
+                        await update(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`), log);
+                    } catch(e) { console.warn('Gagal menyinkronkan log ke cloud:', e); }
                 },
 
                 async removeLogFromCloud(logId) {
@@ -3653,7 +3713,9 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
 
                 openNewServiceModal() {
                     this.editingLogId = null;
-                    const firstCar = this.vehicles.length ? this.vehicles[0] : null;
+                    const activeCars = this.activeOperationalVehicles;
+                    const firstCar = activeCars.length ? activeCars[0] : null;
+                    if (!firstCar) { this.showToast('Tidak ada kendaraan/driver berstatus ON untuk transaksi servis baru.', 'error'); return; }
                     this.serviceForm = {
                         vehicleId: firstCar ? firstCar.id : '',
                         workshop: 'Nasmoco',
@@ -3668,6 +3730,7 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                 },
 
                 openQuickServiceForCar(car) {
+                    if (!this.isVehicleOperational(car) || !this.isDriverOperational(car)) { this.showToast('Kendaraan atau driver sedang OFF. Servis baru tidak dapat dibuat.', 'error'); return; }
                     this.editingLogId = null;
                     this.serviceForm = {
                         vehicleId: car.id,
@@ -3711,8 +3774,9 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                         return;
                     }
 
-                    const totalCost = this.calcServiceFormTotal();
                     const car = (this.vehicles || []).find(v => v && (v.id === f.vehicleId || v.plate === f.vehicleId));
+                    if (!this.editingLogId && (!car || !this.isVehicleOperational(car) || !this.isDriverOperational(car))) { this.showToast('Kendaraan atau driver sudah OFF. Transaksi servis baru dibatalkan.', 'error'); return; }
+                    const totalCost = this.calcServiceFormTotal();
 
                     f.isRoutine = (f.isRoutine === true || f.isRoutine === 'true');
 
@@ -3787,7 +3851,7 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     if (this.deleteType === 'vehicle' && this.vehicleToDelete) {
                         this.vehicles = this.vehicles.filter(v => v && v.id !== this.vehicleToDelete.id);
                         safeSetStorage('uns_vehicles', this.vehicles);
-                        this.removeVehicleFromCloud(this.vehicleToDelete.id);
+                        this.removeVehicleFromCloud(this.vehicleToDelete);
                         this.showToast(`Armada ${this.vehicleToDelete.plate} telah dihapus.`, 'success');
                     } else if (this.deleteType === 'log' && this.logToDeleteId) {
                         const deletedLog = this.serviceLogs.find(l => l && l.id === this.logToDeleteId);
