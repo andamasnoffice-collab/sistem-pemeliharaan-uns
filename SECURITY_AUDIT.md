@@ -103,3 +103,13 @@ Scope: static review of the owner-supplied Rules JSON against the migration bran
 4. Migrate Telegram credentials and sending to a trusted backend before restricting `telegramConfig` reads; then rotate the bot token.
 5. Obtain explicit owner approval before applying any production Rules or deploying any service.
 
+
+
+## Follow-up validation — Admin UID and verified-claim enforcement (2026-11-19)
+
+- The project owner confirmed that the legacy fixed UID `cCEggFojkdNXlDneD3p3zHdreIg1` belongs to the designated primary Admin account `Kala@gmail.com`. This resolves the earlier UID-identity uncertainty.
+- The proposed Rules file now permits the legacy primary UID and, separately, a custom-claim Admin only when both `auth.token.admin === true` and `auth.token.email_verified === true`. The same verified-claim requirement is applied to privileged reads and writes, including the vehicle Admin write path.
+- This prevents a newly created Admin account from exercising RTDB Admin privileges before email verification. The callable Functions already require a verified caller for Admin operations.
+- Static Node tests now assert that each privileged write path contains both the Admin and email-verification checks, while retaining the legacy primary UID. These tests inspect the Rules text; they are not equivalent to RTDB Emulator authorization tests.
+- Latest CI for commit `c2465987f7dfae75073df63d42a3b2cfa672b90e` completed successfully (typecheck, tests, Vite build, Functions install and syntax check). The follow-up Rules/test commits are awaiting their own CI run.
+- No Emulator test, live Authentication lookup, production Rules update, Functions deployment, or application deployment has been performed. Production remains unchanged.
