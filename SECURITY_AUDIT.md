@@ -193,3 +193,23 @@ Scope: reviewed the migration branch's actual RTDB repositories and the legacy a
 - This change is on `migration/vue3-typescript-vite` only. CI for the resulting commits is pending. No production Rules were changed.
 - The broader unknown-field issue remains open: this targeted change does not establish a complete allowlist for every vehicle property. Inventory all legacy and sibling-app vehicle fields before attempting that hardening.
 - The broad `notificationTokens/.read = auth != null` permission also remains unchanged pending confirmation that no sibling app relies on client-side reads. Telegram remains unchanged per the owner's explicit compatibility decision.
+
+## Owner decision — shared RTDB and multi-application compatibility (2026-11-19)
+
+This decision supersedes any earlier remediation suggestion that would globally restrict shared nodes or impose a strict vehicle-field allowlist.
+
+- The RTDB is a shared database used by multiple applications, including dedicated/special-purpose apps that may have their own legitimate read/write responsibilities.
+- Do not assume the AUTOMAN migration app is the only client of `artifacts/uns-fleet-service/public/data_v2` or sibling shared paths.
+- Preserve existing node paths, broad read/write compatibility, and payload fields unless a concrete unauthorized operation or confirmed application conflict justifies a targeted change.
+- Do not globally deny client reads to `notificationTokens` based only on the AUTOMAN source review. Other applications or notification workflows may depend on that access.
+- Do not impose a global vehicle-field allowlist or reject unknown fields until the data contract across all participating apps has been inventoried and tested.
+- The targeted Anonymous `isHidden` immutability check remains in the proposed Rules because visibility is a master-data control in the reviewed AUTOMAN flow. If another legitimate app is expected to change visibility under Anonymous Auth, revisit this one condition with that app's owner and add a scoped authorization path rather than broadening every Anonymous write.
+- Preserve the existing owner-approved Telegram compatibility decision without changes.
+- Future Rules hardening should be incremental and app-aware: identify the exact path and operation, identify which apps use it, add Emulator coverage for those clients, and avoid unrelated permission changes.
+
+### CI result for targeted branch change
+
+- GitHub Actions run #137 completed successfully for commit `f9eb5c4127ae95008c3631acc90141b7d866e7d4`.
+- Dependency installation, TypeScript typecheck, Node tests, RTDB Emulator authorization tests, Vite build, Functions dependency installation, and Functions lint/syntax checks all passed.
+- Emulator project: `demo-uns-fleet-service`. No production Firebase project or live data was accessed.
+- This is branch validation only; no Functions, web app, or production Rules were deployed.
