@@ -4,6 +4,11 @@ on:
     branches: [migration/vue3-typescript-vite]
   pull_request:
     branches: [main]
+
+concurrency:
+  group: migration-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
