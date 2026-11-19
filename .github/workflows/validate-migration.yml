@@ -21,3 +21,5 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm install --prefix functions
+      - run: npm --prefix functions run lint
