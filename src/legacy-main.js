@@ -1551,34 +1551,42 @@ if (cloudSaved) {
 
 } else {
     this.showToast(
-        'Keluhan tersimpan lokal, tetapi Firebase gagal disimpan sehingga notifikasi tidak dikirim.',
+        'Keluhan tersimpan lokal, tetapi Firebase gagal menyimpan. Notifikasi tidak dikirim; coba sinkronkan kembali.',
         'error'
     );
+    return;
 }
 
                     this.damageNoteInput = '';
-                    this.showToast('Catatan kerusakan berhasil disimpan ke Cloud!', 'success');
+                    this.showToast('Catatan kerusakan berhasil disimpan dan dikonfirmasi Firebase!', 'success');
                 },
 
-                toggleResolveDamageNote(noteId) {
+                async toggleResolveDamageNote(noteId) {
                     if (!this.selectedDamageVehicle || !Array.isArray(this.selectedDamageVehicle.damageNotes)) return;
                     const note = this.selectedDamageVehicle.damageNotes.find(n => n && n.id === noteId);
-                    if (note) {
-                        note.isResolved = !note.isResolved;
-                        safeSetStorage('uns_vehicles', this.vehicles);
-                        this.syncVehicleToCloud(this.selectedDamageVehicle);
+                    if (!note) return;
+                    note.isResolved = !note.isResolved;
+                    safeSetStorage('uns_vehicles', this.vehicles);
+                    const cloudSaved = await this.syncVehicleToCloud(this.selectedDamageVehicle);
+                    if (cloudSaved) {
                         this.syncToGoogleSheetsAuto();
-                        this.showToast(`Status catatan diperbarui menjadi: ${note.isResolved ? 'Selesai' : 'Aktif'}`, 'success');
+                        this.showToast(`Status catatan diperbarui menjadi: ${note.isResolved ? 'Selesai' : 'Aktif'} dan dikonfirmasi Firebase.`, 'success');
+                    } else {
+                        this.showToast('Perubahan status tersimpan di perangkat, tetapi Firebase belum mengonfirmasi.', 'error');
                     }
                 },
 
-                deleteDamageNote(noteId) {
+                async deleteDamageNote(noteId) {
                     if (!this.selectedDamageVehicle || !Array.isArray(this.selectedDamageVehicle.damageNotes)) return;
                     this.selectedDamageVehicle.damageNotes = this.selectedDamageVehicle.damageNotes.filter(n => n && n.id !== noteId);
                     safeSetStorage('uns_vehicles', this.vehicles);
-                    this.syncVehicleToCloud(this.selectedDamageVehicle);
-                    this.syncToGoogleSheetsAuto();
-                    this.showToast('Catatan kerusakan dihapus', 'success');
+                    const cloudSaved = await this.syncVehicleToCloud(this.selectedDamageVehicle);
+                    if (cloudSaved) {
+                        this.syncToGoogleSheetsAuto();
+                        this.showToast('Catatan kerusakan dihapus dan dikonfirmasi Firebase.', 'success');
+                    } else {
+                        this.showToast('Penghapusan tersimpan di perangkat, tetapi Firebase belum mengonfirmasi.', 'error');
+                    }
                 },
 
                 openUpdateKmModal(car) {
@@ -1643,12 +1651,14 @@ if (cloudSaved) {
             newKm: String(newKmVal)
         }
     ); 
-	} else {
-              this.showToast('Odometer tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+    } else {
+                            this.showToast('Odometer tersimpan di perangkat, tetapi Firebase belum mengonfirmasi. Modal tetap terbuka; coba lagi setelah koneksi pulih.', 'error');
                         }
-
-                        this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM`, 'success');
-                        this.activeUpdateKmModal = false;
+                        if (cloudSaved) {
+                            this.syncToGoogleSheetsAuto();
+                            this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM dan dikonfirmasi Firebase.`, 'success');
+                            this.activeUpdateKmModal = false;
+                        }
                     } else {
                         this.showToast('Data armada tidak ditemukan!', 'error');
                     }
@@ -1669,17 +1679,15 @@ if (cloudSaved) {
                         if (Number(f.km) > (Number(car.currentKm) || 0)) car.currentKm = Number(f.km);
                         safeSetStorage('uns_vehicles', this.vehicles);
                         const cloudSaved = await this.syncVehicleToCloud(car);
-                        this.syncToGoogleSheetsAuto();
-
                         const notifDetails = `🚘 *Plat*: ${car.plate} (${car.model})\n👤 *Sopir*: ${car.driver || 'Sopir UNS'}\n🏬 *Bengkel*: ${f.workshop}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM\n📝 *Keluhan*: ${f.notes}`;
                         if (cloudSaved) {
+                            this.syncToGoogleSheetsAuto();
                             await this.dispatchSystemNotification('PENGAJUAN SERVIS BARU', notifDetails);
+                            this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim dan dikonfirmasi Firebase!`, 'success');
+                            this.activeInServiceModal = false;
                         } else {
-                            this.showToast('Pengajuan tersimpan lokal, tetapi Firebase gagal disimpan sehingga Telegram tidak dikirim.', 'error');
+                            this.showToast('Pengajuan tersimpan di perangkat, tetapi Firebase belum mengonfirmasi. Modal tetap terbuka; coba lagi setelah koneksi pulih.', 'error');
                         }
-
-                        this.showToast(`Pengajuan servis ${car.plate} berhasil dikirim!`, 'success');
-                        this.activeInServiceModal = false;
                     }
                 },
 				async sendAutomanFcmBridge(type, title, body, data = {}) {
