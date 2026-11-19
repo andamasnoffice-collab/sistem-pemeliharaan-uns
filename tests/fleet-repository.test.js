@@ -37,6 +37,16 @@ test("updates only the operational vehicle record at the existing RTDB path", as
   }]);
 });
 
+test("updates only the existing isHidden field for vehicle visibility", async () => {
+  const { calls, repository } = createHarness();
+  await repository.updateVehicleVisibility("vehicle-visibility", true);
+  assert.deepEqual(calls, [{
+    operation: "update",
+    path: "root/vehicles/vehicle-visibility",
+    payload: { isHidden: true }
+  }]);
+});
+
 test("deletes a vehicle at the existing RTDB path", async () => {
   const { calls, repository } = createHarness();
   await repository.deleteVehicle("vehicle-2");

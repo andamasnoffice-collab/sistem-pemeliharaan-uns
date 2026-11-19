@@ -1122,15 +1122,22 @@ function safeGetRawStorage(key, fallback = '') {
 
                 async toggleHideVehicle(car) {
                     if (!car) return;
-                    car.isHidden = !Boolean(car.isHidden);
-                    safeSetStorage('uns_vehicles', this.vehicles);
-                    const cloudSaved = await this.syncVehicleToCloud(car);
-                    if (!cloudSaved) {
-                        this.showToast('Perubahan visibilitas tersimpan lokal, tetapi belum dikonfirmasi Firebase.', 'error');
+                    if (!db || !(car._fbKey || car.id)) {
+                        this.showToast('Perubahan visibilitas belum dapat dikirim ke Firebase.', 'error');
                         return;
                     }
-                    await this.syncToGoogleSheetsAuto();
-                    this.showToast(`Armada ${car.plate} ${car.isHidden ? 'disembunyikan' : 'ditampilkan'}`, 'success');
+                    const nextHidden = !Boolean(car.isHidden);
+                    try {
+                        const targetKey = this.cleanFirebaseKey(car._fbKey || car.id);
+                        await fleetRepository.updateVehicleVisibility(targetKey, nextHidden);
+                        car.isHidden = nextHidden;
+                        safeSetStorage('uns_vehicles', this.vehicles);
+                        await this.syncToGoogleSheetsAuto();
+                        this.showToast(`Armada ${car.plate} ${car.isHidden ? 'disembunyikan' : 'ditampilkan'}`, 'success');
+                    } catch (e) {
+                        console.warn('Gagal memperbarui visibilitas armada:', e);
+                        this.showToast('Gagal mengubah visibilitas armada di Firebase. Data lokal tidak diubah.', 'error');
+                    }
                 },
                 getMonthName(m) {
                     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
