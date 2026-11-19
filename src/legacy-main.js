@@ -16,6 +16,7 @@ import {
   updatePassword
 } from "firebase/auth";
 import { createAuthService } from "./services/auth-service.js";
+import { createNotificationTokenRepository } from "./repositories/notification-token-repository.js";
 import {
   ref,
   set,
@@ -49,6 +50,13 @@ const authService = createAuthService({
   signOut,
   sendPasswordResetEmail,
   updatePassword
+});
+
+const notificationTokenRepository = createNotificationTokenRepository({
+  database: db,
+  ref,
+  set,
+  dataPath
 });
 
 function safeGetRawStorage(key, fallback = '') {
@@ -2568,12 +2576,7 @@ console.log('[FCM TEST] Firebase user siap:', currentUser.uid);
     .join('')
     .substring(0, 32);
 
-  const tokenRef = ref(
-    db,
-    dataPath("notificationTokens", tokenId)
-  );
-
-  await set(tokenRef, {
+  await notificationTokenRepository.saveToken(tokenId, {
     token: fcmToken,
     uid: currentUser.uid,
     app: 'automan',
