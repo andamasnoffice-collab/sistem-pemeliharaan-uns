@@ -55,6 +55,9 @@ async function countAdmins() {
  */
 exports.bootstrapPrimaryAdmin = onCall({ region: REGION }, async (request) => {
   const email = requireVerifiedEmail(request);
+  if (request.auth.uid !== PRIMARY_ADMIN_UID) {
+    throw new HttpsError("permission-denied", "UID ini bukan Admin utama yang ditetapkan.");
+  }
   const configuredEmail = normalizeEmail(bootstrapAdminEmail.value());
   if (!configuredEmail || email !== configuredEmail) {
     throw new HttpsError("permission-denied", "Akun ini bukan Admin utama yang ditetapkan.");
