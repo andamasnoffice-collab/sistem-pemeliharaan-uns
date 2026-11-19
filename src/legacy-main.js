@@ -1,5 +1,23 @@
 import { createApp } from "vue";
 import { appId, db, auth } from "./services/firebase";
+import {
+  signInWithEmailAndPassword,
+  signInAnonymously,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updatePassword
+} from "firebase/auth";
+import {
+  ref,
+  set,
+  remove,
+  onValue,
+  onChildAdded,
+  onChildChanged,
+  onChildRemoved,
+  update
+} from "firebase/database";
 
 function safeGetRawStorage(key, fallback = '') {
             try {
