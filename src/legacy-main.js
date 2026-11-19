@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import * as XLSX from "xlsx";
 import { getServiceInterval } from "./domain/service-rules.js";
 import { mapVehicleRecord, mapDriverRecord, mapServiceLogRecord } from "./domain/record-mappers.js";
+import { trackSubscription, disposeSubscriptions } from "./services/subscription-registry.js";
 import { dataPath } from "./services/paths.js";
 import { createFleetRepository } from "./repositories/fleet-repository.js";
 import { createSettingsRepository } from "./repositories/settings-repository.js";
@@ -756,10 +757,8 @@ function safeGetRawStorage(key, fallback = '') {
                 },
 
                 disposeRealtimeListeners() {
-                    const subscriptions = Array.isArray(this._realtimeUnsubs) ? this._realtimeUnsubs.splice(0) : [];
-                    subscriptions.forEach(unsubscribe => {
-                        if (typeof unsubscribe !== 'function') return;
-                        try { unsubscribe(); } catch (e) { console.warn('Gagal melepas listener Firebase:', e); }
+                    disposeSubscriptions(this._realtimeUnsubs, error => {
+                        console.warn('Gagal melepas listener Firebase:', error);
                     });
                     this._settingsUnsub = null;
                     this._attachAdminSettingsListener = null;
@@ -773,11 +772,8 @@ function safeGetRawStorage(key, fallback = '') {
 
                     try {
                         // Semua subscription disimpan agar dapat dilepas saat aplikasi dihancurkan.
-                        const trackListener = (subscribe, ...args) => {
-                            const unsubscribe = subscribe(...args);
-                            if (typeof unsubscribe === 'function') this._realtimeUnsubs.push(unsubscribe);
-                            return unsubscribe;
-                        };
+                        const trackListener = (subscribe, ...args) =>
+                            trackSubscription(this._realtimeUnsubs, subscribe, ...args);
                         const trackedOnValue = (...args) => trackListener(onValue, ...args);
                         const trackedOnChildAdded = (...args) => trackListener(onChildAdded, ...args);
                         const trackedOnChildChanged = (...args) => trackListener(onChildChanged, ...args);
