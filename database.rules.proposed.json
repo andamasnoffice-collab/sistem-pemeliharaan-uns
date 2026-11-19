@@ -1,0 +1,71 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "artifacts": {
+      "uns-fleet-service": {
+        "public": {
+          "data_v2": {
+            "vehicles": {
+              ".read": "auth != null",
+              "$vehicleId": {
+                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.firebase.sign_in_provider === 'anonymous' && data.exists() && newData.exists() && newData.child('id').val() === data.child('id').val() && newData.child('plate').val() === data.child('plate').val() && newData.child('model').val() === data.child('model').val() && newData.child('driver').val() === data.child('driver').val() && newData.child('category').val() === data.child('category').val() && newData.child('lastServiceKm').val() === data.child('lastServiceKm').val() && newData.child('lastServiceDate').val() === data.child('lastServiceDate').val() && newData.child('currentKm').val() >= data.child('currentKm').val()))"
+              }
+            },
+            "drivers": {
+              ".read": "auth != null",
+              "$driverId": {
+                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              }
+            },
+            "logs": {
+              ".read": "auth != null",
+              "$logId": {
+                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              }
+            },
+            "settings": {
+              ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
+              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+            },
+            "notificationTokens": {
+              ".read": "auth != null",
+              "$tokenId": {
+                ".write": "auth != null && newData.child('uid').val() == auth.uid",
+                ".validate": "newData.hasChildren(['token', 'uid', 'app', 'platform', 'updatedAt'])"
+              }
+            },
+            "serviceAlertState": {
+              ".read": "auth != null",
+              "$stateId": {
+                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              }
+            },
+            "notifications": {
+              ".read": "auth != null",
+              "$notificationId": {
+                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              }
+            },
+            "keyStats": {
+              ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
+              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+            },
+            "meta": {
+              ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
+              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+            },
+            "telegramConfig": {
+              ".read": "auth != null",
+              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+            }
+          },
+          "data": {
+            ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
+            ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+          }
+        }
+      }
+    }
+  }
+}
