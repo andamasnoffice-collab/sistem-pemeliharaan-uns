@@ -2311,20 +2311,27 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     await this.syncToGoogleSheetsAuto();
                     this.showToast('Pengaturan Google Sheets berhasil disimpan ke Firebase', 'success');
                 },
-                saveLocalStorageManual() {
+                async saveLocalStorageManual() {
                     try {
                         safeSetStorage('uns_vehicles', this.vehicles);
                         safeSetStorage('uns_logs', this.serviceLogs);
-                        this.vehicles.filter(Boolean).forEach(v => this.syncVehicleToCloud(v));
-                        this.serviceLogs.filter(Boolean).forEach(l => this.syncLogToCloud(l));
-                        this.saveSettingsToCloud();
-                        this.syncToGoogleSheetsAuto();
-                        this.showToast('Semua data tersimpan di Local Storage & Cloud!', 'success');
+                        const cloudWrites = [
+                            ...(this.vehicles || []).filter(Boolean).map(v => this.syncVehicleToCloud(v)),
+                            ...(this.serviceLogs || []).filter(Boolean).map(l => this.syncLogToCloud(l)),
+                            this.saveSettingsToCloud()
+                        ];
+                        const results = await Promise.all(cloudWrites);
+                        if (!results.every(Boolean)) {
+                            this.showToast('Data lokal tersimpan, tetapi sebagian perubahan belum dikonfirmasi Firebase.', 'error');
+                            return;
+                        }
+                        await this.syncToGoogleSheetsAuto();
+                        this.showToast('Data berhasil dikonfirmasi tersimpan di Local Storage & Firebase.', 'success');
                     } catch (e) {
-                        this.showToast('Gagal menyimpan ke Local Storage.', 'error');
+                        console.warn('Gagal menyimpan data manual:', e);
+                        this.showToast('Data lokal mungkin tersimpan, tetapi sinkronisasi Firebase gagal.', 'error');
                     }
                 },
-
                 loadLocalStorageManual() {
                     try {
                         const localV = safeGetStorage('uns_vehicles', null);
