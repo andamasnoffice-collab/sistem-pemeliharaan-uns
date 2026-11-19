@@ -1627,7 +1627,6 @@ if (cloudSaved) {
                         car.currentKm = newKmVal;
                         safeSetStorage('uns_vehicles', this.vehicles);
                         const cloudSaved = await this.syncVehicleToCloud(car);
-                        this.syncToGoogleSheetsAuto();
 
                         const notifDetails = `🚘 *Plat*: ${car.plate} (${car.model})\n👤 *Sopir*: ${car.driver || 'Sopir UNS'}\n📍 *Odometer Lama*: ${oldKmVal.toLocaleString('id-ID')} KM\n📈 *Odometer Baru*: ${newKmVal.toLocaleString('id-ID')} KM`;
                         if (cloudSaved) {
