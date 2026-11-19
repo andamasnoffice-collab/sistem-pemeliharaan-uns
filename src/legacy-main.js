@@ -621,7 +621,7 @@ function safeGetRawStorage(key, fallback = '') {
                     this.activeCloudModal = true;
                 },
 
-                saveSettingsToCloud() {
+                async saveSettingsToCloud() {
                     const settingsObj = {
                         geminiApiKey: this.geminiApiKey || '',
                         waNumber: this.waNumber || '',
@@ -645,26 +645,34 @@ function safeGetRawStorage(key, fallback = '') {
                     safeSetStorage('uns_sheets_webhook_url', settingsObj.sheetsWebhookUrl);
                     safeSetStorage('uns_auto_sync_sheets', settingsObj.autoSyncSheets);
 
-                    if (db && this.isAdmin) {
-                        const telegramConfig = {
-                            botToken: settingsObj.telegramBotToken,
-                            chatId: settingsObj.telegramChatId,
-                            enabled: settingsObj.enableTelegramNotification,
-                            updatedAt: settingsObj.updatedAt
-                        };
-                        Promise.all([
+                    if (!db || !this.isAdmin) return false;
+
+                    const telegramConfig = {
+                        botToken: settingsObj.telegramBotToken,
+                        chatId: settingsObj.telegramChatId,
+                        enabled: settingsObj.enableTelegramNotification,
+                        updatedAt: settingsObj.updatedAt
+                    };
+                    try {
+                        await Promise.all([
                             settingsRepository.updateSettings(settingsObj),
                             settingsRepository.updateTelegramConfig(telegramConfig)
-                        ]).catch(e => {
-                            console.warn('Gagal menyimpan settings Telegram/Firebase:', e);
-                        });
+                        ]);
+                        return true;
+                    } catch (e) {
+                        console.warn('Gagal menyimpan settings Telegram/Firebase:', e);
+                        return false;
                     }
                 },
 
-                saveNotifSettings() {
-                    this.saveSettingsToCloud();
+                async saveNotifSettings() {
+                    const saved = await this.saveSettingsToCloud();
+                    if (!saved) {
+                        this.showToast('Gagal menyimpan pengaturan ke Firebase. Periksa koneksi dan hak akses, lalu coba lagi.', 'error');
+                        return;
+                    }
                     this.activeNotifModal = false;
-                    this.showToast('Pengaturan Notifikasi & Cloud Sync tersimpan!', 'success');
+                    this.showToast('Pengaturan Notifikasi & Cloud Sync berhasil disimpan ke Firebase.', 'success');
                 },
 
                 async loginAdmin() {
