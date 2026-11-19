@@ -33,8 +33,15 @@ The Emulator tests use project ID `demo-uns-fleet-service` and do not connect to
 7. Test primary Admin, additional Admin, unverified Admin, ordinary user, Anonymous odometer flow, and Admin revocation on a controlled account.
 8. Deploy the web application only after production Functions and Rules tests pass.
 
-## Outstanding security work
+## Telegram compatibility decision — owner accepted (2026-11-19)
 
-- `telegramConfig` is intentionally still readable by authenticated sessions for legacy client compatibility. It contains sensitive bot configuration. Migrate Telegram sending and credentials to a trusted backend, then remove client read access and rotate the exposed bot token before claiming the RTDB Rules audit is fully closed.
-- Do not place service account keys, bot tokens, or other secrets in the browser or repository.
-- Production deployment and changes to the `main` branch require explicit approval.
+- The project owner explicitly chose to keep the existing Telegram integration unchanged because notifications are working reliably.
+- Preserve the current `telegramConfig` read permission, browser listener, client-side configuration flow, and Telegram Bot API delivery path. Do not migrate, disable, rotate, or otherwise change Telegram as part of this work unless the owner later requests it.
+- This is an accepted compatibility/security risk, not a claim that the bot token is protected: any authenticated client that can read `telegramConfig` may be able to obtain its bot token. Keep this limitation visible in the audit record.
+- The isolated RTDB Emulator suite includes a compatibility test confirming that the existing Telegram config read remains available. Do not remove or weaken that test.
+
+## Remaining rollout controls
+
+- Continue hardening and validating Admin authorization independently of Telegram.
+- Do not place additional secrets in the repository.
+- Production deployment, production RTDB Rules changes, and changes to the `main` branch require explicit owner approval.
