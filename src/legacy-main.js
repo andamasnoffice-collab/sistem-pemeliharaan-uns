@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { getServiceInterval } from "./domain/service-rules.js";
+import { dataPath } from "./services/paths.js";
 import { appId, db, auth } from "./services/firebase";
 import {
   signInWithEmailAndPassword,
@@ -628,8 +629,8 @@ function safeGetRawStorage(key, fallback = '') {
 
                     if (db && this.isAdmin) {
                         Promise.all([
-                            update(ref(db, `artifacts/${appId}/public/data_v2/settings`), settingsObj),
-                            update(ref(db, `artifacts/${appId}/public/data_v2/telegramConfig`), {
+                            update(ref(db, dataPath("settings")), settingsObj),
+                            update(ref(db, dataPath("telegramConfig")), {
                                 botToken: settingsObj.telegramBotToken,
                                 chatId: settingsObj.telegramChatId,
                                 enabled: settingsObj.enableTelegramNotification,
@@ -753,11 +754,11 @@ function safeGetRawStorage(key, fallback = '') {
                         const trackedOnChildAdded = (...args) => trackListener(onChildAdded, ...args);
                         const trackedOnChildChanged = (...args) => trackListener(onChildChanged, ...args);
                         const trackedOnChildRemoved = (...args) => trackListener(onChildRemoved, ...args);
-                        const vehiclesRef = ref(db, `artifacts/${appId}/public/data_v2/vehicles`);
-                        const driversRef = ref(db, `artifacts/${appId}/public/data_v2/drivers`);
-                        const logsRef = ref(db, `artifacts/${appId}/public/data_v2/logs`);
-                        const settingsRef = ref(db, `artifacts/${appId}/public/data_v2/settings`);
-                        const telegramConfigRef = ref(db, `artifacts/${appId}/public/data_v2/telegramConfig`);
+                        const vehiclesRef = ref(db, dataPath("vehicles"));
+                        const driversRef = ref(db, dataPath("drivers"));
+                        const logsRef = ref(db, dataPath("logs"));
+                        const settingsRef = ref(db, dataPath("settings"));
+                        const telegramConfigRef = ref(db, dataPath("telegramConfig"));
                         const connectedRef = ref(db, '.info/connected');
 
                         // Pantau koneksi saja. Jangan menghapus cache lokal hanya karena
@@ -976,7 +977,7 @@ function safeGetRawStorage(key, fallback = '') {
                         const targetKey = this.cleanFirebaseKey(car._fbKey || car.id);
                         // Aplikasi operasional hanya boleh memperbarui field operasional.
                         // Master kendaraan (plat, model, driver, kategori, ON/OFF) dikelola Admin.
-                        await update(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`), {
+                        await update(ref(db, dataPath("vehicles", targetKey)), {
                             currentKm: Number(car.currentKm) || 0,
                             isUnderService: Boolean(car.isUnderService),
                             targetWorkshop: car.targetWorkshop || '',
@@ -998,7 +999,7 @@ function safeGetRawStorage(key, fallback = '') {
                             ? carOrId
                             : (this.vehicles || []).find(v => v && (v.id === carOrId || v.plate === carOrId));
                         const targetKey = this.cleanFirebaseKey((car && car._fbKey) || (car && car.id) || carOrId);
-                        await remove(ref(db, `artifacts/${appId}/public/data_v2/vehicles/${targetKey}`));
+                        await remove(ref(db, dataPath("vehicles", targetKey)));
                     } catch(e) { console.warn('Gagal menghapus armada dari cloud:', e); }
                 },
 
@@ -1006,7 +1007,7 @@ function safeGetRawStorage(key, fallback = '') {
                     if (!db || !log || !(log._fbKey || log.id)) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(log._fbKey || log.id);
-                        await update(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`), log);
+                        await update(ref(db, dataPath("logs", targetKey)), log);
                     } catch(e) { console.warn('Gagal menyinkronkan log ke cloud:', e); }
                 },
 
@@ -1014,7 +1015,7 @@ function safeGetRawStorage(key, fallback = '') {
                     if (!db || !logId) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(logId);
-                        await remove(ref(db, `artifacts/${appId}/public/data_v2/logs/${targetKey}`));
+                        await remove(ref(db, dataPath("logs", targetKey)));
                     } catch(e) {}
                 },
 
@@ -2537,7 +2538,7 @@ console.log('[FCM TEST] Firebase user siap:', currentUser.uid);
 
   const tokenRef = ref(
     db,
-    `artifacts/${appId}/public/data_v2/notificationTokens/${tokenId}`
+    dataPath("notificationTokens", tokenId)
   );
 
   await set(tokenRef, {
