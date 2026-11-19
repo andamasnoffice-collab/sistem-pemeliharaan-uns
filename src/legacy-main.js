@@ -134,6 +134,7 @@ function safeGetRawStorage(key, fallback = '') {
                     firebaseAuthErrorMessage: '',
                     currentUser: null,
                     _realtimeListenersAttached: false,
+                    _realtimeUnsubs: [],
                     _settingsUnsub: null,
 
                     toast: { show: false, message: '', type: 'success' },
@@ -179,6 +180,10 @@ function safeGetRawStorage(key, fallback = '') {
                 } catch (e) {
                     console.warn("Error inside created hook:", e);
                 }
+            },
+
+            beforeUnmount() {
+                this.disposeRealtimeListeners();
             },
 
             computed: {
@@ -667,7 +672,9 @@ function safeGetRawStorage(key, fallback = '') {
                 async logoutAdmin() {
                     try {
                         if (typeof this._settingsUnsub === 'function') {
-                            try { this._settingsUnsub(); } catch (e) {}
+                            const unsubscribe = this._settingsUnsub;
+                            try { unsubscribe(); } catch (e) {}
+                            this._realtimeUnsubs = (this._realtimeUnsubs || []).filter(fn => fn !== unsubscribe);
                             this._settingsUnsub = null;
                         }
                         await signOut(auth);
@@ -719,12 +726,33 @@ function safeGetRawStorage(key, fallback = '') {
                     }
                 },
 
+                disposeRealtimeListeners() {
+                    const subscriptions = Array.isArray(this._realtimeUnsubs) ? this._realtimeUnsubs.splice(0) : [];
+                    subscriptions.forEach(unsubscribe => {
+                        if (typeof unsubscribe !== 'function') return;
+                        try { unsubscribe(); } catch (e) { console.warn('Gagal melepas listener Firebase:', e); }
+                    });
+                    this._settingsUnsub = null;
+                    this._attachAdminSettingsListener = null;
+                    this._realtimeListenersAttached = false;
+                },
+
                 setupRealtimeListeners() {
                     if (!db || !this.currentUser) return;
                     if (this._realtimeListenersAttached) return;
                     this._realtimeListenersAttached = true;
 
                     try {
+                        // Semua subscription disimpan agar dapat dilepas saat aplikasi dihancurkan.
+                        const trackListener = (subscribe, ...args) => {
+                            const unsubscribe = subscribe(...args);
+                            if (typeof unsubscribe === 'function') this._realtimeUnsubs.push(unsubscribe);
+                            return unsubscribe;
+                        };
+                        const trackedOnValue = (...args) => trackListener(onValue, ...args);
+                        const trackedOnChildAdded = (...args) => trackListener(onChildAdded, ...args);
+                        const trackedOnChildChanged = (...args) => trackListener(onChildChanged, ...args);
+                        const trackedOnChildRemoved = (...args) => trackListener(onChildRemoved, ...args);
                         const vehiclesRef = ref(db, `artifacts/${appId}/public/data_v2/vehicles`);
                         const driversRef = ref(db, `artifacts/${appId}/public/data_v2/drivers`);
                         const logsRef = ref(db, `artifacts/${appId}/public/data_v2/logs`);
@@ -738,7 +766,7 @@ function safeGetRawStorage(key, fallback = '') {
                         // berhasil menerima data Firebase.
                         let vehicleCloudSynced = false;
                         let logCloudSynced = false;
-                        onValue(connectedRef, snap => {
+                        trackedOnValue(connectedRef, snap => {
                             if (snap.val() === true && this.cloudStatus !== 'error') {
                                 this.cloudStatus = 'connected';
                                 this.cloudErrorMessage = '';
@@ -772,7 +800,7 @@ function safeGetRawStorage(key, fallback = '') {
                             safeSetStorage('uns_vehicles', this.vehicles);
                         };
 
-                        onChildAdded(vehiclesRef, snap => {
+                        trackedOnChildAdded(vehiclesRef, snap => {
                             if (!vehicleCloudSynced) {
                                 vehicleCloudSynced = true;
                                 this.vehicles = [];
@@ -786,7 +814,7 @@ function safeGetRawStorage(key, fallback = '') {
                             this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal membaca data armada dari Firebase.');
                         });
 
-                        onChildChanged(vehiclesRef, snap => {
+                        trackedOnChildChanged(vehiclesRef, snap => {
                             this.cloudStatus = 'connected';
                             this.cloudErrorMessage = '';
                             upsertVehicle(snap.key, snap.val());
@@ -796,7 +824,7 @@ function safeGetRawStorage(key, fallback = '') {
                             this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau perubahan armada.');
                         });
 
-                        onChildRemoved(vehiclesRef, snap => {
+                        trackedOnChildRemoved(vehiclesRef, snap => {
                             this.cloudStatus = 'connected';
                             this.cloudErrorMessage = '';
                             removeVehicle(snap.key);
@@ -814,12 +842,12 @@ function safeGetRawStorage(key, fallback = '') {
                             const idx = (this.drivers || []).findIndex(d => d && (d._fbKey === key || d.id === item.id));
                             if (idx >= 0) this.drivers.splice(idx, 1, item); else this.drivers.push(item);
                         };
-                        onChildAdded(driversRef, snap => {
+                        trackedOnChildAdded(driversRef, snap => {
                             if (!driverCloudSynced) { driverCloudSynced = true; this.drivers = []; }
                             upsertDriver(snap.key, snap.val());
                         }, err => console.warn('RTDB drivers listener warning:', err));
-                        onChildChanged(driversRef, snap => upsertDriver(snap.key, snap.val()), err => console.warn('RTDB drivers change warning:', err));
-                        onChildRemoved(driversRef, snap => { this.drivers = (this.drivers || []).filter(d => d && d._fbKey !== snap.key); }, err => console.warn('RTDB drivers remove warning:', err));
+                        trackedOnChildChanged(driversRef, snap => upsertDriver(snap.key, snap.val()), err => console.warn('RTDB drivers change warning:', err));
+                        trackedOnChildRemoved(driversRef, snap => { this.drivers = (this.drivers || []).filter(d => d && d._fbKey !== snap.key); }, err => console.warn('RTDB drivers remove warning:', err));
 
                         // Log servis: incremental juga.
                         const upsertLog = (key, val) => {
@@ -840,7 +868,7 @@ function safeGetRawStorage(key, fallback = '') {
                             safeSetStorage('uns_logs', this.serviceLogs);
                         };
 
-                        onChildAdded(logsRef, snap => {
+                        trackedOnChildAdded(logsRef, snap => {
                             if (!logCloudSynced) {
                                 logCloudSynced = true;
                                 this.serviceLogs = [];
@@ -854,7 +882,7 @@ function safeGetRawStorage(key, fallback = '') {
                             this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal membaca log servis dari Firebase.');
                         });
 
-                        onChildChanged(logsRef, snap => {
+                        trackedOnChildChanged(logsRef, snap => {
                             this.cloudStatus = 'connected';
                             this.cloudErrorMessage = '';
                             upsertLog(snap.key, snap.val());
@@ -864,7 +892,7 @@ function safeGetRawStorage(key, fallback = '') {
                             this.cloudErrorMessage = this.explainFirebaseError(err, 'Gagal memantau perubahan log servis.');
                         });
 
-                        onChildRemoved(logsRef, snap => {
+                        trackedOnChildRemoved(logsRef, snap => {
                             this.cloudStatus = 'connected';
                             this.cloudErrorMessage = '';
                             removeLog(snap.key);
@@ -877,7 +905,7 @@ function safeGetRawStorage(key, fallback = '') {
                         // Konfigurasi Telegram sengaja dibaca semua perangkat internal.
                         // Tombol simpan tetap dibatasi Admin. Ini memudahkan semua perangkat
                         // mengirim notifikasi tanpa harus login Admin.
-                        onValue(telegramConfigRef, snap => {
+                        trackedOnValue(telegramConfigRef, snap => {
                             const cfg = snap.val();
                             if (!cfg) return;
                             if (cfg.botToken !== undefined) this.telegramBotToken = String(cfg.botToken || '');
@@ -888,7 +916,7 @@ function safeGetRawStorage(key, fallback = '') {
                         const attachAdminSettingsListener = () => {
                             if (!this.isAdmin) return;
                             if (typeof this._settingsUnsub === 'function') return;
-                            this._settingsUnsub = onValue(settingsRef, snap => {
+                            this._settingsUnsub = trackedOnValue(settingsRef, snap => {
                                 const cloudSettings = snap.val();
                                 if (!cloudSettings) return;
                                 if (cloudSettings.geminiApiKey !== undefined) this.geminiApiKey = cloudSettings.geminiApiKey;
