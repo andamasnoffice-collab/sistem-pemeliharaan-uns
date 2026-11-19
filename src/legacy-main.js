@@ -97,6 +97,7 @@ function safeGetRawStorage(key, fallback = '') {
                 return {
                     currentTab: 'dashboard',
                     isAdmin: false,
+                    isPrimaryAdmin: false,
                     isAdminBootstrapEligible: false,
                     adminManagementOpen: false,
                     adminAccounts: [],
@@ -570,11 +571,13 @@ function safeGetRawStorage(key, fallback = '') {
                                 this.firebaseAuthErrorCode = '';
                                 this.firebaseAuthErrorMessage = '';
                                 this.isAdmin = false;
+                                this.isPrimaryAdmin = false;
                                 this.isAdminBootstrapEligible = false;
                                 if (!user.isAnonymous) {
                                     try {
                                         const tokenResult = await user.getIdTokenResult();
                                         this.isAdmin = tokenResult.claims.admin === true && tokenResult.claims.email_verified === true;
+                                        this.isPrimaryAdmin = this.isAdmin && user.uid === "cCEggFojkdNXlDneD3p3zHdreIg1";
                                         this.isAdminBootstrapEligible =
                                             String(user.email || '').trim().toLowerCase() === 'kala@gmail.com' &&
                                             tokenResult.claims.email_verified === true &&
@@ -582,6 +585,7 @@ function safeGetRawStorage(key, fallback = '') {
                                     } catch (claimError) {
                                         console.warn('Gagal memverifikasi klaim Admin:', claimError);
                                         this.isAdmin = false;
+                                        this.isPrimaryAdmin = false;
                                     }
                                 }
                                 this.cloudStatus = 'connected';
@@ -765,7 +769,8 @@ function safeGetRawStorage(key, fallback = '') {
                         await bootstrapPrimaryAdmin();
                         await auth.currentUser.getIdToken(true);
                         const tokenResult = await auth.currentUser.getIdTokenResult(true);
-                        this.isAdmin = tokenResult.claims.admin === true;
+                        this.isAdmin = tokenResult.claims.admin === true && tokenResult.claims.email_verified === true;
+                        this.isPrimaryAdmin = this.isAdmin && auth.currentUser.uid === "cCEggFojkdNXlDneD3p3zHdreIg1";
                         this.isAdminBootstrapEligible = false;
                         if (this.isAdmin && typeof this._attachAdminSettingsListener === 'function') this._attachAdminSettingsListener();
                         this.showToast(this.isAdmin ? 'Hak Admin utama berhasil diaktifkan.' : 'Klaim Admin belum terdeteksi. Login ulang untuk memperbarui sesi.', this.isAdmin ? 'success' : 'error');
@@ -777,12 +782,12 @@ function safeGetRawStorage(key, fallback = '') {
                     }
                 },
                 async openAdminManagement() {
-                    if (!this.isAdmin) return;
+                    if (!this.isPrimaryAdmin) return;
                     this.adminManagementOpen = true;
                     await this.refreshAdminAccounts();
                 },
                 async refreshAdminAccounts() {
-                    if (!this.isAdmin || this.adminManagementBusy) return;
+                    if (!this.isPrimaryAdmin || this.adminManagementBusy) return;
                     this.adminManagementBusy = true;
                     try {
                         const result = await listAdminAccounts();
@@ -794,7 +799,7 @@ function safeGetRawStorage(key, fallback = '') {
                     }
                 },
                 async addAdminAccount() {
-                    if (!this.isAdmin) return;
+                    if (!this.isPrimaryAdmin) return;
                     const email = String(this.adminForm.email || '').trim().toLowerCase();
                     const password = String(this.adminForm.password || '');
                     if (!email || password.length < 12) {
@@ -815,7 +820,7 @@ function safeGetRawStorage(key, fallback = '') {
                     }
                 },
                 async removeAdminAccount(admin) {
-                    if (!this.isAdmin || !admin?.uid || !confirm('Cabut hak Admin untuk ' + (admin.email || admin.uid) + '? Akun dan data tidak dihapus.')) return;
+                    if (!this.isPrimaryAdmin || !admin?.uid || !confirm('Cabut hak Admin untuk ' + (admin.email || admin.uid) + '? Akun dan data tidak dihapus.')) return;
                     this.adminManagementBusy = true;
                     try {
                         await revokeAdminAccess(admin.uid);
@@ -839,6 +844,7 @@ function safeGetRawStorage(key, fallback = '') {
                         }
                         await authService.signOut();
                         this.isAdmin = false;
+                        this.isPrimaryAdmin = false;
                         this.currentTab = 'dashboard';
                         this.showToast('Admin berhasil keluar. Mode Publik aktif.', 'success');
                     } catch (e) {
