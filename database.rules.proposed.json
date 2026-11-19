@@ -9,7 +9,7 @@
             "vehicles": {
               ".read": "auth != null",
               "$vehicleId": {
-                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true) || (auth.token.firebase.sign_in_provider === 'anonymous' && data.exists() && newData.exists() && newData.child('id').val() === data.child('id').val() && newData.child('plate').val() === data.child('plate').val() && newData.child('model').val() === data.child('model').val() && newData.child('driver').val() === data.child('driver').val() && newData.child('category').val() === data.child('category').val() && newData.child('lastServiceKm').val() === data.child('lastServiceKm').val() && newData.child('lastServiceDate').val() === data.child('lastServiceDate').val() && newData.child('currentKm').val() >= data.child('currentKm').val()))"
+                ".write": "auth != null && ((auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true)) || (auth.token.firebase.sign_in_provider === 'anonymous' && data.exists() && newData.exists() && newData.child('id').val() === data.child('id').val() && newData.child('plate').val() === data.child('plate').val() && newData.child('model').val() === data.child('model').val() && newData.child('driver').val() === data.child('driver').val() && newData.child('category').val() === data.child('category').val() && newData.child('lastServiceKm').val() === data.child('lastServiceKm').val() && newData.child('lastServiceDate').val() === data.child('lastServiceDate').val() && newData.child('currentKm').val() >= data.child('currentKm').val()))"
               }
             },
             "drivers": {
