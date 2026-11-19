@@ -2315,10 +2315,18 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
 
                             jsonData.forEach(row => {
                                 if (row.Plat && row.TotalBiaya) {
-                                    let dateStr = new Date().toISOString().substring(0, 10);
+                                    // Gunakan tanggal kalender lokal (WIB), bukan UTC.
+                                    // toISOString() dapat menggeser tanggal Excel ke hari sebelumnya.
+                                    const toLocalDateKey = date => {
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+                                        return `${year}-${month}-${day}`;
+                                    };
+                                    let dateStr = toLocalDateKey(new Date());
                                     if (row.Tanggal) {
                                         const parsed = this.parseLocalDate(row.Tanggal);
-                                        if (parsed) dateStr = parsed.toISOString().substring(0, 10);
+                                        if (parsed) dateStr = toLocalDateKey(parsed);
                                     }
                                     const logObj = {
                                         id: 'LOG-IMP-' + Math.random().toString(36).substr(2, 9),
