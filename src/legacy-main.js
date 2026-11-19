@@ -13,9 +13,11 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
-  updatePassword
+  updatePassword,
+  sendEmailVerification
 } from "firebase/auth";
 import { createAuthService } from "./services/auth-service.js";
+import { bootstrapPrimaryAdmin, createAdminAccount, listAdminAccounts, revokeAdminAccess } from "./services/admin-management-service.js";
 import { createNotificationTokenRepository } from "./repositories/notification-token-repository.js";
 import { createRealtimeReferences } from "./repositories/realtime-references.js";
 import {
@@ -95,6 +97,11 @@ function safeGetRawStorage(key, fallback = '') {
                 return {
                     currentTab: 'dashboard',
                     isAdmin: false,
+                    isAdminBootstrapEligible: false,
+                    adminManagementOpen: false,
+                    adminAccounts: [],
+                    adminForm: { email: '', password: '' },
+                    adminManagementBusy: false,
                     adminEmailInput: safeGetRawStorage('uns_admin_email', ''),
                     adminPasswordInput: '',
                     showAdminPwd: false,
@@ -549,7 +556,7 @@ function safeGetRawStorage(key, fallback = '') {
                             }
                         }, 15000);
 
-                        onAuthStateChanged(auth, (user) => {
+                        onAuthStateChanged(auth, async (user) => {
                             this.firebaseAuthResolved = true;
                             if (this.firebaseAuthTimer) {
                                 clearTimeout(this.firebaseAuthTimer);
@@ -562,7 +569,21 @@ function safeGetRawStorage(key, fallback = '') {
                                 this.firebaseAuthProvider = user.isAnonymous ? 'anonymous' : (user.providerData?.[0]?.providerId || 'password');
                                 this.firebaseAuthErrorCode = '';
                                 this.firebaseAuthErrorMessage = '';
-                                this.isAdmin = !user.isAnonymous;
+                                this.isAdmin = false;
+                                this.isAdminBootstrapEligible = false;
+                                if (!user.isAnonymous) {
+                                    try {
+                                        const tokenResult = await user.getIdTokenResult();
+                                        this.isAdmin = tokenResult.claims.admin === true && tokenResult.claims.email_verified === true;
+                                        this.isAdminBootstrapEligible =
+                                            String(user.email || '').trim().toLowerCase() === 'kala@gmail.com' &&
+                                            tokenResult.claims.email_verified === true &&
+                                            tokenResult.claims.admin !== true;
+                                    } catch (claimError) {
+                                        console.warn('Gagal memverifikasi klaim Admin:', claimError);
+                                        this.isAdmin = false;
+                                    }
+                                }
                                 this.cloudStatus = 'connected';
                                 this.cloudErrorMessage = '';
                                 this.setupRealtimeListeners();
@@ -579,6 +600,7 @@ function safeGetRawStorage(key, fallback = '') {
                                 this.firebaseAuthErrorCode = '';
                                 this.firebaseAuthErrorMessage = '';
                                 this.isAdmin = false;
+                                this.isAdminBootstrapEligible = false;
                                 this.cloudStatus = 'connected';
                                 this.cloudErrorMessage = '';
                                 this.setupRealtimeListeners();
@@ -590,6 +612,7 @@ function safeGetRawStorage(key, fallback = '') {
                                 this.firebaseAuthErrorCode = String(err?.code || 'unknown');
                                 this.firebaseAuthErrorMessage = String(err?.message || '');
                                 this.isAdmin = false;
+                                this.isAdminBootstrapEligible = false;
                                 this.cloudStatus = 'error';
                                 this.cloudErrorMessage = this.explainFirebaseError(err, 'Login anonim Firebase gagal.');
                             });
@@ -704,17 +727,102 @@ function safeGetRawStorage(key, fallback = '') {
                         return;
                     }
                     try {
-                        await authService.signInWithEmailAndPassword(email, pwd);
+                        const credential = await authService.signInWithEmailAndPassword(email, pwd);
                         safeSetStorage('uns_admin_email', email);
                         this.activeAdminModal = false;
                         this.adminPasswordInput = '';
-                        this.showToast('Login Admin Berhasil (Firebase Auth)!', 'success');
+                        if (!credential.user.emailVerified) {
+                            await sendEmailVerification(credential.user);
+                            await authService.signOut();
+                            this.showToast('Email belum terverifikasi. Tautan verifikasi telah dikirim; verifikasi dahulu lalu login kembali.', 'error');
+                            return;
+                        }
+                        const tokenResult = await credential.user.getIdTokenResult(true);
+                        if (tokenResult.claims.admin === true) {
+                            this.showToast('Login Admin terverifikasi berhasil.', 'success');
+                        } else if (email.toLowerCase() === 'kala@gmail.com') {
+                            this.showToast('Akun utama terverifikasi. Silakan aktifkan hak Admin utama satu kali.', 'success');
+                        } else {
+                            this.showToast('Login berhasil, tetapi akun ini belum memiliki hak Admin.', 'error');
+                        }
                     } catch (e) {
                         let msg = 'Gagal login. Periksa email dan password Anda!';
                         if (e.code === 'auth/invalid-email') msg = 'Format email tidak valid!';
                         else if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'Email atau password salah!';
                         else if (e.code === 'auth/too-many-requests') msg = 'Terlalu banyak percobaan. Coba beberapa saat lagi!';
                         this.showToast(msg, 'error');
+                    }
+                },
+
+                async activatePrimaryAdmin() {
+                    if (!this.isAdminBootstrapEligible || !auth?.currentUser) {
+                        this.showToast('Hanya akun utama terverifikasi yang dapat melakukan aktivasi.', 'error');
+                        return;
+                    }
+                    this.adminManagementBusy = true;
+                    try {
+                        await bootstrapPrimaryAdmin();
+                        await auth.currentUser.getIdToken(true);
+                        const tokenResult = await auth.currentUser.getIdTokenResult(true);
+                        this.isAdmin = tokenResult.claims.admin === true;
+                        this.isAdminBootstrapEligible = false;
+                        if (this.isAdmin && typeof this._attachAdminSettingsListener === 'function') this._attachAdminSettingsListener();
+                        this.showToast(this.isAdmin ? 'Hak Admin utama berhasil diaktifkan.' : 'Klaim Admin belum terdeteksi. Login ulang untuk memperbarui sesi.', this.isAdmin ? 'success' : 'error');
+                    } catch (error) {
+                        console.error('Bootstrap Admin gagal:', error);
+                        this.showToast('Aktivasi Admin gagal: ' + (error.message || 'Periksa konfigurasi backend.'), 'error');
+                    } finally {
+                        this.adminManagementBusy = false;
+                    }
+                },
+                async openAdminManagement() {
+                    if (!this.isAdmin) return;
+                    this.adminManagementOpen = true;
+                    await this.refreshAdminAccounts();
+                },
+                async refreshAdminAccounts() {
+                    if (!this.isAdmin || this.adminManagementBusy) return;
+                    this.adminManagementBusy = true;
+                    try {
+                        const result = await listAdminAccounts();
+                        this.adminAccounts = Array.isArray(result.admins) ? result.admins : [];
+                    } catch (error) {
+                        this.showToast('Daftar Admin gagal dimuat: ' + (error.message || 'Kesalahan backend.'), 'error');
+                    } finally {
+                        this.adminManagementBusy = false;
+                    }
+                },
+                async addAdminAccount() {
+                    if (!this.isAdmin) return;
+                    const email = String(this.adminForm.email || '').trim().toLowerCase();
+                    const password = String(this.adminForm.password || '');
+                    if (!email || password.length < 12) {
+                        this.showToast('Isi email dan password sementara minimal 12 karakter.', 'error');
+                        return;
+                    }
+                    this.adminManagementBusy = true;
+                    try {
+                        await createAdminAccount(email, password);
+                        this.adminForm = { email: '', password: '' };
+                        await this.refreshAdminAccounts();
+                        this.showToast('Akun Admin dibuat. Pemilik email harus memverifikasi alamat email sebelum dapat mengelola aplikasi.', 'success');
+                    } catch (error) {
+                        this.showToast('Gagal menambahkan Admin: ' + (error.message || 'Kesalahan backend.'), 'error');
+                    } finally {
+                        this.adminManagementBusy = false;
+                    }
+                },
+                async removeAdminAccount(admin) {
+                    if (!this.isAdmin || !admin?.uid || !confirm('Cabut hak Admin untuk ' + (admin.email || admin.uid) + '? Akun dan data tidak dihapus.')) return;
+                    this.adminManagementBusy = true;
+                    try {
+                        await revokeAdminAccess(admin.uid);
+                        await this.refreshAdminAccounts();
+                        this.showToast('Hak Admin berhasil dicabut. Akun Firebase dan data tidak dihapus.', 'success');
+                    } catch (error) {
+                        this.showToast('Gagal mencabut hak Admin: ' + (error.message || 'Kesalahan backend.'), 'error');
+                    } finally {
+                        this.adminManagementBusy = false;
                     }
                 },
 
