@@ -66,3 +66,17 @@ The Firebase web `apiKey` in the client configuration is an application identifi
 - Realtime listener unsubscribe functions are tracked and released on root component teardown.
 - Admin settings listener is released on logout without detaching the public data listeners.
 - SheetJS is now imported from the pinned npm dependency instead of loaded from a third-party CDN.
+
+
+## Admin management implementation status — migration branch only
+
+- Added callable Firebase Functions for one-time primary-admin bootstrap, Admin creation, Admin listing, and Admin-claim revocation. These functions use Firebase Authentication Admin SDK and do not read or write Realtime Database.
+- The bootstrap endpoint accepts only the verified account matching the server-side `BOOTSTRAP_ADMIN_EMAIL` parameter. It refuses first-time bootstrap if another Admin claim already exists.
+- The frontend now checks the server-issued `admin: true` custom claim and the standard `email_verified` token claim. A non-admin email/password sign-in is returned to anonymous public mode.
+- The frontend has a Manajemen Admin dialog. New accounts receive an Admin custom claim but must verify their email before the application treats them as Admin.
+- Revocation removes the Admin custom claim and revokes refresh tokens. Already-issued ID tokens can remain valid until expiry; production RTDB Rules must be tested with this propagation window in mind.
+- GitHub Actions run `44449172118` passed on commit `4cf57cdff44fd832a96437f47ece9feb9cdf1376`, including typecheck, tests, build, Functions dependency installation, and Functions syntax validation. Subsequent UI hardening changes are subject to their own latest CI result.
+- Firebase Functions have not been deployed. The `BOOTSTRAP_ADMIN_EMAIL` parameter has not been configured in the live project. The primary account has not been verified against live Firebase Authentication from this repository workflow.
+- No RTDB Rules file or `.firebaserc` project binding is present in this repository branch. Therefore, this source change does not establish production database authorization. The legacy UI previously used client-side role checks; all production write permissions must be independently enforced by the live RTDB Rules before enabling this migration.
+- App Check is not enforced by the callable functions yet. Configure and validate App Check for the production web app before enabling enforcement.
+- Do not deploy or replace the production app until the live Rules are inspected and tested with anonymous, primary-admin, ordinary-account, and revoked-admin sessions.
