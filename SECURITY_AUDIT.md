@@ -80,3 +80,26 @@ The Firebase web `apiKey` in the client configuration is an application identifi
 - No RTDB Rules file or `.firebaserc` project binding is present in this repository branch. Therefore, this source change does not establish production database authorization. The legacy UI previously used client-side role checks; all production write permissions must be independently enforced by the live RTDB Rules before enabling this migration.
 - App Check is not enforced by the callable functions yet. Configure and validate App Check for the production web app before enabling enforcement.
 - Do not deploy or replace the production app until the live Rules are inspected and tested with anonymous, primary-admin, ordinary-account, and revoked-admin sessions.
+
+
+## Live RTDB Rules audit — supplied by project owner (2026-11-19)
+
+Scope: static review of the owner-supplied Rules JSON against the migration branch paths and repository operations. No production Rules, RTDB data, Authentication users, or deployed services were changed. This is not an Emulator or live authorization test.
+
+### Findings
+
+- **Critical — Telegram credential disclosure:** `artifacts/uns-fleet-service/public/data_v2/telegramConfig/.read` is `auth != null`. Anonymous Authentication satisfies this condition, and the current client attaches a Telegram config listener for every session and stores the bot token in client state. The token is therefore available to any authenticated/anonymous app session. Do not simply deny client reads before replacing the current client-side Telegram delivery flow; that would break existing notifications. Move bot credentials and message sending to a trusted backend, then remove client access and rotate the exposed token.
+- **High — Custom Claims Admin are not authorized by the supplied Rules:** the Admin management implementation checks `auth.token.admin === true`, but the supplied Rules authorize privileged writes using only the fixed UID `cCEggFojkdNXlDneD3p3zHdreIg1`. Newly created Admin accounts will not be able to manage `vehicles`, `drivers`, `logs`, `settings`, `serviceAlertState`, `notifications`, `keyStats`, `meta`, or `telegramConfig` unless the relevant Rules explicitly recognize the Admin custom claim. The bootstrap account's UID must be verified against the existing fixed UID before rollout; do not assume they are the same account.
+- **High — Admin settings listener mismatch:** the frontend attaches the `settings` listener for a verified custom-claim Admin, while the supplied `settings/.read` only permits the fixed UID. A newly bootstrapped or added Admin will receive a permission-denied error on this listener.
+- **Medium — Anonymous vehicle update policy:** the `vehicles/$vehicleId/.write` condition allows anonymous sessions to update existing records only when the listed identity/master/service-baseline fields remain unchanged and `currentKm` does not decrease. This is consistent with a restricted odometer/operational-update pattern, but it does not explicitly constrain the other writable operational fields. Validate the exact intended field allowlist and payloads with RTDB Emulator before changing it. Anonymous sessions cannot create or delete vehicle records under this condition.
+- **Medium — notification token validation:** each token write requires `newData.child('uid').val() == auth.uid` and validates required fields. This binds a token record to the authenticated UID, but the supplied rule does not permit deletion because a delete has null `newData`. Confirm whether token cleanup is required and design a narrowly scoped delete rule if so.
+- **Compatibility caution — shared/legacy paths:** the supplied Rules also cover sibling `data` and nodes such as `serviceAlertState`, `notifications`, `keyStats`, and `meta`. The migration branch's core repository uses `data_v2/{vehicles,drivers,logs,settings,telegramConfig,notificationTokens}`; other apps may depend on the sibling paths. Do not remove or rename any of these paths.
+
+### Safe next steps
+
+1. Confirm whether the fixed UID in the Rules is the same Firebase Authentication account as the designated primary Admin email. Verify this in Firebase Authentication; do not infer it from the email address.
+2. Prepare a proposed Rules revision that preserves current anonymous reads and the existing anonymous vehicle operational-update behavior, while adding a Custom Claims Admin path alongside the legacy UID during migration.
+3. Before any production Rules change, test anonymous, legacy UID Admin, primary custom-claim Admin, additional custom-claim Admin, ordinary email/password user, and revoked Admin against every affected node using RTDB Emulator.
+4. Migrate Telegram credentials and sending to a trusted backend before restricting `telegramConfig` reads; then rotate the bot token.
+5. Obtain explicit owner approval before applying any production Rules or deploying any service.
+
