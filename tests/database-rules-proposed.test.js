@@ -15,7 +15,7 @@ test("proposed RTDB Rules keep root access closed", () => {
   assert.equal(rules[".write"], false);
 });
 
-test("privileged nodes accept verified custom-claim Admin and retain the legacy primary UID", () => {
+test("privileged nodes require verified email for both primary UID and custom-claim Admin", () => {
   const nodes = rules.artifacts["uns-fleet-service"].public.data_v2;
   const privileged = ["drivers", "logs", "settings", "serviceAlertState", "notifications", "keyStats", "meta", "telegramConfig"];
   for (const nodeName of privileged) {
@@ -23,8 +23,9 @@ test("privileged nodes accept verified custom-claim Admin and retain the legacy 
     const expressions = [node[".write"], node["$driverId"]?.[".write"], node["$logId"]?.[".write"], node["$stateId"]?.[".write"], node["$notificationId"]?.[".write"]].filter(Boolean);
     const combined = expressions.join(" ");
     assert.ok(combined.includes(adminClaim), nodeName + " must accept Admin custom claim");
-    assert.ok(combined.includes(verifiedClaim), nodeName + " must require verified email for claim-based Admin access");
+    assert.ok(combined.includes(verifiedClaim), nodeName + " must require verified email");
     assert.ok(combined.includes(adminUid), nodeName + " must retain legacy primary UID");
+    assert.match(combined, /auth\.token\.email_verified === true && \(auth\.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' \|\| auth\.token\.admin === true\)/, nodeName + " must gate both privileged identities on verified email");
   }
   for (const nodeName of ["settings", "keyStats", "meta"]) {
     assert.ok(nodes[nodeName][".read"].includes(adminClaim));
@@ -41,6 +42,7 @@ test("vehicle anonymous operational update restrictions remain unchanged", () =>
   assert.ok(expression.includes(adminClaim));
   assert.ok(expression.includes(verifiedClaim));
   assert.ok(expression.includes(adminUid));
+  assert.match(expression, /auth\.token\.email_verified === true && \(auth\.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' \|\| auth\.token\.admin === true\)/);
 });
 
 test("notification tokens remain restricted to their owning UID", () => {
