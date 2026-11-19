@@ -2008,9 +2008,7 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                             plate: cleanPlate,
                             model: this.vehicleForm.model,
                             driver: this.vehicleForm.driver || '',
-                            category: this.vehicleForm.category || 'Operasional',
-                            currentKm: Number(this.vehicleForm.currentKm) || 0,
-                            isHidden: Boolean(this.vehicleForm.isHidden)
+                            category: this.vehicleForm.category || 'Operasional'
                         };
                         updatedVehicle = { ...existing, ...patch };
                     }
