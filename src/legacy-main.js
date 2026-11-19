@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import * as XLSX from "xlsx";
 import { getServiceInterval } from "./domain/service-rules.js";
 import { dataPath } from "./services/paths.js";
 import { appId, db, auth } from "./services/firebase";
