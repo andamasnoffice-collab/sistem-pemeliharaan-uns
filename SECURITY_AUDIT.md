@@ -128,3 +128,12 @@ Scope: static review of the owner-supplied Rules JSON against the migration bran
 ### Additional Rules hardening
 
 The proposed RTDB Rules now require `auth.token.email_verified === true` for **both** the confirmed primary UID and every custom-claim Admin path. This avoids an unverified session for the legacy primary UID bypassing the email-verification condition. Anonymous operational vehicle updates remain a separate narrowly scoped branch and retain their existing conditions.
+
+
+## RTDB Emulator validation completed (2026-11-19)
+
+- GitHub Actions run #113 for commit `c1e489ec0630c2c8d375594ccba98580dea69265` completed successfully.
+- All 9 RTDB Rules Emulator authorization tests passed. Coverage includes unauthenticated vs Anonymous Auth reads, primary UID, verified additional Admin custom claim, ordinary/revoked Admin denial, unverified primary and additional Admin denial, Anonymous odometer update restrictions, verified Admin vehicle master updates, notification-token ownership/deletion behavior, and legacy Telegram config read compatibility.
+- The emulator ran with demo project ID `demo-uns-fleet-service`; it did not connect to production.
+- Typecheck, Node tests, Vite build, Functions install, and Functions syntax validation also passed in the same workflow run.
+- The exact latest branch commit now includes rollout documentation; its own CI run must also be checked before describing the branch head as fully green.
