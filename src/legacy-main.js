@@ -1036,14 +1036,18 @@ function safeGetRawStorage(key, fallback = '') {
                 },
 
                 async removeVehicleFromCloud(carOrId) {
-                    if (!db || !carOrId) return;
+                    if (!db || !carOrId) return false;
                     try {
                         const car = typeof carOrId === 'object'
                             ? carOrId
                             : (this.vehicles || []).find(v => v && (v.id === carOrId || v.plate === carOrId));
                         const targetKey = this.cleanFirebaseKey((car && car._fbKey) || (car && car.id) || carOrId);
                         await fleetRepository.deleteVehicle(targetKey);
-                    } catch(e) { console.warn('Gagal menghapus armada dari cloud:', e); }
+                        return true;
+                    } catch(e) {
+                        console.warn('Gagal menghapus armada dari cloud:', e);
+                        return false;
+                    }
                 },
 
                 async syncLogToCloud(log) {
@@ -2117,36 +2121,86 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     this.activeDeleteModal = true;
                 },
 
-                confirmDelete() {
+                async confirmDelete() {
                     if (this.deleteType === 'vehicle' && this.vehicleToDelete) {
-                        this.vehicles = this.vehicles.filter(v => v && v.id !== this.vehicleToDelete.id);
+                        const vehicle = this.vehicleToDelete;
+                        const cloudDeleted = await this.removeVehicleFromCloud(vehicle);
+                        if (!cloudDeleted) {
+                            this.showToast('Armada belum terhapus di Firebase. Data lokal dipertahankan.', 'error');
+                            return;
+                        }
+                        this.vehicles = this.vehicles.filter(v => v && v.id !== vehicle.id);
                         safeSetStorage('uns_vehicles', this.vehicles);
-                        this.removeVehicleFromCloud(this.vehicleToDelete);
-                        this.showToast(`Armada ${this.vehicleToDelete.plate} telah dihapus.`, 'success');
+                        this.showToast(`Armada ${vehicle.plate} berhasil dihapus dan dikonfirmasi Firebase.`, 'success');
                     } else if (this.deleteType === 'log' && this.logToDeleteId) {
                         const deletedLog = this.serviceLogs.find(l => l && l.id === this.logToDeleteId);
+                        const cloudDeleted = await this.removeLogFromCloud(this.logToDeleteId);
+                        if (!cloudDeleted) {
+                            this.showToast('Catatan servis belum terhapus di Firebase. Data lokal dipertahankan.', 'error');
+                            return;
+                        }
                         this.serviceLogs = this.serviceLogs.filter(l => l && l.id !== this.logToDeleteId);
                         safeSetStorage('uns_logs', this.serviceLogs);
-                        this.removeLogFromCloud(this.logToDeleteId);
                         if (deletedLog) {
                             const car = (this.vehicles || []).find(v => v && (v.id === deletedLog.vehicleId || v.plate === deletedLog.vehicleId));
                             if (car) {
                                 this.recalculateVehicleLastService(car);
                                 safeSetStorage('uns_vehicles', this.vehicles);
-                                this.syncVehicleToCloud(car);
+                                const vehicleSaved = await this.syncVehicleToCloud(car);
+                                if (!vehicleSaved) {
+                                    this.showToast('Catatan servis terhapus di Firebase, tetapi pembaruan ringkasan kendaraan belum terkonfirmasi.', 'error');
+                                    this.activeDeleteModal = false;
+                                    return;
+                                }
                             }
                         }
-                        this.showToast('Catatan servis dihapus.', 'success');
-                    } else if (this.deleteType === 'selected') {
-                        this.serviceLogs = this.serviceLogs.filter(l => l && !this.selectedLogIds.includes(l.id));
-                        safeSetStorage('uns_logs', this.serviceLogs);
-                        this.selectedLogIds = [];
-                        this.showToast('Transaksi terpilih telah dihapus.', 'success');
-                    } else if (this.deleteType === 'filtered') {
-                        const idsToRemove = this.filteredServiceLogs.map(l => l.id);
-                        this.serviceLogs = this.serviceLogs.filter(l => l && !idsToRemove.includes(l.id));
-                        safeSetStorage('uns_logs', this.serviceLogs);
-                        this.showToast('Semua transaksi terfilter dihapus.', 'success');
+                        this.showToast('Catatan servis berhasil dihapus dan dikonfirmasi Firebase.', 'success');
+                    } else if (this.deleteType === 'selected' || this.deleteType === 'filtered') {
+                        const idsToRemove = this.deleteType === 'selected'
+                            ? [...this.selectedLogIds]
+                            : this.filteredServiceLogs.map(log => log.id);
+                        const uniqueIds = [...new Set(idsToRemove.filter(Boolean))];
+                        if (!uniqueIds.length) {
+                            this.showToast('Tidak ada transaksi yang dipilih untuk dihapus.', 'error');
+                            return;
+                        }
+
+                        const results = await Promise.all(uniqueIds.map(async id => ({
+                            id,
+                            deleted: await this.removeLogFromCloud(id)
+                        })));
+                        const deletedIds = results.filter(result => result.deleted).map(result => result.id);
+                        const failedIds = results.filter(result => !result.deleted).map(result => result.id);
+
+                        if (deletedIds.length) {
+                            const removedLogs = this.serviceLogs.filter(log => log && deletedIds.includes(log.id));
+                            this.serviceLogs = this.serviceLogs.filter(log => log && !deletedIds.includes(log.id));
+                            safeSetStorage('uns_logs', this.serviceLogs);
+
+                            const affectedVehicleIds = [...new Set(removedLogs.map(log => log.vehicleId).filter(Boolean))];
+                            for (const vehicleId of affectedVehicleIds) {
+                                const car = (this.vehicles || []).find(vehicle => vehicle && (vehicle.id === vehicleId || vehicle.plate === vehicleId));
+                                if (!car) continue;
+                                this.recalculateVehicleLastService(car);
+                                const vehicleSaved = await this.syncVehicleToCloud(car);
+                                if (!vehicleSaved) {
+                                    failedIds.push(`ringkasan kendaraan ${car.plate || vehicleId}`);
+                                }
+                            }
+                            safeSetStorage('uns_vehicles', this.vehicles);
+                        }
+
+                        if (this.deleteType === 'selected') {
+                            this.selectedLogIds = failedIds.length
+                                ? uniqueIds.filter(id => failedIds.includes(id))
+                                : [];
+                        }
+
+                        if (failedIds.length) {
+                            this.showToast(`${deletedIds.length} transaksi terhapus di Firebase; ${failedIds.length} penghapusan/pembaruan belum terkonfirmasi dan perlu diperiksa.`, 'error');
+                        } else {
+                            this.showToast(`${deletedIds.length} transaksi berhasil dihapus dan dikonfirmasi Firebase.`, 'success');
+                        }
                     }
                     this.activeDeleteModal = false;
                     this.syncToGoogleSheetsAuto();
