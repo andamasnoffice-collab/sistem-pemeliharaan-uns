@@ -15,18 +15,18 @@
             "drivers": {
               ".read": "auth != null",
               "$driverId": {
-                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+                ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
               }
             },
             "logs": {
               ".read": "auth != null",
               "$logId": {
-                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+                ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
               }
             },
             "settings": {
-              ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
-              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+              ".read": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))",
+              ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
             },
             "notificationTokens": {
               ".read": "auth != null",
@@ -38,31 +38,31 @@
             "serviceAlertState": {
               ".read": "auth != null",
               "$stateId": {
-                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+                ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
               }
             },
             "notifications": {
               ".read": "auth != null",
               "$notificationId": {
-                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+                ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
               }
             },
             "keyStats": {
-              ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
-              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+              ".read": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))",
+              ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
             },
             "meta": {
-              ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
-              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+              ".read": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))",
+              ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
             },
             "telegramConfig": {
               ".read": "auth != null",
-              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+              ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
             }
           },
           "data": {
-            ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
-            ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
+            ".read": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))",
+            ".write": "auth != null && (auth.token.email_verified === true && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || auth.token.admin === true))"
           }
         }
       }
