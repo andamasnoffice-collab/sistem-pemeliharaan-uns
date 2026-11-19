@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { getServiceInterval } from "./domain/service-rules.js";
 import { dataPath } from "./services/paths.js";
 import { createFleetRepository } from "./repositories/fleet-repository.js";
+import { createSettingsRepository } from "./repositories/settings-repository.js";
 import { appId, db, auth } from "./services/firebase";
 import {
   signInWithEmailAndPassword,
@@ -28,6 +29,13 @@ const fleetRepository = createFleetRepository({
   ref,
   update,
   remove,
+  dataPath
+});
+
+const settingsRepository = createSettingsRepository({
+  database: db,
+  ref,
+  update,
   dataPath
 });
 
@@ -638,14 +646,15 @@ function safeGetRawStorage(key, fallback = '') {
                     safeSetStorage('uns_auto_sync_sheets', settingsObj.autoSyncSheets);
 
                     if (db && this.isAdmin) {
+                        const telegramConfig = {
+                            botToken: settingsObj.telegramBotToken,
+                            chatId: settingsObj.telegramChatId,
+                            enabled: settingsObj.enableTelegramNotification,
+                            updatedAt: settingsObj.updatedAt
+                        };
                         Promise.all([
-                            update(ref(db, dataPath("settings")), settingsObj),
-                            update(ref(db, dataPath("telegramConfig")), {
-                                botToken: settingsObj.telegramBotToken,
-                                chatId: settingsObj.telegramChatId,
-                                enabled: settingsObj.enableTelegramNotification,
-                                updatedAt: new Date().toISOString()
-                            })
+                            settingsRepository.updateSettings(settingsObj),
+                            settingsRepository.updateTelegramConfig(telegramConfig)
                         ]).catch(e => {
                             console.warn('Gagal menyimpan settings Telegram/Firebase:', e);
                         });
