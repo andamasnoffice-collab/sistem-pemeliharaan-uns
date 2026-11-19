@@ -184,3 +184,12 @@ Scope: reviewed the migration branch's actual RTDB repositories and the legacy a
 4. Add Emulator tests for Anonymous attempts to change `isHidden`, add unknown fields, and update each allowed operational field; also test token-list read denial for Anonymous and ordinary authenticated users.
 5. Do not change Telegram configuration permissions or delivery behavior.
 6. Obtain explicit approval before applying any proposed Rules to production.
+
+
+### Branch-only targeted fix — Anonymous vehicle visibility (2026-11-19)
+
+- Updated the proposed Anonymous vehicle write condition to require `isHidden` to remain equal to its existing value. This closes the specific visibility-toggle gap found in the static review while preserving the existing Admin path.
+- Updated the static Rules assertion and RTDB Emulator tests to check that Anonymous sessions cannot change `isHidden`, while retaining the operational fields currently written by the app (`currentKm`, `isUnderService`, `targetWorkshop`, `inServiceDate`, `inServiceNotes`, and `damageNotes`).
+- This change is on `migration/vue3-typescript-vite` only. CI for the resulting commits is pending. No production Rules were changed.
+- The broader unknown-field issue remains open: this targeted change does not establish a complete allowlist for every vehicle property. Inventory all legacy and sibling-app vehicle fields before attempting that hardening.
+- The broad `notificationTokens/.read = auth != null` permission also remains unchanged pending confirmation that no sibling app relies on client-side reads. Telegram remains unchanged per the owner's explicit compatibility decision.
