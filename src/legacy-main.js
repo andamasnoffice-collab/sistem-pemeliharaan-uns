@@ -1,19 +1,7 @@
-import { initializeApp } from "firebase/app";
-        import { 
-            getAuth,
-            initializeAuth,
-            inMemoryPersistence,
-            signInWithEmailAndPassword, 
-            signInAnonymously,
-            signOut, 
-            onAuthStateChanged, 
-            sendPasswordResetEmail, 
-            updatePassword 
-        } from "firebase/auth";
-        import { getDatabase, ref, set, remove, onValue, onChildAdded, onChildChanged, onChildRemoved, update } from "firebase/database";
-        import { createApp } from "vue";
+import { createApp } from "vue";
+import { appId, db, auth } from "./services/firebase";
 
-        function safeGetRawStorage(key, fallback = '') {
+function safeGetRawStorage(key, fallback = '') {
             try {
                 const item = localStorage.getItem(key);
                 return (item !== null && item !== undefined) ? item : fallback;
@@ -43,28 +31,6 @@ import { initializeApp } from "firebase/app";
         // Konfigurasi DIKUNCI ke project fleet baru.
         // Jangan mengambil __app_id / __firebase_config dari launcher atau host lain,
         // karena file HTML hasil download harus selalu menunjuk ke uns-fleet-service.
-        const appId = 'uns-fleet-service';
-
-        const rawFirebaseConfig = {
-            apiKey: "AIzaSyAi0Ucng_tl7jSC9gZtr0JItCBUtkt-vvU",
-            authDomain: "uns-fleet-service.firebaseapp.com",
-            databaseURL: "https://uns-fleet-service-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "uns-fleet-service",
-            storageBucket: "uns-fleet-service.firebasestorage.app",
-            messagingSenderId: "881806830475",
-            appId: "1:881806830475:web:8dcf991ec95ae93b625d8e",
-            measurementId: "G-REWR64QLNH"
-        };
-
-        let app, db, auth;
-        try {
-            app = initializeApp(rawFirebaseConfig);
-            db = getDatabase(app);
-            auth = initializeAuth(app, { persistence: inMemoryPersistence });
-        } catch (e) {
-            console.error("Firebase setup error:", e);
-        }
-
         const vueApp = createApp({
             data() {
                 return {
