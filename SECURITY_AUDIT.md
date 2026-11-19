@@ -27,6 +27,20 @@ This is a source-code audit of the migration branch. It does not change Firebase
 - A webhook URL may itself act as a bearer credential. Treat it as secret unless its owner confirms otherwise.
 - Export/backup data includes integration configuration fields; backups must be treated as sensitive.
 
+
+### High — client-side admin flag treats every email/password account as admin
+
+- The auth-state handler sets `isAdmin = !user.isAnonymous`.
+- There is no client-side role/custom-claim verification in this flow. Therefore, any non-anonymous Firebase account is presented with admin capabilities in the UI.
+- This is only a UI gate; it is not a security boundary. RTDB Rules must independently enforce which authenticated UIDs may write master data, settings, and sensitive nodes.
+- Before changing this behavior, define the approved admin UID list or server-managed custom claim and confirm that the production Rules enforce it. Do not infer the admin list from email domain or from the fact that an account can sign in.
+
+### Medium — FCM bridge endpoint is embedded in the browser
+
+- The application posts notification requests directly to a Google Apps Script web-app endpoint from the browser.
+- Treat the endpoint as public and assume requests can be replayed or forged unless the script validates Firebase ID tokens, authorizes the requested action, and applies rate limits.
+- Validate the deployed script's authorization behavior before changing the client payload or endpoint. The source audit cannot verify the script's deployed code or access settings.
+
 ### Informational — Firebase web API key
 
 The Firebase web `apiKey` in the client configuration is an application identifier, not an Admin SDK credential. Its exposure is expected for Firebase web apps; access must be controlled by Authentication, RTDB Security Rules, and optionally App Check.
