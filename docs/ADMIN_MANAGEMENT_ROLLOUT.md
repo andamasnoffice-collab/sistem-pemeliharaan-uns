@@ -13,7 +13,7 @@ Status: implementation and isolated RTDB Rules Emulator validation complete; pro
 
 ## Validation completed
 
-GitHub Actions run #113 on commit `c1e489ec0630c2c8d375594ccba98580dea69265` passed:
+GitHub Actions run #123 on latest documented branch commit `643294a5de24ffbf3063db68d778be808c4510e0` passed:
 - TypeScript typecheck
 - Node test suite
 - 9 RTDB Rules Emulator authorization tests
@@ -21,6 +21,10 @@ GitHub Actions run #113 on commit `c1e489ec0630c2c8d375594ccba98580dea69265` pas
 - Cloud Functions dependency installation and syntax check
 
 The Emulator tests use project ID `demo-uns-fleet-service` and do not connect to the production Firebase project.
+
+## Latest validation update (2026-11-19)
+
+GitHub Actions run #123 completed successfully on the latest documented branch commit. All workflow steps passed, including typecheck, Node tests, 9 RTDB Rules Emulator tests, Vite build, and Functions lint/syntax check. The Emulator used the isolated demo project, not production.
 
 ## Production rollout — do not run without explicit owner approval
 
