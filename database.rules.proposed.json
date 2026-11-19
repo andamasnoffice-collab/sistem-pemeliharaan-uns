@@ -9,24 +9,24 @@
             "vehicles": {
               ".read": "auth != null",
               "$vehicleId": {
-                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.firebase.sign_in_provider === 'anonymous' && data.exists() && newData.exists() && newData.child('id').val() === data.child('id').val() && newData.child('plate').val() === data.child('plate').val() && newData.child('model').val() === data.child('model').val() && newData.child('driver').val() === data.child('driver').val() && newData.child('category').val() === data.child('category').val() && newData.child('lastServiceKm').val() === data.child('lastServiceKm').val() && newData.child('lastServiceDate').val() === data.child('lastServiceDate').val() && newData.child('currentKm').val() >= data.child('currentKm').val()))"
+                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true) || (auth.token.firebase.sign_in_provider === 'anonymous' && data.exists() && newData.exists() && newData.child('id').val() === data.child('id').val() && newData.child('plate').val() === data.child('plate').val() && newData.child('model').val() === data.child('model').val() && newData.child('driver').val() === data.child('driver').val() && newData.child('category').val() === data.child('category').val() && newData.child('lastServiceKm').val() === data.child('lastServiceKm').val() && newData.child('lastServiceDate').val() === data.child('lastServiceDate').val() && newData.child('currentKm').val() >= data.child('currentKm').val()))"
               }
             },
             "drivers": {
               ".read": "auth != null",
               "$driverId": {
-                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
               }
             },
             "logs": {
               ".read": "auth != null",
               "$logId": {
-                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
               }
             },
             "settings": {
-              ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
-              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
+              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
             },
             "notificationTokens": {
               ".read": "auth != null",
@@ -38,31 +38,31 @@
             "serviceAlertState": {
               ".read": "auth != null",
               "$stateId": {
-                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
               }
             },
             "notifications": {
               ".read": "auth != null",
               "$notificationId": {
-                ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+                ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
               }
             },
             "keyStats": {
-              ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
-              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
+              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
             },
             "meta": {
-              ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
-              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
+              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
             },
             "telegramConfig": {
               ".read": "auth != null",
-              ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+              ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
             }
           },
           "data": {
-            ".read": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')",
-            ".write": "auth != null && (auth.token.admin === true || auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1')"
+            ".read": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))",
+            ".write": "auth != null && (auth.uid === 'cCEggFojkdNXlDneD3p3zHdreIg1' || (auth.token.admin === true && auth.token.email_verified === true))"
           }
         }
       }
