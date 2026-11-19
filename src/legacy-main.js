@@ -743,7 +743,8 @@ function safeGetRawStorage(key, fallback = '') {
                         } else if (email.toLowerCase() === 'kala@gmail.com') {
                             this.showToast('Akun utama terverifikasi. Silakan aktifkan hak Admin utama satu kali.', 'success');
                         } else {
-                            this.showToast('Login berhasil, tetapi akun ini belum memiliki hak Admin.', 'error');
+                            await authService.signOut();
+                            this.showToast('Akun berhasil dikenali, tetapi belum memiliki hak Admin. Sesi dikembalikan ke mode publik.', 'error');
                         }
                     } catch (e) {
                         let msg = 'Gagal login. Periksa email dan password Anda!';
