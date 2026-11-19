@@ -2304,32 +2304,41 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     const file = event.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         try {
                             const backup = JSON.parse(e.target.result);
                             if (!backup || (!backup.vehicles && !backup.serviceLogs)) {
                                 throw new Error('Format file backup JSON tidak valid!');
                             }
+
+                            const cloudWrites = [];
                             if (Array.isArray(backup.vehicles)) {
                                 this.vehicles = backup.vehicles.filter(Boolean);
                                 safeSetStorage('uns_vehicles', this.vehicles);
-                                this.vehicles.forEach(v => this.syncVehicleToCloud(v));
+                                cloudWrites.push(...this.vehicles.map(vehicle => this.syncVehicleToCloud(vehicle)));
                             }
                             if (Array.isArray(backup.serviceLogs)) {
                                 this.serviceLogs = backup.serviceLogs.filter(Boolean);
                                 safeSetStorage('uns_logs', this.serviceLogs);
-                                this.serviceLogs.forEach(l => this.syncLogToCloud(l));
+                                cloudWrites.push(...this.serviceLogs.map(log => this.syncLogToCloud(log)));
                             }
                             if (backup.settings) {
                                 if (backup.settings.waNumber !== undefined) this.waNumber = backup.settings.waNumber;
                                 if (backup.settings.waGatewayUrl !== undefined) this.waGatewayUrl = backup.settings.waGatewayUrl;
                                 if (backup.settings.telegramBotToken !== undefined) this.telegramBotToken = backup.settings.telegramBotToken;
                                 if (backup.settings.telegramChatId !== undefined) this.telegramChatId = backup.settings.telegramChatId;
-                                if (backup.settings.sheetsWebhookUrl !== undefined) this.sheetsWebhookUrl = backup.sheetsWebhookUrl;
-                                this.saveSettingsToCloud();
+                                if (backup.settings.sheetsWebhookUrl !== undefined) this.sheetsWebhookUrl = backup.settings.sheetsWebhookUrl;
+                                cloudWrites.push(this.saveSettingsToCloud());
                             }
+
+                            const results = await Promise.all(cloudWrites);
+                            const cloudSaved = results.every(result => result === true);
                             this.syncToGoogleSheetsAuto();
-                            this.showToast('Data backup JSON berhasil dipulihkan!', 'success');
+                            if (cloudSaved) {
+                                this.showToast('Data backup JSON berhasil dipulihkan dan dikonfirmasi Firebase!', 'success');
+                            } else {
+                                this.showToast('Data backup dimuat ke perangkat, tetapi sebagian/seluruh perubahan belum terkonfirmasi Firebase. Periksa koneksi dan hak akses.', 'error');
+                            }
                             event.target.value = '';
                         } catch (err) {
                             this.showToast('Gagal memuat file backup: ' + err.message, 'error');
