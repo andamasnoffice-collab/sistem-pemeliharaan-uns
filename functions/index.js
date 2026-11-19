@@ -6,6 +6,7 @@ const { defineString } = require("firebase-functions/params");
 initializeApp();
 
 const REGION = "asia-southeast1";
+const PRIMARY_ADMIN_UID = "cCEggFojkdNXlDneD3p3zHdreIg1";
 const bootstrapAdminEmail = defineString("BOOTSTRAP_ADMIN_EMAIL");
 
 function normalizeEmail(value) {
@@ -26,6 +27,14 @@ function requireAdmin(request) {
     throw new HttpsError("permission-denied", "Akses khusus Admin dengan email terverifikasi.");
   }
   return request.auth.uid;
+}
+
+function requirePrimaryAdmin(request) {
+  const callerUid = requireAdmin(request);
+  if (callerUid !== PRIMARY_ADMIN_UID) {
+    throw new HttpsError("permission-denied", "Hanya Admin utama yang dapat mengelola akun Admin.");
+  }
+  return callerUid;
 }
 
 async function countAdmins() {
@@ -70,7 +79,7 @@ exports.bootstrapPrimaryAdmin = onCall({ region: REGION }, async (request) => {
 
 /** Create a new email/password account and grant the Admin custom claim. */
 exports.createAdmin = onCall({ region: REGION }, async (request) => {
-  requireAdmin(request);
+  requirePrimaryAdmin(request);
   const email = normalizeEmail(request.data && request.data.email);
   const password = String((request.data && request.data.password) || "");
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -100,7 +109,7 @@ exports.createAdmin = onCall({ region: REGION }, async (request) => {
 
 /** Remove Admin privilege without deleting the Firebase account or application data. */
 exports.revokeAdmin = onCall({ region: REGION }, async (request) => {
-  const callerUid = requireAdmin(request);
+  const callerUid = requirePrimaryAdmin(request);
   const targetUid = String((request.data && request.data.uid) || "").trim();
   if (!targetUid) throw new HttpsError("invalid-argument", "UID target wajib diisi.");
   if (targetUid === callerUid) {
@@ -124,7 +133,7 @@ exports.revokeAdmin = onCall({ region: REGION }, async (request) => {
 
 /** List only Admin account metadata; never returns passwords or private credentials. */
 exports.listAdmins = onCall({ region: REGION }, async (request) => {
-  requireAdmin(request);
+  requirePrimaryAdmin(request);
   const admins = [];
   let nextPageToken;
   do {
