@@ -22,8 +22,8 @@ function requireVerifiedEmail(request) {
 }
 
 function requireAdmin(request) {
-  if (!request.auth || request.auth.token.admin !== true) {
-    throw new HttpsError("permission-denied", "Akses khusus Admin.");
+  if (!request.auth || request.auth.token.admin !== true || request.auth.token.email_verified !== true) {
+    throw new HttpsError("permission-denied", "Akses khusus Admin dengan email terverifikasi.");
   }
   return request.auth.uid;
 }
