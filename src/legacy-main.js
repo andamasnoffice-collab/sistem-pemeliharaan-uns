@@ -1047,19 +1047,27 @@ function safeGetRawStorage(key, fallback = '') {
                 },
 
                 async syncLogToCloud(log) {
-                    if (!db || !log || !(log._fbKey || log.id)) return;
+                    if (!db || !log || !(log._fbKey || log.id)) return false;
                     try {
                         const targetKey = this.cleanFirebaseKey(log._fbKey || log.id);
                         await fleetRepository.updateServiceLog(targetKey, log);
-                    } catch(e) { console.warn('Gagal menyinkronkan log ke cloud:', e); }
+                        return true;
+                    } catch(e) {
+                        console.warn('Gagal menyinkronkan log ke cloud:', e);
+                        return false;
+                    }
                 },
 
                 async removeLogFromCloud(logId) {
-                    if (!db || !logId) return;
+                    if (!db || !logId) return false;
                     try {
                         const targetKey = this.cleanFirebaseKey(logId);
                         await fleetRepository.deleteServiceLog(targetKey);
-                    } catch(e) {}
+                        return true;
+                    } catch(e) {
+                        console.warn('Gagal menghapus log dari cloud:', e);
+                        return false;
+                    }
                 },
 
                 async syncToGoogleSheetsAuto() {
