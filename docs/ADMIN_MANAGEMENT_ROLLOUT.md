@@ -49,3 +49,14 @@ GitHub Actions run #123 completed successfully on the latest documented branch c
 - Continue hardening and validating Admin authorization independently of Telegram.
 - Do not place additional secrets in the repository.
 - Production deployment, production RTDB Rules changes, and changes to the `main` branch require explicit owner approval.
+
+## Shared database compatibility — owner direction (2026-11-19)
+
+The owner confirmed that this Realtime Database is shared by multiple applications, including dedicated apps with their own read/write responsibilities. Therefore:
+
+- Do not apply global field allowlists or broad permission reductions based only on the AUTOMAN client.
+- Keep existing shared paths and payload compatibility unless a specific, verified risk requires a narrow change.
+- Do not restrict `notificationTokens` client reads until all participating apps and notification workflows have been checked.
+- The proposed `isHidden` guard is a narrow protection for the reviewed Anonymous vehicle-update path; revisit it if another app legitimately updates that field using Anonymous Auth.
+- Preserve Telegram configuration access and message delivery unchanged.
+- Continue using Emulator tests for each targeted Rules change. Passing migration CI is not authorization to deploy production Rules.
