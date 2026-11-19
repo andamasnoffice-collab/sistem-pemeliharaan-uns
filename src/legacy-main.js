@@ -17,6 +17,7 @@ import {
 } from "firebase/auth";
 import { createAuthService } from "./services/auth-service.js";
 import { createNotificationTokenRepository } from "./repositories/notification-token-repository.js";
+import { createRealtimeReferences } from "./repositories/realtime-references.js";
 import {
   ref,
   set,
@@ -796,12 +797,14 @@ function safeGetRawStorage(key, fallback = '') {
                         const trackedOnChildAdded = (...args) => trackListener(onChildAdded, ...args);
                         const trackedOnChildChanged = (...args) => trackListener(onChildChanged, ...args);
                         const trackedOnChildRemoved = (...args) => trackListener(onChildRemoved, ...args);
-                        const vehiclesRef = ref(db, dataPath("vehicles"));
-                        const driversRef = ref(db, dataPath("drivers"));
-                        const logsRef = ref(db, dataPath("logs"));
-                        const settingsRef = ref(db, dataPath("settings"));
-                        const telegramConfigRef = ref(db, dataPath("telegramConfig"));
-                        const connectedRef = ref(db, '.info/connected');
+                        const {
+                            vehicles: vehiclesRef,
+                            drivers: driversRef,
+                            logs: logsRef,
+                            settings: settingsRef,
+                            telegramConfig: telegramConfigRef,
+                            connected: connectedRef
+                        } = createRealtimeReferences({ database: db, ref, dataPath });
 
                         // Pantau koneksi saja. Jangan menghapus cache lokal hanya karena
                         // .info/connected=true: status online tidak berarti Rules mengizinkan
