@@ -7,7 +7,14 @@ import { dataPath } from "./services/paths.js";
 import { createFleetRepository } from "./repositories/fleet-repository.js";
 import { createSettingsRepository } from "./repositories/settings-repository.js";
 import { appId, db, auth } from "./services/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInAnonymously,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updatePassword
+} from "firebase/auth";
 import { createAuthService } from "./services/auth-service.js";
 import {
   ref,
