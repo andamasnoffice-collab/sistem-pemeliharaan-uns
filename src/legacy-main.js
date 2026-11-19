@@ -2030,7 +2030,7 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     return (this.serviceForm.items || []).reduce((sum, i) => sum + (Number(i.cost) || 0), 0);
                 },
 
-                saveServiceLog() {
+                async saveServiceLog() {
                     const f = this.serviceForm;
                     if (!f.vehicleId || !f.workshop || !f.date) {
                         this.showToast('Lengkapi data kendaraan, bengkel, dan tanggal!', 'error');
@@ -2038,13 +2038,14 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     }
 
                     const car = (this.vehicles || []).find(v => v && (v.id === f.vehicleId || v.plate === f.vehicleId));
-                    if (!this.editingLogId && (!car || !this.isVehicleOperational(car) || !this.isDriverOperational(car))) { this.showToast('Kendaraan atau driver sudah OFF. Transaksi servis baru dibatalkan.', 'error'); return; }
+                    if (!this.editingLogId && (!car || !this.isVehicleOperational(car) || !this.isDriverOperational(car))) {
+                        this.showToast('Kendaraan atau driver sudah OFF. Transaksi servis baru dibatalkan.', 'error');
+                        return;
+                    }
                     const totalCost = this.calcServiceFormTotal();
-
                     f.isRoutine = (f.isRoutine === true || f.isRoutine === 'true');
 
                     let savedLogObj = null;
-
                     if (this.editingLogId) {
                         const idx = this.serviceLogs.findIndex(l => l && l.id === this.editingLogId);
                         if (idx !== -1) {
@@ -2060,34 +2061,33 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                         this.serviceLogs.unshift(savedLogObj);
                     }
 
+                    const cloudWrites = [];
                     if (car) {
                         if (Number(f.km) > (Number(car.currentKm) || 0)) {
                             car.currentKm = Number(f.km);
                         }
                         car.isUnderService = false;
-                        
-                        // Keluhan driver tidak otomatis ditandai selesai hanya karena nota servis dibuat.
-                        // Admin/driver harus menandai keluhan yang benar-benar sudah diperbaiki.
-
                         this.recalculateVehicleLastService(car);
-
                         safeSetStorage('uns_vehicles', this.vehicles);
-                        this.syncVehicleToCloud(car);
+                        cloudWrites.push(this.syncVehicleToCloud(car));
                     }
 
                     safeSetStorage('uns_logs', this.serviceLogs);
-                    if (savedLogObj) {
-                        this.syncLogToCloud(savedLogObj);
+                    if (savedLogObj) cloudWrites.push(this.syncLogToCloud(savedLogObj));
+                    const results = await Promise.all(cloudWrites);
+                    if (!results.length || !results.every(result => result === true)) {
+                        this.showToast('Nota servis tersimpan di perangkat, tetapi Firebase belum mengonfirmasi seluruh perubahan. Periksa koneksi/hak akses lalu coba sinkronkan kembali.', 'error');
+                        return;
                     }
-                    this.syncToGoogleSheetsAuto();
 
+                    this.syncToGoogleSheetsAuto();
                     if (car) {
                         const notifText = `🚘 *Plat*: ${car.plate}\n🏢 *Bengkel*: ${f.workshop}\n🧾 *No Invoice*: ${f.invoiceNo || '-'}\n💰 *Total Biaya*: Rp ${totalCost.toLocaleString('id-ID')}\n📍 *Odometer*: ${Number(f.km).toLocaleString('id-ID')} KM`;
-                        this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
+                        await this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifText);
                     }
 
                     this.activeNewServiceModal = false;
-                    this.showToast(f.isRoutine ? 'Nota servis rutin disimpan. Status jadwal disetel ulang!' : 'Nota perbaikan insidental disimpan (tanpa mereset jadwal rutin).', 'success');
+                    this.showToast(f.isRoutine ? 'Nota servis rutin dikonfirmasi tersimpan di Firebase. Status jadwal disetel ulang!' : 'Nota perbaikan insidental dikonfirmasi tersimpan di Firebase (tanpa mereset jadwal rutin).', 'success');
                 },
 
                 openInvoiceModal(log) {
