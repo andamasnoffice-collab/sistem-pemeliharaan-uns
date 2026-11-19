@@ -142,3 +142,11 @@ The proposed RTDB Rules now require `auth.token.email_verified === true` for **b
 ## Owner decision — Telegram compatibility (2026-11-19)
 
 The owner has chosen to retain the currently working Telegram integration unchanged. The critical token-exposure finding remains present and must not be described as fixed. Telegram configuration access, client listener, token handling, and message delivery are out of scope for this hardening pass. See `docs/TELEGRAM_COMPATIBILITY_DECISION.md`. Other Admin and database authorization work may proceed independently.
+
+
+## Latest branch CI confirmation (2026-11-19)
+
+- GitHub Actions run #123 for commit `643294a5de24ffbf3063db68d778be808c4510e0` completed successfully.
+- All workflow steps passed: dependency installation, TypeScript typecheck, Node tests, RTDB Rules Emulator tests, Vite production build, Functions dependency installation, and Functions lint/syntax check.
+- The RTDB Emulator uses the isolated demo project `demo-uns-fleet-service`; no production Firebase project was accessed.
+- This confirms branch validation only. It does not deploy Functions, apply RTDB Rules, or change production data/services.
