@@ -19,7 +19,6 @@ import { createAuthService } from "./services/auth-service.js";
 import { createNotificationTokenRepository } from "./repositories/notification-token-repository.js";
 import {
   ref,
-  set,
   remove,
   onValue,
   onChildAdded,
