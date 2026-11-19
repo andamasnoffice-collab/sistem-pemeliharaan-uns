@@ -1122,8 +1122,7 @@ function safeGetRawStorage(key, fallback = '') {
 
                 async toggleHideVehicle(car) {
                     if (!car) return;
-                    const previousHidden = Boolean(car.isHidden);
-                    car.isHidden = !previousHidden;
+                    car.isHidden = !Boolean(car.isHidden);
                     safeSetStorage('uns_vehicles', this.vehicles);
                     const cloudSaved = await this.syncVehicleToCloud(car);
                     if (!cloudSaved) {
@@ -1132,15 +1131,7 @@ function safeGetRawStorage(key, fallback = '') {
                     }
                     await this.syncToGoogleSheetsAuto();
                     this.showToast(`Armada ${car.plate} ${car.isHidden ? 'disembunyikan' : 'ditampilkan'}`, 'success');
-                }
-                    if (!car) return;
-                    car.isHidden = !car.isHidden;
-                    safeSetStorage('uns_vehicles', this.vehicles);
-                    this.syncVehicleToCloud(car);
-                    this.syncToGoogleSheetsAuto();
-                    this.showToast(`Armada ${car.plate} ${car.isHidden ? 'disembunyikan' : 'ditampilkan'}`, 'success');
                 },
-
                 getMonthName(m) {
                     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
                     return months[m - 1] || '';
@@ -1936,35 +1927,14 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     }
                     this.showToast(`Status pengajuan ${car.plate} dibatalkan`, 'success');
                     return true;
-                }
-                    const car = (this.vehicles || []).find(v => v && (v.id === carId || v.plate === carId));
-                    if (car) {
-                        car.isUnderService = false;
-                        car.targetWorkshop = '';
-                        car.inServiceNotes = '';
-                        safeSetStorage('uns_vehicles', this.vehicles);
-                        this.syncVehicleToCloud(car);
-                        this.showToast(`Status pengajuan ${car.plate} dibatalkan`, 'success');
-                    }
                 },
-
                 async completeInServiceAndOpenServiceModal(car) {
                     const targetWs = car.targetWorkshop || 'Nasmoco';
                     const cancelled = await this.cancelInService(car.id);
                     if (!cancelled) return;
                     this.openQuickServiceForCar(car);
-                    if (targetWs) {
-                        this.serviceForm.workshop = targetWs;
-                    }
-                }
-                    const targetWs = car.targetWorkshop || 'Nasmoco';
-                    this.cancelInService(car.id);
-                    this.openQuickServiceForCar(car);
-                    if (targetWs) {
-                        this.serviceForm.workshop = targetWs;
-                    }
+                    if (targetWs) this.serviceForm.workshop = targetWs;
                 },
-
                 openAddVehicleModal() {
                     this.vehicleForm = { id: null, plate: '', model: '', driver: '', category: 'Operasional', currentKm: 0, isUnderService: false, isHidden: false };
                     this.activeVehicleModal = true;
@@ -2340,13 +2310,7 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     this.activeSheetsModal = false;
                     await this.syncToGoogleSheetsAuto();
                     this.showToast('Pengaturan Google Sheets berhasil disimpan ke Firebase', 'success');
-                }
-                    this.saveSettingsToCloud();
-                    this.activeSheetsModal = false;
-                    this.syncToGoogleSheetsAuto();
-                    this.showToast('Pengaturan Google Sheets tersimpan', 'success');
                 },
-
                 saveLocalStorageManual() {
                     try {
                         safeSetStorage('uns_vehicles', this.vehicles);
