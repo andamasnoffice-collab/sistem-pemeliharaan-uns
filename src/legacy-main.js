@@ -1120,7 +1120,19 @@ function safeGetRawStorage(key, fallback = '') {
                     this.activeVehicleDrawer = true;
                 },
 
-                toggleHideVehicle(car) {
+                async toggleHideVehicle(car) {
+                    if (!car) return;
+                    const previousHidden = Boolean(car.isHidden);
+                    car.isHidden = !previousHidden;
+                    safeSetStorage('uns_vehicles', this.vehicles);
+                    const cloudSaved = await this.syncVehicleToCloud(car);
+                    if (!cloudSaved) {
+                        this.showToast('Perubahan visibilitas tersimpan lokal, tetapi belum dikonfirmasi Firebase.', 'error');
+                        return;
+                    }
+                    await this.syncToGoogleSheetsAuto();
+                    this.showToast(`Armada ${car.plate} ${car.isHidden ? 'disembunyikan' : 'ditampilkan'}`, 'success');
+                }
                     if (!car) return;
                     car.isHidden = !car.isHidden;
                     safeSetStorage('uns_vehicles', this.vehicles);
@@ -1910,7 +1922,21 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     }
                 },
 
-                cancelInService(carId) {
+                async cancelInService(carId) {
+                    const car = (this.vehicles || []).find(v => v && (v.id === carId || v.plate === carId));
+                    if (!car) return false;
+                    car.isUnderService = false;
+                    car.targetWorkshop = '';
+                    car.inServiceNotes = '';
+                    safeSetStorage('uns_vehicles', this.vehicles);
+                    const cloudSaved = await this.syncVehicleToCloud(car);
+                    if (!cloudSaved) {
+                        this.showToast('Pembatalan tersimpan lokal, tetapi belum dikonfirmasi Firebase.', 'error');
+                        return false;
+                    }
+                    this.showToast(`Status pengajuan ${car.plate} dibatalkan`, 'success');
+                    return true;
+                }
                     const car = (this.vehicles || []).find(v => v && (v.id === carId || v.plate === carId));
                     if (car) {
                         car.isUnderService = false;
@@ -1922,7 +1948,15 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     }
                 },
 
-                completeInServiceAndOpenServiceModal(car) {
+                async completeInServiceAndOpenServiceModal(car) {
+                    const targetWs = car.targetWorkshop || 'Nasmoco';
+                    const cancelled = await this.cancelInService(car.id);
+                    if (!cancelled) return;
+                    this.openQuickServiceForCar(car);
+                    if (targetWs) {
+                        this.serviceForm.workshop = targetWs;
+                    }
+                }
                     const targetWs = car.targetWorkshop || 'Nasmoco';
                     this.cancelInService(car.id);
                     this.openQuickServiceForCar(car);
@@ -2297,7 +2331,16 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     reader.readAsArrayBuffer(file);
                 },
 
-                saveSheetsSettings() {
+                async saveSheetsSettings() {
+                    const saved = await this.saveSettingsToCloud();
+                    if (!saved) {
+                        this.showToast('Pengaturan Google Sheets tersimpan lokal, tetapi belum dikonfirmasi Firebase. Periksa koneksi dan hak admin.', 'error');
+                        return;
+                    }
+                    this.activeSheetsModal = false;
+                    await this.syncToGoogleSheetsAuto();
+                    this.showToast('Pengaturan Google Sheets berhasil disimpan ke Firebase', 'success');
+                }
                     this.saveSettingsToCloud();
                     this.activeSheetsModal = false;
                     this.syncToGoogleSheetsAuto();
