@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { getServiceInterval } from "./domain/service-rules.js";
 import { appId, db, auth } from "./services/firebase";
 import {
   signInWithEmailAndPassword,
@@ -270,8 +271,7 @@ function safeGetRawStorage(key, fallback = '') {
                         // ATURAN SERVIS RESMI AUT0MAN:
                         // - Nasmoco = 10.000 KM
                         // - Selain Nasmoco = 7.000 KM
-                        const isNasmoco = lastWorkshop.toLowerCase().includes('nasmoco');
-                        const intervalKm = isNasmoco ? 10000 : 7000;
+                        const { intervalKm, intervalRule } = getServiceInterval(lastWorkshop);
 
                         const currentKm = Number(car.currentKm) || 0;
                         const diffKm = Math.max(0, currentKm - lastServiceKm);
@@ -355,7 +355,7 @@ function safeGetRawStorage(key, fallback = '') {
                             _lastServiceDateStr: lastServiceDateStr,
                             _lastWorkshop: lastWorkshop,
                             _serviceIntervalKm: intervalKm,
-                            _serviceIntervalRule: isNasmoco ? 'Nasmoco = 10.000 KM' : 'Selain Nasmoco = 7.000 KM',
+                            _serviceIntervalRule: intervalRule,
                             _routineStatus: routineStatus,
                             _remainingKm: remainingKm,
                             _remainingKmStr: remainingKmStr,
