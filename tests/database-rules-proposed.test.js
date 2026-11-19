@@ -35,7 +35,7 @@ test("privileged nodes require verified email for both primary UID and custom-cl
 
 test("vehicle anonymous operational update restrictions remain unchanged", () => {
   const expression = rules.artifacts["uns-fleet-service"].public.data_v2.vehicles["$vehicleId"][".write"];
-  for (const field of ["id", "plate", "model", "driver", "category", "lastServiceKm", "lastServiceDate", "currentKm"]) {
+  for (const field of ["id", "plate", "model", "driver", "category", "lastServiceKm", "lastServiceDate", "isHidden", "currentKm"]) {
     assert.ok(expression.includes("child('" + field + "')"), "missing vehicle guard for " + field);
   }
   assert.ok(expression.includes("sign_in_provider === 'anonymous'"));
