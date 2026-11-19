@@ -88,7 +88,7 @@ Scope: static review of the owner-supplied Rules JSON against the migration bran
 
 ### Findings
 
-- **Critical — Telegram credential disclosure:** `artifacts/uns-fleet-service/public/data_v2/telegramConfig/.read` is `auth != null`. Anonymous Authentication satisfies this condition, and the current client attaches a Telegram config listener for every session and stores the bot token in client state. The token is therefore available to any authenticated/anonymous app session. Do not simply deny client reads before replacing the current client-side Telegram delivery flow; that would break existing notifications. Move bot credentials and message sending to a trusted backend, then remove client access and rotate the exposed token.
+- **Critical — Telegram credential disclosure (known, owner-accepted risk):** `artifacts/uns-fleet-service/public/data_v2/telegramConfig/.read` is `auth != null`. Anonymous Authentication satisfies this condition, and the current client attaches a Telegram config listener for every session and stores the bot token in client state. The token is therefore available to any authenticated/anonymous app session. On 2026-11-19 the owner explicitly instructed that Telegram remain unchanged because notifications are working reliably. Preserve the current permission and delivery flow; do not migrate, rotate, or disable Telegram in this work. This is an accepted risk, not a technical remediation. See `docs/TELEGRAM_COMPATIBILITY_DECISION.md`.
 - **High — Custom Claims Admin are not authorized by the supplied Rules:** the Admin management implementation checks `auth.token.admin === true`, but the supplied Rules authorize privileged writes using only the fixed UID `cCEggFojkdNXlDneD3p3zHdreIg1`. Newly created Admin accounts will not be able to manage `vehicles`, `drivers`, `logs`, `settings`, `serviceAlertState`, `notifications`, `keyStats`, `meta`, or `telegramConfig` unless the relevant Rules explicitly recognize the Admin custom claim. The bootstrap account's UID must be verified against the existing fixed UID before rollout; do not assume they are the same account.
 - **High — Admin settings listener mismatch:** the frontend attaches the `settings` listener for a verified custom-claim Admin, while the supplied `settings/.read` only permits the fixed UID. A newly bootstrapped or added Admin will receive a permission-denied error on this listener.
 - **Medium — Anonymous vehicle update policy:** the `vehicles/$vehicleId/.write` condition allows anonymous sessions to update existing records only when the listed identity/master/service-baseline fields remain unchanged and `currentKm` does not decrease. This is consistent with a restricted odometer/operational-update pattern, but it does not explicitly constrain the other writable operational fields. Validate the exact intended field allowlist and payloads with RTDB Emulator before changing it. Anonymous sessions cannot create or delete vehicle records under this condition.
@@ -100,7 +100,7 @@ Scope: static review of the owner-supplied Rules JSON against the migration bran
 1. Confirm whether the fixed UID in the Rules is the same Firebase Authentication account as the designated primary Admin email. Verify this in Firebase Authentication; do not infer it from the email address.
 2. Prepare a proposed Rules revision that preserves current anonymous reads and the existing anonymous vehicle operational-update behavior, while adding a Custom Claims Admin path alongside the legacy UID during migration.
 3. Before any production Rules change, test anonymous, legacy UID Admin, primary custom-claim Admin, additional custom-claim Admin, ordinary email/password user, and revoked Admin against every affected node using RTDB Emulator.
-4. Migrate Telegram credentials and sending to a trusted backend before restricting `telegramConfig` reads; then rotate the bot token.
+4. Preserve Telegram's current `telegramConfig` read and delivery behavior per the owner's 2026-11-19 compatibility decision; retain the Emulator compatibility test and document the accepted token-exposure risk.
 5. Obtain explicit owner approval before applying any production Rules or deploying any service.
 
 
@@ -137,3 +137,8 @@ The proposed RTDB Rules now require `auth.token.email_verified === true` for **b
 - The emulator ran with demo project ID `demo-uns-fleet-service`; it did not connect to production.
 - Typecheck, Node tests, Vite build, Functions install, and Functions syntax validation also passed in the same workflow run.
 - The exact latest branch commit now includes rollout documentation; its own CI run must also be checked before describing the branch head as fully green.
+
+
+## Owner decision — Telegram compatibility (2026-11-19)
+
+The owner has chosen to retain the currently working Telegram integration unchanged. The critical token-exposure finding remains present and must not be described as fixed. Telegram configuration access, client listener, token handling, and message delivery are out of scope for this hardening pass. See `docs/TELEGRAM_COMPATIBILITY_DECISION.md`. Other Admin and database authorization work may proceed independently.
