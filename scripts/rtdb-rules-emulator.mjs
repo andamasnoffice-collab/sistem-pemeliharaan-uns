@@ -66,7 +66,8 @@ await env.withSecurityRulesDisabled(async (context) => {
     lastServiceKm: 10000,
     lastServiceDate: "2026-01-01",
     currentKm: 25000,
-    isUnderService: false
+    isUnderService: false,
+    isHidden: false
   });
   await set(ref(db, root + "/telegramConfig"), {
     botToken: "emulator-dummy-token",
@@ -133,12 +134,15 @@ test("unverified primary and unverified custom-claim Admin are denied privileged
   }));
 });
 
-test("Anonymous Auth can only update the existing operational odometer fields under the preserved guard", async () => {
+test("Anonymous Auth can increase the existing odometer without changing master or visibility fields", async () => {
   await assertSucceeds(update(ref(anonymous, root + "/vehicles/vehicle-1"), {
     currentKm: 25100
   }));
   await assertFails(update(ref(anonymous, root + "/vehicles/vehicle-1"), {
     plate: "AD 9999 ZZ"
+  }));
+  await assertFails(update(ref(anonymous, root + "/vehicles/vehicle-1"), {
+    isHidden: true
   }));
   await assertFails(update(ref(anonymous, root + "/vehicles/vehicle-1"), {
     currentKm: 24000
@@ -147,6 +151,16 @@ test("Anonymous Auth can only update the existing operational odometer fields un
     id: "new-vehicle",
     plate: "AD 5555 ZZ",
     currentKm: 1
+  }));
+});
+
+test("Anonymous Auth retains the operational vehicle fields currently written by the app", async () => {
+  await assertSucceeds(update(ref(anonymous, root + "/vehicles/vehicle-1"), {
+    isUnderService: true,
+    targetWorkshop: "Nasmoco",
+    inServiceDate: "2026-11-19",
+    inServiceNotes: "Pemeriksaan berkala",
+    damageNotes: [{ id: "note-1", text: "Bumper" }]
   }));
 });
 
