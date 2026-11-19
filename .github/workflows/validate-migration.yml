@@ -1,0 +1,27 @@
+name: Validate migration
+on:
+  push:
+    branches: [migration/vue3-typescript-vite]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: migration-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm install --no-save --package-lock=false @firebase/rules-unit-testing@4.0.1 firebase-tools
+      - run: npx firebase emulators:exec --only database --project demo-uns-fleet-service --config firebase.emulator.json "node scripts/rtdb-rules-emulator.mjs"
+      - run: npm run build
+      - run: npm install --prefix functions
+      - run: npm --prefix functions run lint
