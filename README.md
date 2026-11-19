@@ -2,7 +2,7 @@
 
 ## Status
 
-Branch migrasi bertahap dari aplikasi satu berkas ke Vue 3 + TypeScript + Vite. Fitur lama dipertahankan sebagai baseline kompatibilitas pada `src/legacy-main.ts`; tahap awal ini memindahkan entrypoint ke Vite dan mengganti CDN runtime Vue/Firebase dengan dependensi npm yang dipatok versinya.
+Branch migrasi bertahap dari aplikasi satu berkas ke Vue 3 + TypeScript + Vite. Fitur lama dipertahankan sebagai baseline kompatibilitas pada `src/legacy-main.js`; tahap awal ini memindahkan entrypoint ke Vite dan mengganti CDN runtime Vue/Firebase dengan dependensi npm yang dipatok versinya.
 
 ## Menjalankan
 
@@ -10,6 +10,7 @@ Branch migrasi bertahap dari aplikasi satu berkas ke Vue 3 + TypeScript + Vite. 
 - `npm install`
 - `npm run dev`
 - `npm run typecheck`
+- `npm test`
 - `npm run build`
 
 ## Batasan migrasi tahap awal
@@ -24,11 +25,16 @@ Branch migrasi bertahap dari aplikasi satu berkas ke Vue 3 + TypeScript + Vite. 
 
 Jangan mengubah Firebase Rules, struktur RTDB, nama node, atau memigrasikan data produksi sebagai bagian dari build frontend. Selalu uji pada salinan/staging. Jangan deploy atau mengganti branch produksi sebelum seluruh acceptance test selesai.
 
-## Rencana ekstraksi modul
+## Kemajuan ekstraksi modul
 
-1. Firebase bootstrap, Auth lifecycle, dan listener disposer.
-2. Repositories kendaraan, pengemudi, dan histori servis.
-3. Domain services untuk interval servis, komponen, dan perhitungan status.
-4. Modul notifikasi Telegram/FCM, Google Sheets, dan AI.
-5. Vue components, stores, lazy routes, dan virtualisasi histori bila diperlukan.
-6. Automated tests dan pengujian integrasi RTDB.
+- Firebase bootstrap dipisahkan di `src/services/firebase.ts`; Auth Email/Password dan Anonymous Auth tetap memakai project lama.
+- Path RTDB dipusatkan di `src/services/paths.js`; nama node dan root database tidak berubah.
+- Listener kendaraan, pengemudi, log, koneksi, dan konfigurasi admin kini menyimpan fungsi unsubscribe dan dapat dilepas saat komponen root dihancurkan.
+- Aturan interval servis dipisahkan di `src/domain/service-rules.js` dan diuji di `tests/service-rules.test.js`.
+
+## Rencana ekstraksi berikutnya
+
+1. Repositories kendaraan, pengemudi, dan histori servis dengan kontrak data kompatibel.
+2. Modul notifikasi Telegram/FCM, Google Sheets, dan AI; pindahkan token/API key ke backend sebelum mengubah alur kirim.
+3. Vue components, stores, lazy routes, dan virtualisasi histori bila diperlukan.
+4. Automated regression tests dan pengujian integrasi RTDB pada project staging.
