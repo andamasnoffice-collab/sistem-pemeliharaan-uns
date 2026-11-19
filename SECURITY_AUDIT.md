@@ -150,3 +150,37 @@ The owner has chosen to retain the currently working Telegram integration unchan
 - All workflow steps passed: dependency installation, TypeScript typecheck, Node tests, RTDB Rules Emulator tests, Vite production build, Functions dependency installation, and Functions lint/syntax check.
 - The RTDB Emulator uses the isolated demo project `demo-uns-fleet-service`; no production Firebase project was accessed.
 - This confirms branch validation only. It does not deploy Functions, apply RTDB Rules, or change production data/services.
+
+
+
+## Application-operation cross-check — follow-up (2026-11-19)
+
+Scope: reviewed the migration branch's actual RTDB repositories and the legacy application call sites against `database.rules.proposed.json`. This remains a static source review; no live database or production service was accessed.
+
+### Confirmed compatibility
+
+- The app's primary data root is `artifacts/uns-fleet-service/public/data_v2`.
+- Fleet listeners read `vehicles`, `drivers`, and `logs`; the corresponding Rules permit authenticated reads, including the Anonymous Auth sessions used by the app.
+- Vehicle operational sync writes `currentKm`, `isUnderService`, `targetWorkshop`, `inServiceDate`, `inServiceNotes`, and `damageNotes`. The current Anonymous vehicle rule preserves the existing identity/master/service-baseline fields and prevents odometer rollback.
+- Master vehicle edits and vehicle/log deletions are routed through the Admin UI and are intended to require a verified primary UID or verified Admin custom claim.
+- Driver and service-log writes are likewise Admin-only in the proposed Rules.
+- Settings writes and the settings listener are only used in the verified Admin flow.
+- The FCM token save payload includes `uid`, `token`, `app`, `platform`, and `updatedAt`, satisfying the required-child validation; the UID is taken from the current Firebase Auth user.
+- The application repository currently has a token-save operation but no token-read or token-delete operation.
+
+### New findings requiring a deliberate Rules decision
+
+- **High — Anonymous sessions can change vehicle visibility:** the anonymous vehicle write condition does not compare `isHidden` with its existing value. The application has a dedicated visibility toggle, which should be treated as Admin/master-data functionality. As written, an Anonymous session can potentially change `isHidden` while satisfying the other unchanged-field checks.
+- **High — Anonymous vehicle writes are not an explicit field allowlist:** the condition protects selected identity/master/service-baseline fields and enforces non-decreasing `currentKm`, but does not reject arbitrary additional fields. The current client operational sync uses the six fields listed above; the Rules should be designed around a verified full record schema and an explicit operational-field allowlist. Do not add a blanket wildcard denial until legacy records and sibling apps have been checked for additional fields.
+- **High — FCM token list is readable by every authenticated session:** `notificationTokens/.read` is `auth != null`, but no read operation for this node was found in the migration app. This exposes all stored device tokens to every Anonymous/authenticated client. Confirm whether another app depends on client-side reads; if not, narrow this read permission (preferably deny client reads and use trusted server-side access).
+- **Medium — FCM token deletion is denied:** the token write rule requires `newData.child('uid') == auth.uid`; deletion has null `newData`. The migration app currently does not delete tokens, so this does not block a discovered app flow. Add a UID-bound delete rule only if token cleanup is required.
+- **Telegram remains unchanged by owner decision:** the current app reads the Telegram config on every authenticated session and calls Telegram Bot API directly. Preserve this flow in this work; its credential exposure remains an accepted risk, not a fixed issue.
+
+### Safe remediation proposal (not yet applied)
+
+1. Tighten Anonymous vehicle updates so `isHidden` and every other master/administrative field must remain unchanged. Preserve only the required operational updates.
+2. Define and test a complete vehicle record schema before rejecting unknown fields. Preserve compatibility with existing records and other apps sharing this RTDB path.
+3. Verify whether any sibling app reads `notificationTokens`. If not, remove broad client read access; keep owner-bound token writes.
+4. Add Emulator tests for Anonymous attempts to change `isHidden`, add unknown fields, and update each allowed operational field; also test token-list read denial for Anonymous and ordinary authenticated users.
+5. Do not change Telegram configuration permissions or delivery behavior.
+6. Obtain explicit approval before applying any proposed Rules to production.
