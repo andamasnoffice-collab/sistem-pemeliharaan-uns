@@ -118,6 +118,7 @@ exports.revokeAdmin = onCall({ region: REGION }, async (request) => {
   const claims = { ...(target.customClaims || {}) };
   delete claims.admin;
   await getAuth().setCustomUserClaims(targetUid, claims);
+  await getAuth().revokeRefreshTokens(targetUid);
   return { ok: true, changed: true, uid: targetUid };
 });
 
