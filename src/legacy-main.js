@@ -1170,11 +1170,8 @@ function safeGetRawStorage(key, fallback = '') {
                     ];
                     safeSetStorage('uns_vehicles', this.vehicles);
                     safeSetStorage('uns_logs', this.serviceLogs);
-                    this.vehicles.forEach(v => this.syncVehicleToCloud(v));
-                    this.serviceLogs.forEach(l => this.syncLogToCloud(l));
-                    this.showToast('Data uji coba dimuat secara manual. Data ini tidak lagi dimuat otomatis saat aplikasi dibuka.', 'success');
+                    this.showToast('Data uji coba dimuat hanya di browser. Database Firebase tidak diubah.', 'success');
                 },
-
                 getComponentWear(car, compKey) {
                     if (!car) return { text: 'Belum tercatat', percent: null, lastRecord: 'Belum tercatat' };
 
@@ -2309,14 +2306,15 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     const file = event.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         try {
                             const data = new Uint8Array(e.target.result);
                             const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                             const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                            
+                            const cloudWrites = [];
                             let importedCount = 0;
+
                             jsonData.forEach(row => {
                                 if (row.Plat && row.TotalBiaya) {
                                     let dateStr = new Date().toISOString().substring(0, 10);
@@ -2336,27 +2334,35 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                                         totalCost: Number(row.TotalBiaya) || 0
                                     };
                                     this.serviceLogs.unshift(logObj);
-                                    this.syncLogToCloud(logObj);
+                                    cloudWrites.push(this.syncLogToCloud(logObj));
                                     importedCount++;
                                 }
                             });
-                            
-                            this.vehicles.forEach(car => {
-                                this.recalculateVehicleLastService(car);
-                                this.syncVehicleToCloud(car);
-                            });
 
+                            this.serviceLogs.forEach(log => {
+                                const car = (this.vehicles || []).find(v => v && (v.id === log.vehicleId || v.plate === log.vehicleId));
+                                if (car) this.recalculateVehicleLastService(car);
+                            });
                             safeSetStorage('uns_logs', this.serviceLogs);
                             safeSetStorage('uns_vehicles', this.vehicles);
+
+                            const results = await Promise.all(cloudWrites);
                             this.activeImportModal = false;
-                            this.showToast(`Berhasil mengimpor ${importedCount} data log!`, 'success');
+                            if (importedCount === 0) {
+                                this.showToast('Tidak ada baris impor yang memenuhi kolom Plat dan TotalBiaya.', 'error');
+                            } else if (results.length === importedCount && results.every(Boolean)) {
+                                await this.syncToGoogleSheetsAuto();
+                                this.showToast(`Berhasil mengimpor dan mengonfirmasi ${importedCount} data log ke Firebase.`, 'success');
+                            } else {
+                                this.showToast(`${importedCount} data log tersimpan lokal; sebagian belum dikonfirmasi Firebase. Periksa koneksi lalu gunakan Simpan Manual untuk mencoba sinkronisasi ulang.`, 'error');
+                            }
                         } catch (err) {
-                            this.showToast('Gagal membaca file Excel', 'error');
+                            console.warn('Gagal mengimpor data Excel:', err);
+                            this.showToast('Gagal membaca atau menyinkronkan file Excel.', 'error');
                         }
                     };
                     reader.readAsArrayBuffer(file);
                 },
-
                 async saveSheetsSettings() {
                     const saved = await this.saveSettingsToCloud();
                     if (!saved) {
