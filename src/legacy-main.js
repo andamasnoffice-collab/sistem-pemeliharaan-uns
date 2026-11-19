@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import * as XLSX from "xlsx";
 import { getServiceInterval } from "./domain/service-rules.js";
 import { dataPath } from "./services/paths.js";
+import { createFleetRepository } from "./repositories/fleet-repository.js";
 import { appId, db, auth } from "./services/firebase";
 import {
   signInWithEmailAndPassword,
@@ -21,6 +22,14 @@ import {
   onChildRemoved,
   update
 } from "firebase/database";
+
+const fleetRepository = createFleetRepository({
+  database: db,
+  ref,
+  update,
+  remove,
+  dataPath
+});
 
 function safeGetRawStorage(key, fallback = '') {
             try {
@@ -978,7 +987,7 @@ function safeGetRawStorage(key, fallback = '') {
                         const targetKey = this.cleanFirebaseKey(car._fbKey || car.id);
                         // Aplikasi operasional hanya boleh memperbarui field operasional.
                         // Master kendaraan (plat, model, driver, kategori, ON/OFF) dikelola Admin.
-                        await update(ref(db, dataPath("vehicles", targetKey)), {
+                        await fleetRepository.updateVehicleOperational(targetKey, {
                             currentKm: Number(car.currentKm) || 0,
                             isUnderService: Boolean(car.isUnderService),
                             targetWorkshop: car.targetWorkshop || '',
@@ -1000,7 +1009,7 @@ function safeGetRawStorage(key, fallback = '') {
                             ? carOrId
                             : (this.vehicles || []).find(v => v && (v.id === carOrId || v.plate === carOrId));
                         const targetKey = this.cleanFirebaseKey((car && car._fbKey) || (car && car.id) || carOrId);
-                        await remove(ref(db, dataPath("vehicles", targetKey)));
+                        await fleetRepository.deleteVehicle(targetKey);
                     } catch(e) { console.warn('Gagal menghapus armada dari cloud:', e); }
                 },
 
@@ -1008,7 +1017,7 @@ function safeGetRawStorage(key, fallback = '') {
                     if (!db || !log || !(log._fbKey || log.id)) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(log._fbKey || log.id);
-                        await update(ref(db, dataPath("logs", targetKey)), log);
+                        await fleetRepository.updateServiceLog(targetKey, log);
                     } catch(e) { console.warn('Gagal menyinkronkan log ke cloud:', e); }
                 },
 
@@ -1016,7 +1025,7 @@ function safeGetRawStorage(key, fallback = '') {
                     if (!db || !logId) return;
                     try {
                         const targetKey = this.cleanFirebaseKey(logId);
-                        await remove(ref(db, dataPath("logs", targetKey)));
+                        await fleetRepository.deleteServiceLog(targetKey);
                     } catch(e) {}
                 },
 
