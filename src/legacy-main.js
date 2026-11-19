@@ -939,6 +939,9 @@ function safeGetRawStorage(key, fallback = '') {
                         this._attachAdminSettingsListener = attachAdminSettingsListener;
                     } catch (e) {
                         console.warn("Setup realtime listeners error:", e);
+                        this.disposeRealtimeListeners();
+                        this.cloudStatus = 'error';
+                        this.cloudErrorMessage = this.explainFirebaseError(e, 'Gagal memasang listener Firebase.');
                     }
                 },
 
