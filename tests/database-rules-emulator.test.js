@@ -112,9 +112,9 @@ test("verified additional Admin custom claim can read and write privileged nodes
 });
 
 test("ordinary and revoked Admin sessions cannot read settings or write privileged nodes", async () => {
-  for (const db of [ordinary, revokedAdmin, anonymous]) {
+  for (const [index, db] of [ordinary, revokedAdmin, anonymous].entries()) {
     await assertFails(get(ref(db, root + "/settings")));
-    await assertFails(set(ref(db, root + "/drivers/denied-" + Math.random().toString(16).slice(2)), {
+    await assertFails(set(ref(db, root + "/drivers/denied-" + index), {
       name: "Denied"
     }));
   }
