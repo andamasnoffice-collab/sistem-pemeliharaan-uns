@@ -8,6 +8,7 @@ const htmlSource = await readFile(new URL("../index.html", import.meta.url), "ut
 
 test("Admin account-management endpoints require verified primary Admin", () => {
   assert.match(functionsSource, /const PRIMARY_ADMIN_UID = "cCEggFojkdNXlDneD3p3zHdreIg1"/);
+  assert.match(functionsSource, /exports\.bootstrapPrimaryAdmin[\s\S]*?request\.auth\.uid !== PRIMARY_ADMIN_UID/);
   assert.match(functionsSource, /function requireAdmin\(request\)[\s\S]*?email_verified !== true/);
   assert.match(functionsSource, /function requirePrimaryAdmin\(request\)[\s\S]*?callerUid !== PRIMARY_ADMIN_UID/);
   for (const endpoint of ["createAdmin", "revokeAdmin", "listAdmins"]) {
@@ -22,5 +23,6 @@ test("frontend exposes account management only to the confirmed primary Admin UI
   assert.match(appSource, /isPrimaryAdmin: false/);
   assert.match(appSource, /this\.isPrimaryAdmin = this\.isAdmin && user\.uid === "cCEggFojkdNXlDneD3p3zHdreIg1"/);
   assert.match(appSource, /if \(!this\.isPrimaryAdmin\) return;/);
+  assert.match(appSource, /this\.isAdmin = false;\s*this\.isPrimaryAdmin = false;\s*this\.isAdminBootstrapEligible = false;/);
   assert.match(htmlSource, /v-if="isPrimaryAdmin" @click="openAdminManagement"/);
 });
