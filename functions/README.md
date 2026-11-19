@@ -16,12 +16,12 @@ This folder contains callable Firebase Functions for managing Firebase Authentic
 
 1. Confirm the Firebase project is `uns-fleet-service` and the primary account `Kala@gmail.com` exists in Firebase Authentication with email verification complete.
 2. Use a trusted operator workstation with Firebase CLI authenticated to the intended project.
-4. Install dependencies in this folder with `npm install`.
-5. Deploy only Functions using an explicit project selector, never RTDB Rules:
+3. Install dependencies in this folder with `npm install`.
+4. Deploy only Functions using an explicit project selector, never RTDB Rules:
    `firebase deploy --only functions --project uns-fleet-service`
-6. When prompted for `BOOTSTRAP_ADMIN_EMAIL`, set it to the confirmed primary account email.
-7. Sign in as the primary account and invoke `bootstrapPrimaryAdmin` once. Refresh the ID token after the claim is set.
-8. Verify Admin UI authorization and callable permissions with the primary account and a non-admin test account before enabling Admin management UI.
+5. When prompted for `BOOTSTRAP_ADMIN_EMAIL`, set it to the confirmed primary account email.
+6. Sign in as the primary account and invoke `bootstrapPrimaryAdmin` once. Refresh the ID token after the claim is set.
+7. Verify Admin UI authorization and callable permissions with the primary account and a non-admin test account before enabling Admin management UI.
 
 Firebase Functions deployment may require the project to use the Blaze billing plan. Confirm costs and quotas before deployment.
 
