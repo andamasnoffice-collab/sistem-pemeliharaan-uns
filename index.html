@@ -146,7 +146,7 @@
                     <i class="fa-solid fa-shield-halved"></i>
                     <span>{{ adminManagementBusy ? 'Memproses...' : 'Aktifkan Admin Utama' }}</span>
                 </button>
-                <button v-else @click="activeAdminModal = true" class="px-2.5 sm:px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-[11px] sm:text-xs font-bold transition shadow-md flex items-center gap-1.5">
+                <button v-if="!isAdmin && !isAdminBootstrapEligible" @click="activeAdminModal = true" class="px-2.5 sm:px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-[11px] sm:text-xs font-bold transition shadow-md flex items-center gap-1.5">
                     <i class="fa-solid fa-user-shield"></i>
                     <span>Login Admin</span>
                 </button>
