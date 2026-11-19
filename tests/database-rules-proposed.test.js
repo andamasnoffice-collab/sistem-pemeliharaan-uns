@@ -8,24 +8,28 @@ const rulesDocument = JSON.parse(
 const rules = rulesDocument.rules;
 const adminUid = "cCEggFojkdNXlDneD3p3zHdreIg1";
 const adminClaim = "auth.token.admin === true";
+const verifiedClaim = "auth.token.email_verified === true";
 
 test("proposed RTDB Rules keep root access closed", () => {
   assert.equal(rules[".read"], false);
   assert.equal(rules[".write"], false);
 });
 
-test("privileged nodes accept custom-claim Admin and retain the legacy primary UID", () => {
+test("privileged nodes accept verified custom-claim Admin and retain the legacy primary UID", () => {
   const nodes = rules.artifacts["uns-fleet-service"].public.data_v2;
   const privileged = ["drivers", "logs", "settings", "serviceAlertState", "notifications", "keyStats", "meta", "telegramConfig"];
   for (const nodeName of privileged) {
     const node = nodes[nodeName];
     const expressions = [node[".write"], node["$driverId"]?.[".write"], node["$logId"]?.[".write"], node["$stateId"]?.[".write"], node["$notificationId"]?.[".write"]].filter(Boolean);
-    assert.ok(expressions.some(expression => expression.includes(adminClaim)), nodeName + " must accept admin claim");
-    assert.ok(expressions.some(expression => expression.includes(adminUid)), nodeName + " must retain legacy primary UID");
+    const combined = expressions.join(" ");
+    assert.ok(combined.includes(adminClaim), nodeName + " must accept Admin custom claim");
+    assert.ok(combined.includes(verifiedClaim), nodeName + " must require verified email for claim-based Admin access");
+    assert.ok(combined.includes(adminUid), nodeName + " must retain legacy primary UID");
   }
-  assert.ok(nodes.settings[".read"].includes(adminClaim));
-  assert.ok(nodes.keyStats[".read"].includes(adminClaim));
-  assert.ok(nodes.meta[".read"].includes(adminClaim));
+  for (const nodeName of ["settings", "keyStats", "meta"]) {
+    assert.ok(nodes[nodeName][".read"].includes(adminClaim));
+    assert.ok(nodes[nodeName][".read"].includes(verifiedClaim));
+  }
 });
 
 test("vehicle anonymous operational update restrictions remain unchanged", () => {
@@ -35,6 +39,8 @@ test("vehicle anonymous operational update restrictions remain unchanged", () =>
   }
   assert.ok(expression.includes("sign_in_provider === 'anonymous'"));
   assert.ok(expression.includes(adminClaim));
+  assert.ok(expression.includes(verifiedClaim));
+  assert.ok(expression.includes(adminUid));
 });
 
 test("notification tokens remain restricted to their owning UID", () => {
