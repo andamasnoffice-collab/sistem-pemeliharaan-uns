@@ -804,7 +804,8 @@ function safeGetRawStorage(key, fallback = '') {
                     try {
                         await createAdminAccount(email, password);
                         this.adminForm = { email: '', password: '' };
-                        await this.refreshAdminAccounts();
+                        const result = await listAdminAccounts();
+                        this.adminAccounts = Array.isArray(result.admins) ? result.admins : [];
                         this.showToast('Akun Admin dibuat. Pemilik email harus memverifikasi alamat email sebelum dapat mengelola aplikasi.', 'success');
                     } catch (error) {
                         this.showToast('Gagal menambahkan Admin: ' + (error.message || 'Kesalahan backend.'), 'error');
@@ -817,7 +818,8 @@ function safeGetRawStorage(key, fallback = '') {
                     this.adminManagementBusy = true;
                     try {
                         await revokeAdminAccess(admin.uid);
-                        await this.refreshAdminAccounts();
+                        const result = await listAdminAccounts();
+                        this.adminAccounts = Array.isArray(result.admins) ? result.admins : [];
                         this.showToast('Hak Admin berhasil dicabut. Akun Firebase dan data tidak dihapus.', 'success');
                     } catch (error) {
                         this.showToast('Gagal mencabut hak Admin: ' + (error.message || 'Kesalahan backend.'), 'error');
