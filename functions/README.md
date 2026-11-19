@@ -9,14 +9,13 @@ This folder contains callable Firebase Functions for managing Firebase Authentic
 - Only that exact verified account can run the one-time bootstrap, and bootstrap refuses to initialize if another Admin claim already exists.
 - Subsequent Admin creation/revocation/listing requires a verified caller with the server-issued `admin: true` custom claim.
 - Revocation removes only the Admin claim. It does not delete the Firebase Auth account or application data.
-- Admin functions enforce Firebase App Check. Configure and test App Check for the web app before deployment.
+- Admin callable endpoints currently rely on verified Firebase Auth ID tokens and server-issued custom claims. App Check is not enforced yet because the current frontend has no App Check initialization; add and validate it before enabling enforcement.
 - Do not deploy until the primary account has been confirmed in Firebase Authentication and the function source has passed review.
 
 ## Project setup (not executed)
 
 1. Confirm the Firebase project is `uns-fleet-service` and the primary account `Kala@gmail.com` exists in Firebase Authentication with email verification complete.
-2. Configure Firebase App Check for the actual web app and validate legitimate clients.
-3. Use a trusted operator workstation with Firebase CLI authenticated to the intended project.
+2. Use a trusted operator workstation with Firebase CLI authenticated to the intended project.
 4. Install dependencies in this folder with `npm install`.
 5. Deploy only Functions using an explicit project selector, never RTDB Rules:
    `firebase deploy --only functions --project uns-fleet-service`
