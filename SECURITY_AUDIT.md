@@ -113,3 +113,13 @@ Scope: static review of the owner-supplied Rules JSON against the migration bran
 - Static Node tests now assert that each privileged write path contains both the Admin and email-verification checks, while retaining the legacy primary UID. These tests inspect the Rules text; they are not equivalent to RTDB Emulator authorization tests.
 - Latest CI for commit `c2465987f7dfae75073df63d42a3b2cfa672b90e` completed successfully (typecheck, tests, Vite build, Functions install and syntax check). The follow-up Rules/test commits are awaiting their own CI run.
 - No Emulator test, live Authentication lookup, production Rules update, Functions deployment, or application deployment has been performed. Production remains unchanged.
+
+
+## Primary Admin account-management boundary (2026-11-19)
+
+- The owner-designated primary account is bound to the confirmed UID `cCEggFojkdNXlDneD3p3zHdreIg1` (email `Kala@gmail.com`).
+- The one-time bootstrap endpoint now requires both the verified configured email and this exact UID.
+- Creating, listing, and revoking Admin accounts now require a verified Admin custom claim **and** the primary UID. Additional Admins retain their application Admin permissions but cannot grant or revoke other Admin accounts.
+- The frontend shows the Manajemen Admin entry only to the primary UID, guards the management methods, and clears the primary-admin UI state when the session returns to Anonymous.
+- Revocation still removes the target's Admin custom claim and revokes refresh tokens without deleting the Firebase Auth account or RTDB data. Existing ID tokens may remain valid until expiry; the proposed Rules require the Admin claim and verified email, but token revocation propagation must still be tested.
+- These are migration-branch source changes only. The Functions have not been deployed and the new Rules have not been applied to production.
