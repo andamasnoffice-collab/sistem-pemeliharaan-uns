@@ -44,7 +44,7 @@ async function countAdmins() {
  * The account must already exist in Firebase Authentication and have a verified email.
  * The configured email is stored as a Functions environment parameter, never in the client.
  */
-exports.bootstrapPrimaryAdmin = onCall({ region: REGION, enforceAppCheck: true }, async (request) => {
+exports.bootstrapPrimaryAdmin = onCall({ region: REGION }, async (request) => {
   const email = requireVerifiedEmail(request);
   const configuredEmail = normalizeEmail(bootstrapAdminEmail.value());
   if (!configuredEmail || email !== configuredEmail) {
@@ -69,7 +69,7 @@ exports.bootstrapPrimaryAdmin = onCall({ region: REGION, enforceAppCheck: true }
 });
 
 /** Create a new email/password account and grant the Admin custom claim. */
-exports.createAdmin = onCall({ region: REGION, enforceAppCheck: true }, async (request) => {
+exports.createAdmin = onCall({ region: REGION }, async (request) => {
   requireAdmin(request);
   const email = normalizeEmail(request.data && request.data.email);
   const password = String((request.data && request.data.password) || "");
@@ -99,7 +99,7 @@ exports.createAdmin = onCall({ region: REGION, enforceAppCheck: true }, async (r
 });
 
 /** Remove Admin privilege without deleting the Firebase account or application data. */
-exports.revokeAdmin = onCall({ region: REGION, enforceAppCheck: true }, async (request) => {
+exports.revokeAdmin = onCall({ region: REGION }, async (request) => {
   const callerUid = requireAdmin(request);
   const targetUid = String((request.data && request.data.uid) || "").trim();
   if (!targetUid) throw new HttpsError("invalid-argument", "UID target wajib diisi.");
@@ -122,7 +122,7 @@ exports.revokeAdmin = onCall({ region: REGION, enforceAppCheck: true }, async (r
 });
 
 /** List only Admin account metadata; never returns passwords or private credentials. */
-exports.listAdmins = onCall({ region: REGION, enforceAppCheck: true }, async (request) => {
+exports.listAdmins = onCall({ region: REGION }, async (request) => {
   requireAdmin(request);
   const admins = [];
   let nextPageToken;
