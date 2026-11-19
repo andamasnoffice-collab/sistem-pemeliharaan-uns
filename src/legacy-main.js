@@ -1952,38 +1952,87 @@ async sendAutomanFcmBridge(type, title, body, data = {}) {
                     this.activeVehicleModal = true;
                 },
 
-                saveVehicle() {
+                async saveVehicle() {
+                    if (!this.isAdmin || !db) {
+                        this.showToast('Hanya Admin yang dapat menyimpan master kendaraan ke Firebase.', 'error');
+                        return;
+                    }
                     if (!this.vehicleForm.plate || !this.vehicleForm.model) {
                         this.showToast('Plat dan Model wajib diisi!', 'error');
                         return;
                     }
-                    let carToSync = null;
-                    const cleanPlate = this.vehicleForm.plate.toUpperCase().trim();
 
-                    if (this.vehicleForm.id) {
-                        const idx = this.vehicles.findIndex(v => v && v.id === this.vehicleForm.id);
-                        if (idx !== -1) {
-                            this.vehicles[idx] = { ...this.vehicleForm, plate: cleanPlate };
-                            carToSync = this.vehicles[idx];
-                        }
-                    } else {
-                        const newCar = {
+                    const cleanPlate = this.vehicleForm.plate.toUpperCase().trim();
+                    const duplicate = (this.vehicles || []).find(v =>
+                        v && String(v.plate || '').toUpperCase().trim() === cleanPlate &&
+                        v.id !== this.vehicleForm.id
+                    );
+                    if (duplicate) {
+                        this.showToast('Plat nomor sudah terdaftar pada armada lain.', 'error');
+                        return;
+                    }
+
+                    const isNew = !this.vehicleForm.id;
+                    let targetKey = '';
+                    let updatedVehicle;
+                    let patch;
+
+                    if (isNew) {
+                        updatedVehicle = {
                             ...this.vehicleForm,
                             id: cleanPlate,
                             plate: cleanPlate,
+                            currentKm: Number(this.vehicleForm.currentKm) || 0,
                             lastServiceKm: 0,
                             lastServiceDate: ''
                         };
-                        this.vehicles.push(newCar);
-                        carToSync = newCar;
+                        targetKey = this.cleanFirebaseKey(cleanPlate);
+                        patch = {
+                            id: updatedVehicle.id,
+                            plate: updatedVehicle.plate,
+                            model: updatedVehicle.model,
+                            driver: updatedVehicle.driver || '',
+                            category: updatedVehicle.category || 'Operasional',
+                            currentKm: updatedVehicle.currentKm,
+                            isUnderService: Boolean(updatedVehicle.isUnderService),
+                            isHidden: Boolean(updatedVehicle.isHidden),
+                            lastServiceKm: 0,
+                            lastServiceDate: ''
+                        };
+                    } else {
+                        const idx = (this.vehicles || []).findIndex(v => v && v.id === this.vehicleForm.id);
+                        if (idx < 0) {
+                            this.showToast('Data armada tidak ditemukan. Muat ulang data Firebase.', 'error');
+                            return;
+                        }
+                        const existing = this.vehicles[idx];
+                        targetKey = this.cleanFirebaseKey(existing._fbKey || existing.id);
+                        patch = {
+                            plate: cleanPlate,
+                            model: this.vehicleForm.model,
+                            driver: this.vehicleForm.driver || '',
+                            category: this.vehicleForm.category || 'Operasional',
+                            currentKm: Number(this.vehicleForm.currentKm) || 0,
+                            isHidden: Boolean(this.vehicleForm.isHidden)
+                        };
+                        updatedVehicle = { ...existing, ...patch };
                     }
-                    safeSetStorage('uns_vehicles', this.vehicles);
-                    if (carToSync) {
-                        this.syncVehicleToCloud(carToSync);
+
+                    try {
+                        await fleetRepository.updateVehicleMaster(targetKey, patch);
+                        if (isNew) this.vehicles.push(updatedVehicle);
+                        else {
+                            const idx = this.vehicles.findIndex(v => v && v.id === this.vehicleForm.id);
+                            this.vehicles.splice(idx, 1, updatedVehicle);
+                        }
+                        safeSetStorage('uns_vehicles', this.vehicles);
+                        await this.syncToGoogleSheetsAuto();
+                        this.activeVehicleModal = false;
+                        this.showToast('Data armada berhasil dikonfirmasi tersimpan di Firebase.', 'success');
+                    } catch (e) {
+                        console.warn('Gagal menyimpan master kendaraan ke Firebase:', e);
+                        this.showToast('Gagal menyimpan master kendaraan ke Firebase. Data lokal tidak diubah.', 'error');
                     }
-                    this.syncToGoogleSheetsAuto();
-                    this.activeVehicleModal = false;
-                    this.showToast('Data armada berhasil disimpan!', 'success');
                 },
 
                 openDeleteVehicleModal(car) {

@@ -47,6 +47,17 @@ test("updates only the existing isHidden field for vehicle visibility", async ()
   }]);
 });
 
+test("updates master vehicle fields at the existing RTDB path without replacing other fields", async () => {
+  const { calls, repository } = createHarness();
+  const patch = { plate: "AD 1234 AB", model: "Toyota Innova", driver: "Driver", category: "Operasional", currentKm: 45678, isHidden: false };
+  await repository.updateVehicleMaster("vehicle-master", patch);
+  assert.deepEqual(calls, [{
+    operation: "update",
+    path: "root/vehicles/vehicle-master",
+    payload: patch
+  }]);
+});
+
 test("deletes a vehicle at the existing RTDB path", async () => {
   const { calls, repository } = createHarness();
   await repository.deleteVehicle("vehicle-2");

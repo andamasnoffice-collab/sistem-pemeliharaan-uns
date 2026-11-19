@@ -18,6 +18,9 @@ export function createFleetRepository({ database, ref, update, remove, dataPath 
     updateVehicleVisibility(key, isHidden) {
       return update(ref(database, dataPath("vehicles", key)), { isHidden: Boolean(isHidden) });
     },
+    updateVehicleMaster(key, patch) {
+      return update(ref(database, dataPath("vehicles", key)), patch);
+    },
     deleteVehicle(key) {
       return remove(ref(database, dataPath("vehicles", key)));
     },
