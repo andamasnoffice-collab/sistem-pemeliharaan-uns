@@ -7,14 +7,8 @@ import { dataPath } from "./services/paths.js";
 import { createFleetRepository } from "./repositories/fleet-repository.js";
 import { createSettingsRepository } from "./repositories/settings-repository.js";
 import { appId, db, auth } from "./services/firebase";
-import {
-  signInWithEmailAndPassword,
-  signInAnonymously,
-  signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  updatePassword
-} from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { createAuthService } from "./services/auth-service.js";
 import {
   ref,
   set,
@@ -39,6 +33,15 @@ const settingsRepository = createSettingsRepository({
   ref,
   update,
   dataPath
+});
+
+const authService = createAuthService({
+  auth,
+  signInWithEmailAndPassword,
+  signInAnonymously,
+  signOut,
+  sendPasswordResetEmail,
+  updatePassword
 });
 
 function safeGetRawStorage(key, fallback = '') {
@@ -553,7 +556,7 @@ function safeGetRawStorage(key, fallback = '') {
                                 return;
                             }
 
-                            signInAnonymously(auth).then((cred) => {
+                            authService.signInAnonymously().then((cred) => {
                                 this.currentUser = cred.user;
                                 this.firebaseUserId = cred.user.uid;
                                 this.firebaseAuthProvider = 'anonymous';
@@ -685,7 +688,7 @@ function safeGetRawStorage(key, fallback = '') {
                         return;
                     }
                     try {
-                        await signInWithEmailAndPassword(auth, email, pwd);
+                        await authService.signInWithEmailAndPassword(email, pwd);
                         safeSetStorage('uns_admin_email', email);
                         this.activeAdminModal = false;
                         this.adminPasswordInput = '';
@@ -707,7 +710,7 @@ function safeGetRawStorage(key, fallback = '') {
                             this._realtimeUnsubs = (this._realtimeUnsubs || []).filter(fn => fn !== unsubscribe);
                             this._settingsUnsub = null;
                         }
-                        await signOut(auth);
+                        await authService.signOut();
                         this.isAdmin = false;
                         this.currentTab = 'dashboard';
                         this.showToast('Admin berhasil keluar. Mode Publik aktif.', 'success');
@@ -726,7 +729,7 @@ function safeGetRawStorage(key, fallback = '') {
                         return;
                     }
                     try {
-                        await updatePassword(auth.currentUser, this.pwdForm.newPwd);
+                        await authService.updatePassword(auth.currentUser, this.pwdForm.newPwd);
                         this.activePasswordModal = false;
                         this.pwdForm = { currentPwd: '', newPwd: '', confirmPwd: '' };
                         this.showToast('Password Admin berhasil diubah via Firebase Auth!', 'success');
@@ -746,7 +749,7 @@ function safeGetRawStorage(key, fallback = '') {
                         return;
                     }
                     try {
-                        await sendPasswordResetEmail(auth, email);
+                        await authService.sendPasswordResetEmail(email);
                         this.showToast(`Email reset password telah dikirim ke ${email}`, 'success');
                     } catch (e) {
                         let msg = 'Gagal mengirim email reset password.';
