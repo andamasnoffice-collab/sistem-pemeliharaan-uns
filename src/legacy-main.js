@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import * as XLSX from "xlsx";
 import { getServiceInterval } from "./domain/service-rules.js";
+import { mapVehicleRecord, mapDriverRecord, mapServiceLogRecord } from "./domain/record-mappers.js";
 import { dataPath } from "./services/paths.js";
 import { createFleetRepository } from "./repositories/fleet-repository.js";
 import { createSettingsRepository } from "./repositories/settings-repository.js";
@@ -807,12 +808,8 @@ function safeGetRawStorage(key, fallback = '') {
                         // tidak mengunduh ulang seluruh koleksi.
                         const upsertVehicle = (key, val) => {
                             if (!val || typeof val !== 'object') return;
-                            const normalized = {
-                                ...val,
-                                id: val.id || key,
-                                _fbKey: key,
-                                damageNotes: this.normalizeDamageNotes(val.damageNotes)
-                            };
+                            const normalized = mapVehicleRecord(key, val, value => this.normalizeDamageNotes(value));
+                            if (!normalized) return;
                             const idx = (this.vehicles || []).findIndex(v =>
                                 v && (v.id === normalized.id || v._fbKey === key)
                             );
@@ -866,7 +863,8 @@ function safeGetRawStorage(key, fallback = '') {
                         let driverCloudSynced = false;
                         const upsertDriver = (key, val) => {
                             if (!val || typeof val !== 'object') return;
-                            const item = { ...val, id: val.id || key, _fbKey: key };
+                            const item = mapDriverRecord(key, val);
+                            if (!item) return;
                             const idx = (this.drivers || []).findIndex(d => d && (d._fbKey === key || d.id === item.id));
                             if (idx >= 0) this.drivers.splice(idx, 1, item); else this.drivers.push(item);
                         };
@@ -880,7 +878,8 @@ function safeGetRawStorage(key, fallback = '') {
                         // Log servis: incremental juga.
                         const upsertLog = (key, val) => {
                             if (!val || typeof val !== 'object') return;
-                            const normalized = { ...val, id: val.id || key, _fbKey: key };
+                            const normalized = mapServiceLogRecord(key, val);
+                            if (!normalized) return;
                             const idx = (this.serviceLogs || []).findIndex(l =>
                                 l && (l.id === normalized.id || l._fbKey === key)
                             );
