@@ -11,6 +11,7 @@ import { ref, set, get, update, remove } from "firebase/database";
 const projectId = "demo-uns-fleet-service";
 const primaryUid = "cCEggFojkdNXlDneD3p3zHdreIg1";
 const root = "artifacts/uns-fleet-service/public/data_v2";
+const sharedDataPath = "artifacts/uns-fleet-service/public/data";
 const rules = await readFile(new URL("../database.rules.proposed.json", import.meta.url), "utf8");
 
 const env = await initializeTestEnvironment({
@@ -106,7 +107,7 @@ test("verified additional Admin custom claim can read and write privileged nodes
   await assertSucceeds(set(ref(additionalAdmin, root + "/meta/test"), {
     version: 1
   }));
-  await assertSucceeds(set(ref(additionalAdmin, root + "/data/test"), {
+  await assertSucceeds(set(ref(additionalAdmin, sharedDataPath + "/test"), {
     value: "admin"
   }));
 });
@@ -118,7 +119,7 @@ test("ordinary and revoked Admin sessions cannot read settings or write privileg
       name: "Denied"
     }));
   }
-  await assertFails(set(ref(ordinary, root + "/data/ordinary"), { value: "denied" }));
+  await assertFails(set(ref(ordinary, sharedDataPath + "/ordinary"), { value: "denied" }));
 });
 
 test("unverified primary and unverified custom-claim Admin are denied privileged access", async () => {
